@@ -1,0 +1,173 @@
+package org.firstinspires.ftc.teamcode.Config.Subsystems;
+
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
+
+import org.firstinspires.ftc.teamcode.Config.Util.SRSHub;
+
+
+public class Sensors {
+
+    public enum DetectedColor {
+        GREEN,
+        PURPLE
+    }
+
+    // --- Core SRSHub Reference ---
+    private SRSHub hub;
+    private final ElapsedTime runtime = new ElapsedTime();
+
+    // --- Configured I2C Devices ---
+    private SRSHub.APDS9151 colorSensor1;
+
+    // --- CALIBRATION CONSTANTS ---
+    private final int TURRET_OFFSET_DEGREES = 0;
+    private final int TURRET_CLAMP_MAX = 360;
+    private final int HOOD_OFFSET_DEGREES = 0;
+    private final int HOOD_CLAMP_MAX = 360;
+
+
+
+    /**
+     * Initialize the SRSHub and attached devices.
+     */
+    public void init(HardwareMap hwMap, String hubName) {
+        SRSHub.Config config = new SRSHub.Config();
+
+        // Add APDS9151 to bus 1
+        config.addI2CDevice(1, new SRSHub.APDS9151());
+
+        // AD devices
+        config.setAnalogDigitalDevice(1, SRSHub.AnalogDigitalDevice.DIGITAL); // Beam Break 1
+        config.setAnalogDigitalDevice(2, SRSHub.AnalogDigitalDevice.DIGITAL); // Beam Break 2
+        config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
+        config.setAnalogDigitalDevice(4, SRSHub.AnalogDigitalDevice.ANALOG);  // Hood Encoder
+
+        RobotLog.clearGlobalWarningMsg();
+
+        hub = hwMap.get(SRSHub.class, hubName);
+        hub.init(config);
+
+        // REQUIRED: wait until hub is fully initialized
+        waitForHubReady();
+
+        // REQUIRED: retrieve the actual live instance from the hub
+        colorSensor1 = hub.getI2CDevice(1, SRSHub.APDS9151.class);
+    }
+
+    /**
+     * Waits until SRSHub finishes applying configuration.
+     * Uses Thread.yield() as you wrote it.
+     */
+    public void waitForHubReady() {
+        runtime.reset();
+        while (!hub.ready() && runtime.seconds() < 2.0) {
+            Thread.yield();
+        }
+    }
+
+    public boolean isHubReady() {
+        return hub.ready();
+    }
+
+    /**
+     * Update all hub data — call once per loop.
+     */
+    public void update() {
+        if (!isHubDisconnected()) {
+            hub.update();
+        }
+    }
+
+    public boolean isHubDisconnected() {
+        return hub.disconnected();
+    }
+
+    public boolean isColorSensor1Disconnected() {
+        return colorSensor1.disconnected;
+    }
+
+    // --- APDS9151 Raw RGB ---
+    public int getColor1Red() {
+        return colorSensor1.red;
+    }
+
+    public int getColor1Green() {
+        return colorSensor1.green;
+    }
+
+    public int getColor1Blue() {
+        return colorSensor1.blue;
+    }
+
+    public short getColor1Proximity() {
+        return colorSensor1.proximity;
+    }
+
+
+
+    // --- Digital Beam Breaks (AD pins 1 & 2) ---
+    public boolean isBeamBroken1() {
+        return hub.readAnalogDigitalDevice(1) > 0.5;
+    }
+
+    public boolean isBeamBroken2() {
+        return hub.readAnalogDigitalDevice(2) > 0.5;
+    }
+
+    // --- Raw Analog Encoder Values ---
+    public double getAnalogEncoder1Value() {
+        return hub.readAnalogDigitalDevice(3);
+    }
+
+    public double getAnalogEncoder2Value() {
+        return hub.readAnalogDigitalDevice(4);
+    }
+
+    // --- Calibrated Positions (clamping logic unchanged) ---
+    public int getTurretPosition() {
+        double normalizedValue = getAnalogEncoder1Value();
+        int pos = (int) (Math.round(normalizedValue * 360) + TURRET_OFFSET_DEGREES) % 360;
+
+        if (pos < 0) pos += 360;
+        if (pos > TURRET_CLAMP_MAX) pos = 0;
+
+        return pos;
+    }
+
+    public int getHoodPosition() {
+        double normalizedValue = getAnalogEncoder2Value();
+        int pos = (int) (Math.round(normalizedValue * 360) + HOOD_OFFSET_DEGREES) % 360;
+
+        if (pos < 0) pos += 360;
+        if (pos > HOOD_CLAMP_MAX) pos = 0;
+
+        return pos;
+    }
+
+
+    public DetectedColor getDetectedColor() {
+        int r = getColor1Red();
+        int g = getColor1Green();
+        int b = getColor1Blue();
+
+        // --- NOTHING DETECTED ---
+        if (r < 120 && g < 120 && b < 120) {
+            return null;
+        }
+
+        // --- GREEN: green strongest ---
+        if (g > r && g > b) {
+            return DetectedColor.GREEN;
+        }
+
+        // --- PURPLE: both G and B > R ---
+        if (g > r && b > r) {
+            return DetectedColor.PURPLE;
+        }
+
+        // --- everything else counts as NONE ---
+        return null;
+    }
+}

@@ -1,0 +1,305 @@
+package org.firstinspires.ftc.teamcode.Config.Subsystems;
+
+import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
+
+@Configurable
+public class Intake {
+
+    private Telemetry telemetry;
+    private DcMotorEx intake;
+    private Servo transferDirectionSwitcher;
+    private Servo transferPowerTransmition;
+    private Servo gateLeft;
+    private Servo gateRight;
+
+    public static double motorPower = 0;
+
+    // Configurable constants
+    public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
+    public static double targetRPM = 0;  // default target speed
+    public static final double TRANSFER_DIRECTION_TRANSFER = 0.75;
+    public static final double TRANSFER_DIRECTION_CYCLE = 0.3;
+    public static final double GATE_OPEN = 0.7;
+    public static final double GATE_CLOSED = 0.3;
+    public static final double TRANSFER_ON = 0.7;
+    public static final double TRANSFER_OFF = 0.3;
+
+    //SORTING STUFF//
+    private int currentShot = 0;
+    private int greenInventory = 0;
+    private int purpleInventory = 0;
+    private boolean ballInTransfer = false;
+    private boolean greenHasBeenShot = false;
+
+    public Intake(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
+
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+        transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitcher");
+        transferDirectionSwitcher.setDirection(Servo.Direction.FORWARD);
+
+        transferPowerTransmition = hardwareMap.get(Servo.class,"powerTransmition");
+        transferPowerTransmition.setDirection(Servo.Direction.FORWARD);
+
+        gateLeft = hardwareMap.get(Servo.class,"gateRight");
+        gateLeft.setDirection(Servo.Direction.REVERSE);
+
+        gateRight = hardwareMap.get(Servo.class,"gateRight");
+        gateRight.setDirection(Servo.Direction.FORWARD);
+
+
+    }
+
+
+
+    public void intake(){
+        gateClose();
+        transferOff();
+        intake.setPower(1);
+        motorPower = 1;
+    }
+
+    public void outtake(){
+        gateClose();
+        transferOff();
+        intake.setPower(-0.4);
+        motorPower = -0.4;
+    }
+
+    public void retainBalls(){
+        gateClose();
+        transferOff();
+        intake.setPower(0.5);
+        motorPower = 0.5;
+    }
+
+    public void intakeMotorIdle(){
+        intake.setPower(0);
+        motorPower = 0;
+    }
+
+    private void setDirectionSwitcherPosition(double position) {
+        transferDirectionSwitcher.setPosition(Range.clip(position, 0.0,1.0));
+    }
+
+    private void setPowerTransmitionPosition(double position) {
+        transferPowerTransmition.setPosition(Range.clip(position, 0.0,1.0));
+    }
+
+    private void setGatePositon(double position) {
+        gateLeft.setPosition(Range.clip(position, 0.0,1.0));
+        gateRight.setPosition(Range.clip(position, 0.0,1.0));
+    }
+
+    private void transferOn(){
+        setPowerTransmitionPosition(TRANSFER_ON);
+    }
+
+    private void transferOff(){
+        setPowerTransmitionPosition(TRANSFER_OFF);
+    }
+
+    public void setDirectionTransfer(){
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER);
+    }
+
+    public void setDirectionCycle(){
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE);
+    }
+
+    public void gateOpen(){
+        setGatePositon(GATE_OPEN);
+    }
+    public void gateClose(){
+        setGatePositon(GATE_CLOSED);
+    }
+
+
+    public void cycle(){
+        gateOpen();
+        transferOn();
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE);
+        intake.setPower(0.4);
+    }
+
+    public void transfer(){
+        transferOn();
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER);
+        intake.setPower(1);
+    }
+
+    public void resetIndexer(){
+        transferOff();
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE);
+        intakeMotorIdle();
+    }
+
+    public void sortManualOverride() {
+        ballInTransfer = false;
+        currentShot = 0;
+
+        greenInventory = 0;
+        purpleInventory = 0;
+
+        resetIndexer();
+
+        telemetry.addLine("Sorter manual override triggered: sorting stopped.");
+    }
+
+    public void sort(int numBalls, double beamBrake, LimelightCamera.BallOrder targetOrder,
+                     DetectedColor colorSensor1Value,
+                     DetectedColor colorSensor2Value,
+                     DetectedColor colorSensor3Value) {
+
+        boolean isBeamBroken = (beamBrake <= 0.5);
+
+
+        String[] fullTargetSequence;
+        if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE) {
+            fullTargetSequence = new String[]{"Green", "Purple", "Purple"};
+        } else if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE) {
+            fullTargetSequence = new String[]{"Purple", "Green", "Purple"};
+        } else if (targetOrder == null){
+            fullTargetSequence = new String[]{"Purple","Purple","Purple"};
+            greenHasBeenShot = true;
+        }
+        else {
+            fullTargetSequence = new String[]{"Purple", "Purple", "Green"};
+        }
+
+        //  Initialize inventory once at the start
+        if (currentShot == 0 && greenInventory == 0 && purpleInventory == 0) {
+            DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
+            for (DetectedColor color : sensors) {
+                if (color == DetectedColor.GREEN) greenInventory++;
+                else if (color == DetectedColor.PURPLE) purpleInventory++;
+            }
+        }
+
+        int totalBalls = greenInventory + purpleInventory;
+        if (totalBalls == 0) return; // nothing to sort
+
+       boolean allPurple = totalBalls - greenInventory == totalBalls;
+       boolean allGreen = totalBalls - purpleInventory == totalBalls;
+
+        int shotsToTake = Math.min(3, totalBalls);
+
+
+        if (currentShot >= shotsToTake) {
+            telemetry.addLine("Sorting complete. Resetting sorter state.");
+            currentShot = 0;
+            greenInventory = 0;
+            purpleInventory = 0;
+            ballInTransfer = false;
+            greenHasBeenShot = false;
+            return;
+        }
+
+        String requiredColor = fullTargetSequence[currentShot];
+        DetectedColor topBall = colorSensor1Value; // top-most ball sensor
+
+        boolean correctBallAvailable = (requiredColor.equals("Green") && greenInventory > 0)
+                || (requiredColor.equals("Purple") && purpleInventory > 0);
+
+
+
+        if (!greenHasBeenShot) {
+            if (!ballInTransfer) {
+                // Transfer if top ball matches required color or if no correct color remains
+                if ((requiredColor.equals("Green") && topBall == DetectedColor.GREEN) ||
+                        (requiredColor.equals("Purple") && topBall == DetectedColor.PURPLE) ||
+                        (!correctBallAvailable && topBall != null)) {
+                    transfer();
+                    ballInTransfer = true;
+                } else {
+                    cycle();
+                }
+            }
+        }
+        else if (greenHasBeenShot){
+            if (!ballInTransfer) {
+                    transfer();
+                    ballInTransfer = true;
+            }
+        }
+
+
+        if (ballInTransfer && isBeamBroken) {
+            // Update inventory
+            if (requiredColor.equals("Green") && greenInventory > 0) {
+                greenInventory--;
+            }
+            else if (requiredColor.equals("Purple") && purpleInventory > 0) purpleInventory--;
+
+            // Advance slot
+            currentShot++;
+            ballInTransfer = false;
+            if (requiredColor.equals("Green")){
+                greenHasBeenShot = true;
+            }
+        }
+
+        // --- Keep cycling leftover balls until they reach transfer ---
+        if (currentShot < shotsToTake && !ballInTransfer) {
+            cycle();
+        }
+    }
+
+
+
+    // --- Periodic update (optional) ---
+    public void update() {
+//        telemetry.addData("Target RPM", targetRPM);
+//        telemetry.addData("Current RPM", getCurrentRPM());
+        telemetry.addData("Servo Pos", transferDirectionSwitcher.getPosition());
+        telemetry.update();
+    }
+
+    // --- Utility methods ---
+
+
+    private double rpmToTicksPerSecond(double rpm) {
+        return (rpm / 60.0) * TICKS_PER_REV;
+    }
+
+    public double getCurrentRPM() {
+        return intake.getVelocity() * 60.0 / TICKS_PER_REV;
+    }
+
+    public double getCurrentVelocity(){
+        return intake.getVelocity();
+    }
+    public double getCurrentTargetRPM(){
+        return targetRPM;
+    }
+
+    public double getIntakeMotorCurrent(){
+        return intake.getCurrent(CurrentUnit.MILLIAMPS);
+    }
+
+    public double getCurrentTargetVelocity(){
+        return rpmToTicksPerSecond(targetRPM);
+    }
+    public double getPower(){
+        return motorPower;
+    }
+
+
+
+
+
+
+}
+
