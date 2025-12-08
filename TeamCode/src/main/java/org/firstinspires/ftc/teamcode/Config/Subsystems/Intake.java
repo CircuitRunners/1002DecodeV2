@@ -26,8 +26,8 @@ public class Intake {
     // Configurable constants
     public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
     public static double targetRPM = 0;  // default target speed
-    public static final double TRANSFER_DIRECTION_TRANSFER = 0.75;
-    public static final double TRANSFER_DIRECTION_CYCLE = 0.3;
+    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.75;
+    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.3;
     public static final double GATE_OPEN = 0.7;
     public static final double GATE_CLOSED = 0.3;
     public static final double TRANSFER_ON = 0.7;
@@ -112,11 +112,11 @@ public class Intake {
     }
 
     public void setDirectionTransfer(){
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER);
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER_POS);
     }
 
     public void setDirectionCycle(){
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE);
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE_POS);
     }
 
     public void gateOpen(){
@@ -130,19 +130,19 @@ public class Intake {
     public void cycle(){
         gateOpen();
         transferOn();
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE);
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE_POS);
         intake.setPower(0.4);
     }
 
     public void transfer(){
         transferOn();
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER);
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER_POS);
         intake.setPower(1);
     }
 
     public void resetIndexer(){
         transferOff();
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE);
+        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE_POS);
         intakeMotorIdle();
     }
 

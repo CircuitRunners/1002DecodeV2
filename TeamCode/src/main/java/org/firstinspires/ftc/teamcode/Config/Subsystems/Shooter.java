@@ -45,9 +45,6 @@ public class Shooter {
 
     private static final double ANGLE_SEARCH_STEP_DEG = 0.5;
 
-    //  CRITICAL CALIBRATION VALUE: Factor to convert Flywheel Ticks/Sec to Muzzle Velo In/Sec.
-    private static final double FLYWHEEL_TICKS_TO_MUZZLE_VELO_FACTOR = 0.15; // PLACEHOLDER VALUE - TUNE THIS!
-
     // Status flags
     public boolean flywheelVeloReached;
     public boolean turretReached;
@@ -135,6 +132,90 @@ public class Shooter {
 
 
     /**
+     * Lookup table for angle to associated k (conversion factor) value
+     */
+
+    // ---------------------------------------------------------------------------
+// MUZZLE VELOCITY LOOKUP TABLE (TUNING GUIDE)
+// ---------------------------------------------------------------------------
+// This table maps hood angle -> conversion factor k,
+// where:  muzzleVelocity = k * flywheelTicksPerSec
+//
+// WHY WE NEED THIS:
+// As the hood angle changes, the compression and friction change.
+// This means the same flywheel RPM produces different muzzle exit speeds.
+// A fixed k value causes distance errors, so we model k as a function of angle.
+//
+// HOW TO TUNE THESE VALUES:
+// 1. Make a simple tuning OpMode that:
+//      - Sets the hood to a known angle (e.g., 20°, 30°, 40°, 50°)
+//      - Sets the flywheel to a fixed velocity (ex: 3000 ticks/sec)
+//      - Lets you shoot one ring at a time
+//
+// 2. For each angle, place the robot at a known distance (ex: 3m).
+//    Measure the ACTUAL muzzle velocity using high-speed video or a
+//    field measurement (time-of-flight or distance travelled).
+//
+// 3. Compute k for that angle:
+//        k = measuredMuzzleVelocity / commandedFlywheelTicksPerSec
+//    Example:
+//        measured = 14.8 m/s,
+//        ticks/sec = 3000
+//        k = 14.8 / 3000 = 0.00493
+//
+// 4. Update the table row with this k value.
+//
+// 5. Repeat for at least 4 angles across your hood's full range.
+//
+// 6. The interpolation function will smoothly fill the gaps in between.
+//
+// IMPORTANT:
+// - All k values MUST increase slowly with angle (due to friction),
+//   but the curve should be smooth — no sharp jumps.
+// - Re-measure after changing flywheel grip, hood padding, or motor swaps.
+// ---------------------------------------------------------------------------
+    private static final double[][] MUZZLE_K_TABLE = {
+            //  angleDeg,  k-factor
+            {20, 0.150},  // TODO: replace with measured value
+            {30, 0.157},
+            {40, 0.166},
+            {50, 0.172}
+    };
+
+    // Given a hood angle (in degrees), return the correct k-factor by
+    // linearly interpolating between the nearest lookup table entries.
+    private double getKForAngle(double angleDeg) {
+        // --- Clamp below table range ---
+        if (angleDeg <= MUZZLE_K_TABLE[0][0]) {
+            return MUZZLE_K_TABLE[0][1];
+        }
+
+        // --- Clamp above table range ---
+        if (angleDeg >= MUZZLE_K_TABLE[MUZZLE_K_TABLE.length - 1][0]) {
+            return MUZZLE_K_TABLE[MUZZLE_K_TABLE.length - 1][1];
+        }
+
+        // --- Find the interval the angle belongs to ---
+        for (int i = 0; i < MUZZLE_K_TABLE.length - 1; i++) {
+            double a0 = MUZZLE_K_TABLE[i][0];
+            double k0 = MUZZLE_K_TABLE[i][1];
+            double a1 = MUZZLE_K_TABLE[i + 1][0];
+            double k1 = MUZZLE_K_TABLE[i + 1][1];
+
+            if (angleDeg >= a0 && angleDeg <= a1) {
+                // how far between a0 and a1
+                double t = (angleDeg - a0) / (a1 - a0);
+
+                // Linear interpolation for smooth k value
+                return k0 + t * (k1 - k0);
+            }
+        }
+
+        // Should never occur
+        return MUZZLE_K_TABLE[0][1];
+    }
+
+    /**
      * Normalizes an angle from [-180, 180] to [0, 360] (Robot Heading).
      */
     private static double normalizeRobotHeading0_360(double headingDeg) {
@@ -153,9 +234,10 @@ public class Shooter {
     private static double convertFieldYawToTurretEncoderTarget(double targetFieldYawDeg, double robotFieldYawDeg) {
         // 1. Convert Robot Heading from [-180, 180] to [0, 360]
         double robotHeading360 = normalizeRobotHeading0_360(robotFieldYawDeg);
+        double targetHeading360 = normalizeRobotHeading0_360(targetFieldYawDeg);
 
         // 2. Calculate the raw difference (angle from the robot's front)
-        double relativeAngle = targetFieldYawDeg - robotHeading360;
+        double relativeAngle = targetHeading360 - robotHeading360;
 
 
         return (relativeAngle);
@@ -257,7 +339,7 @@ public class Shooter {
         double optimalVeloTicks = 0.0;
         double optimalAngleDeg = 0.0;
 
-        double V_muzzle_max_limit = MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC * FLYWHEEL_TICKS_TO_MUZZLE_VELO_FACTOR;
+
 
         // Search bounds are now the dynamic launch angle constraints
         double searchMinAngle = MIN_LAUNCH_ANGLE_DEG;
@@ -271,7 +353,12 @@ public class Shooter {
         // --- 3. Iterative Search for T_min within Constraints ---
         for (double alphaDeg = searchMinAngle; alphaDeg <= searchMaxAngle; alphaDeg += ANGLE_SEARCH_STEP_DEG) {
 
+            double k = getKForAngle(alphaDeg);
+            double V_muzzle_max_limit = MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC * k;
+
             double alphaRad = Math.toRadians(alphaDeg);
+
+
 
             // Calculate Required Velocity in In/Sec (V_req) for this specific angle
             double denominator = 2 * Math.pow(Math.cos(alphaRad), 2) * (R * Math.tan(alphaRad) - deltaY);
@@ -294,7 +381,7 @@ public class Shooter {
             if (T_current > 0 && T_current < bestTimeOfFlight) {
                 bestTimeOfFlight = T_current;
                 optimalAngleDeg = alphaDeg;
-                optimalVeloTicks = V_req_muzzle / FLYWHEEL_TICKS_TO_MUZZLE_VELO_FACTOR;
+                optimalVeloTicks = V_req_muzzle / k;
             }
         }
 
@@ -308,18 +395,38 @@ public class Shooter {
     }
 
     // --- Helper for Time of Flight ---
+    /**
+     * Calculates the Time of Flight (T) based on horizontal motion.
+     * NOTE: The V_muzzle used here was already calculated in the T_min search
+     * to guarantee hitting the target height (deltaY).
+     */
     private double calculateTOF(double R, double deltaY, double V_muzzle, double alpha_rad) {
-        double V_y_initial = V_muzzle * Math.sin(alpha_rad);
-        double discriminant = Math.pow(V_y_initial, 2) - 2 * GRAVITY_INCHES_PER_SEC_SQ * deltaY;
+//        double V_y_initial = V_muzzle * Math.sin(alpha_rad);
+//        double discriminant = Math.pow(V_y_initial, 2) - 2 * GRAVITY_INCHES_PER_SEC_SQ * deltaY;
+//
+//        if (discriminant < 0) return -1.0;
+//
+//        double t_short = (V_y_initial - Math.sqrt(discriminant)) / GRAVITY_INCHES_PER_SEC_SQ;
+//
+//        if (t_short < 0) {
+//            return (V_y_initial + Math.sqrt(discriminant)) / GRAVITY_INCHES_PER_SEC_SQ;
+//        }
+//        return t_short;
 
-        if (discriminant < 0) return -1.0;
 
-        double t_short = (V_y_initial - Math.sqrt(discriminant)) / GRAVITY_INCHES_PER_SEC_SQ;
+        // Horizontal component of velocity (V_x)
+        double V_x = V_muzzle * Math.cos(alpha_rad);
 
-        if (t_short < 0) {
-            return (V_y_initial + Math.sqrt(discriminant)) / GRAVITY_INCHES_PER_SEC_SQ;
+        // If horizontal velocity is zero (vertical shot) or negative (impossible), return an error.
+        if (V_x <= 0) {
+            return -1.0;
         }
-        return t_short;
+
+        // Time of Flight (T) = Horizontal Distance (R) / Horizontal Velocity (V_x)
+        // The complex quadratic solve (discriminant) is not needed because the
+        // V_muzzle is already guaranteed to solve the vertical equation.
+        return R / V_x;
+
     }
 
     // ------------------------------------
@@ -343,7 +450,41 @@ public class Shooter {
         setHoodTargetAngle(shot.requiredHoodAngle);
     }
 
-    // ... (setShooterTarget overload remains the same) ...
+    public void setShooterTarget(
+            double robotXInches, double robotYInches,
+            double targetXInches, double targetYInches,
+            double currentTurretAngle0_360,
+            double robotFieldYawDeg, // Input is [-180, 180]
+            TurretMode turretMode, double turretInputDeg)
+    {
+
+        // 1. Always calculate ballistics (Velo/Angle) first, as this only needs R and DeltaY.
+        OptimalShot shot = calculateOptimalShot(
+                robotXInches, robotYInches,
+                targetXInches, targetYInches);
+
+        setTargetVelocityTicks(shot.requiredFlywheelTicks);
+        setHoodTargetAngle(shot.requiredHoodAngle);
+
+        double finalTurretInput = turretInputDeg;
+
+        // 2. Set the Turret input based on the control mode priority:
+        if (turretMode == TurretMode.FIELD_CENTRIC) {
+            // A. Calculate the required absolute field yaw (last resort)
+            double requiredFieldYaw = calculateAutoAlignYaw(robotXInches, robotYInches, targetXInches, targetYInches);
+
+            // B. Convert this field yaw into the required turret encoder reading
+            finalTurretInput = convertFieldYawToTurretEncoderTarget(requiredFieldYaw, robotFieldYawDeg);
+
+        }
+
+        // 3. Pass to the turret setter
+        setTurretTarget(finalTurretInput, turretMode, currentTurretAngle0_360, robotFieldYawDeg);
+
+//
+    }
+
+
 
     // ------------------------------------
     // ##  Update Loop
