@@ -17,7 +17,7 @@ public class Shooter {
     //NOTE FOR ALL - DEGREES INCREASE COUNTERCLOCKWISE LIKE UNIT CIRCLE
     private Telemetry telemetry;
 
-    // PIDF Coefficients (Update these for your robot)
+    // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.002, 0, 0.0001, 0.000423};
     private static final double[] turretCoefficients = {0.01, 0, 0.0001, 0.005};
 
@@ -165,7 +165,7 @@ public class Shooter {
 //
 // 4. Update the table row with this k value.
 //
-// 5. Repeat for at least 4 angles across your hood's full range.
+// 5. Repeat for at least 4 angles across  hood's full range.
 //
 // 6. The interpolation function will smoothly fill the gaps in between.
 //
