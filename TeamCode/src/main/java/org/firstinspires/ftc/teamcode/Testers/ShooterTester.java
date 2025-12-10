@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
-@TeleOp()
+@TeleOp(name = "ShooterTester", group = "TEST")
 public class ShooterTester extends OpMode {
 
     //private MecanumDrive drive;
@@ -53,6 +53,9 @@ public class ShooterTester extends OpMode {
         shooter = new Shooter(hardwareMap, telemetry);
 
         intake = new Intake(hardwareMap, telemetry);
+
+        sensors = new Sensors();
+        sensors.init(hardwareMap, "SRSHub");
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         configurePinpoint();
@@ -90,7 +93,7 @@ public class ShooterTester extends OpMode {
             }
         }
 
-        areBothBeamsBroken = sensors.isBeamBroken1() && sensors.isBeamBroken2();
+
         switch(intakeStatus) {
             case INTAKING:
                 intake.intake();

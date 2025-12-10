@@ -65,8 +65,8 @@ public class Shooter {
     private DcMotorEx turret;
     private Servo hoodServo;
 
-    private PIDFController flywheelPIDF;
-    private PIDFController turretPIDF;
+    public PIDFController flywheelPIDF;
+    public PIDFController turretPIDF;
 
     /**
      * Data structure for the calculated optimal shot parameters.
