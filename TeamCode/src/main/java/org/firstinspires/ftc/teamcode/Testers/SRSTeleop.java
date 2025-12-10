@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
+import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
+
 @Disabled
 @TeleOp(group = "TEST")
 public class SRSTeleop extends OpMode {
@@ -107,7 +109,7 @@ public class SRSTeleop extends OpMode {
 
         // 5. Read and interpret Color Sensor Data
         // Reference the enum from within the Sensors class
-        Sensors.DetectedColor color = sensors.getDetectedColor();
+        DetectedColor color = sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Green(),sensors.getColor1Blue());
 
         telemetry.addData("--- COLOR SENSOR (I2C) ---", "---");
         telemetry.addData("5. Detected Color", color != null ? color.toString() : "NONE");

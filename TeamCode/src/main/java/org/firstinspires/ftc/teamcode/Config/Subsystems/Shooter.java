@@ -520,6 +520,7 @@ public class Shooter {
 
     public void moveHoodToPosition(double desiredAngle, double currentAngle) {
 
+
         double SERVO_STEP = 0.05;
 
         double SERVO_MIN = 0.0;
