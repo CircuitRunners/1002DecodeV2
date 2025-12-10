@@ -24,7 +24,13 @@ public class Shooter {
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
     private static double targetTurretPosition = 180;     // Degrees (0-360)
-    private static double targetHoodAngle = 45;          // Degrees (0-90)
+    private static double targetHoodAngle = 45;
+    private static final double HOOD_MIN_ANGLE_DEG = 0;
+    private static final double HOOD_MAX_ANGLE_DEG = 90;
+
+    private static final double HOOD_MIN_POS = 0.23;   // measured
+    private static final double HOOD_MAX_POS = 0.78;   // measured
+    // Degrees (0-90)
     private static double maxTurretPower = 0.8;
 
     // Hardware Constants
@@ -219,13 +225,7 @@ public class Shooter {
      * Normalizes an angle from [-180, 180] to [0, 360] (Robot Heading).
      */
     private static double normalizeRobotHeading0_360(double headingDeg) {
-        if (headingDeg < 0) {
-            return headingDeg *-1;
-        }
-        else if (headingDeg  > 0){
-            return 360 - headingDeg;
-        }
-        return headingDeg;
+        return (headingDeg % 360 + 360) % 360;
     }
 
     /**
@@ -246,7 +246,7 @@ public class Shooter {
     /**
      * Calculates the field-centric yaw angle required to hit a target.
      */
-    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
+    public static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
                                                 double targetXInches, double targetYInches) {
         double deltaY = targetYInches - robotYInches;
         double deltaX = targetXInches - robotXInches;
@@ -254,7 +254,6 @@ public class Shooter {
         // Use Math.atan2(deltaX, deltaY) to correctly map standard (X=East, Y=North)
         // to the required FTC Yaw (0=North, 90=East)
         double targetFieldYawRad = Math.atan2(deltaX,deltaY);
-
         return (Math.toDegrees(targetFieldYawRad));
     }
 
@@ -293,11 +292,11 @@ public class Shooter {
     }
 
     public void setTurretTargetPosition(double positionDeg) {
-        if (positionDeg > 360){
-            positionDeg -= 360;
+        if (positionDeg > 360) {
+            positionDeg = positionDeg % 360;
         }
-        else if (positionDeg < 0){
-            positionDeg +=360;
+        else if (positionDeg < 0) {
+            positionDeg = Math.abs(positionDeg % 360);
         }
         targetTurretPosition = positionDeg;
         turretPIDF.setSetPoint(targetTurretPosition);
@@ -510,7 +509,7 @@ public class Shooter {
         turret.setPower(turretOutput);
 
         // Hood Control (No PIDF)
-        moveHoodToPosition(targetHoodAngle, currentHoodAngleDeg);
+        moveHoodToPositionScale(targetHoodAngle);
         hoodReached = Math.abs(currentHoodAngleDeg - targetHoodAngle) <= 0.5;
     }
 
@@ -518,7 +517,7 @@ public class Shooter {
     // ##  Helpers
     // ------------------------------------
 
-    public void moveHoodToPosition(double desiredAngle, double currentAngle) {
+    public void moveHoodToPositionWithEncoder(double desiredAngle, double currentAngle) {
 
 
         double SERVO_STEP = 0.05;
@@ -563,11 +562,58 @@ public class Shooter {
         // 4. Set the new servo position
         hoodServo.setPosition(pos);
     }
+    public double getHoodServoPositionInDegrees() {return hoodServo.getPosition() * 360;}
+    public void moveHoodToPositionScale(double desiredAngle) {
+        desiredAngle = Range.clip(desiredAngle, HOOD_MIN_ANGLE_DEG, HOOD_MAX_ANGLE_DEG);
+        double servoPos = hoodAngletoServoPos(desiredAngle);
+        hoodServo.setPosition(servoPos);
+    }
+    public double hoodAngletoServoPos(double angle) {
+        return Range.scale(angle, HOOD_MIN_ANGLE_DEG, HOOD_MAX_ANGLE_DEG, HOOD_MIN_POS, HOOD_MIN_POS);
+    }
+
+    private static final double[][] angleLookUpTable = {
+            {HOOD_MIN_ANGLE_DEG, HOOD_MIN_POS},
+            {20, 0.2},
+            {25, 0.25},
+            {30, 0.3},
+            {35, 0.35},
+            {40, 0.4},
+            {45, 0.45},
+            {50, 0.5},
+            {55, 0.55},
+            {HOOD_MAX_ANGLE_DEG, HOOD_MAX_POS}
+            //{angle, servopos}
+    };
+    public double moveHoodToPositionTable(double angle) {
+
+        double clamped = Range.clip(angle,
+                angleLookUpTable[0][0],
+                angleLookUpTable[angleLookUpTable.length - 1][0]);
+
+        double closestAngle = angleLookUpTable[0][0];
+        double closestPos   = angleLookUpTable[0][1];
+        double smallestDiff = Math.abs(clamped - closestAngle);
+
+        for (int i = 1; i < angleLookUpTable.length; i++) {
+            double tableAngle = angleLookUpTable[i][0];
+            double diff = Math.abs(clamped - tableAngle);
+
+            if (diff < smallestDiff) {
+                smallestDiff = diff;
+                closestAngle = tableAngle;
+                closestPos   = angleLookUpTable[i][1];
+            }
+        }
+
+        return closestPos;
+    }
 
     public void setHoodTargetAngle(double target) {
         // Clips target angle against the dynamic launch constraints
         targetHoodAngle = Range.clip(target, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG);
     }
+    public double getFlywheelVelocity() {return (shooter1.getVelocity() + shooter2.getVelocity()) / 2;}
 
     public void setFlywheelPower(double power) {
         shooter1.setPower(power);
