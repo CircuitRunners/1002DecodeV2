@@ -105,7 +105,7 @@ public class SRSTeleop extends OpMode {
         // 4. Read Digital Beam Break Data
         telemetry.addData("--- DIGITAL INPUTS (BEAM BREAKS) ---", "---");
         telemetry.addData("3. Beam Break 1 (AD-1)", sensors.isBeamBroken1() ? "BROKEN (HIGH)" : "BLOCKED (LOW)");
-        telemetry.addData("4. Beam Break 2 (AD-2)", sensors.isBeamBroken2() ? "BROKEN (HIGH)" : "BLOCKED (LOW)");
+
 
         // 5. Read and interpret Color Sensor Data
         // Reference the enum from within the Sensors class
