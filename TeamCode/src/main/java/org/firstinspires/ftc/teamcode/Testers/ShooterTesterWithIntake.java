@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
 @Disabled
 @TeleOp(name = "ShooterTester", group = "TEST")
-public class ShooterTester extends OpMode {
+public class ShooterTesterWithIntake extends OpMode {
 
     //private MecanumDrive drive;
     private Shooter shooter;
@@ -33,6 +33,7 @@ public class ShooterTester extends OpMode {
     private double robotFieldYawDegrees;
     private double turretPos;
     private Shooter.TurretMode turretMode = Shooter.TurretMode.FIELD_CENTRIC;
+    private Intake intake;
     private static final double METERS_TO_INCH = 39.37;
     private static final double BLUE_GOAL_X_INCHES = 6.0;
     private static final double BLUE_GOAL_Y_INCHES = 68.5;
@@ -50,6 +51,8 @@ public class ShooterTester extends OpMode {
 //        drive.init(hardwareMap);
 
         shooter = new Shooter(hardwareMap, telemetry);
+
+        intake = new Intake(hardwareMap, telemetry);
 
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
@@ -79,12 +82,38 @@ public class ShooterTester extends OpMode {
         turretPos = sensors.getTurretPosition();
         robotFieldYawDegrees = pinpoint.getHeading(AngleUnit.DEGREES);
 
-        Shooter.OptimalShot shot = shooter.calculateOptimalShot(
-                pinpoint.getPosX(DistanceUnit.INCH),
-                pinpoint.getPosY(DistanceUnit.INCH),
-                BLUE_GOAL_X_INCHES,
-                BLUE_GOAL_Y_INCHES
-        );
+        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+            switch(intakeStatus) {
+                case IDLE:
+                    intakeStatus = INTAKE_STATUS.INTAKING;
+                    break;
+                case INTAKING:
+                    intakeStatus = INTAKE_STATUS.IDLE;
+                    break;
+            }
+        }
+
+
+        switch(intakeStatus) {
+            case INTAKING:
+                intake.intake();
+                if (areBothBeamsBroken) {
+                    intake.cycle();
+                }
+                break;
+
+            case CYCLING:
+                intake.cycle();
+                break;
+
+            case TRANSFERING:
+                intake.transfer();
+                intake.cycle();
+                break;
+
+            default: // IDLE
+                intake.intakeMotorIdle();
+        }
 
         if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
             updateCoordinates();
@@ -100,6 +129,7 @@ public class ShooterTester extends OpMode {
 
         }
 
+
         shooter.update(shooter.getFlywheelVelocity(), turretPos, shooter.getHoodServoPositionInDegrees());
 
 
@@ -109,11 +139,6 @@ public class ShooterTester extends OpMode {
         telemetry.addData("Flywheel Velocity (RPM): ", shooter.getFlywheelVelocity()/TICKS_PER_REV * 60);
         telemetry.addData("Turret Position Degrees: ", sensors.getTurretPosition());
         telemetry.addData("Hood Position Degrees: ", shooter.getHoodServoPositionInDegrees());
-        telemetry.addLine("");
-        telemetry.addLine("===== Auto Shot =====");
-        telemetry.addData("Flywheel Target (ticks)", shot.requiredFlywheelTicks);
-        telemetry.addData("Hood Target (deg)", shot.requiredHoodAngle);
-        telemetry.addData("Time of Flight (s)", shot.timeOfFlight);
 
 
         telemetry.update();
