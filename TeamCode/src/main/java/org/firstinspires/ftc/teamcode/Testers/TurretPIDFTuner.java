@@ -44,12 +44,15 @@ public class TurretPIDFTuner extends OpMode {
     public static boolean intakeOn = false;
     public static double cookedLoopTargetMS = 100;
 
+    public static boolean isCooked = false;
+
     // ===== Hardware =====
-    private Shooter turret;
-//    private PIDFController pidf;
+    private PIDFController pidf;
 
     private ElapsedTime loopTimer = new ElapsedTime();
     // Removed lastTicks and lastTime since they're no longer needed for manual calculation
+
+    private DcMotorEx turret;
 
     @Override
     public void init() {
@@ -57,9 +60,24 @@ public class TurretPIDFTuner extends OpMode {
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : hubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
-        turret = new Shooter(hardwareMap, telemetry);
+        turret = hardwareMap.get(DcMotorEx.class, "turret");
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
         sensors = new Sensors();
-        sensors.init(hardwareMap, HUB_NAME);
+
+        try {
+            // The Sensors class handles finding and configuring the SRSHub itself
+            sensors.init(hardwareMap, HUB_NAME);
+            telemetry.addData("Status", "Initialization Successful!");
+        } catch (Exception e) {
+            telemetry.addData("Status", "FATAL ERROR during initialization!");
+            telemetry.addData("Error", e.getMessage());
+
+        }
+        telemetry.update();
 
 //        pidf = new PIDFController(kP, kI, kD, kF);
 //        pidf.setSetPoint(targetAngle);
@@ -71,12 +89,17 @@ public class TurretPIDFTuner extends OpMode {
             hub.clearBulkCache();
         }
 
+        sensors.update();
+
         double currentAngle = sensors.getTurretPosition();
 
-        turret.turretPIDF.setPIDF(kP, kI, kD, kF);
+        pidf.setPIDF(kP, kI, kD, kF);
 
-        turret.setTurretTargetPosition(targetAngle);
-        turret.update(0, currentAngle, 0); //flywheel and hood irrelevant
+        pidf.setSetPoint(targetAngle);
+
+        double turretOutput = pidf.calculate(sensors.getTurretPosition());
+        turretOutput = Range.clip(turretOutput, 0, maxPower);
+        turret.setPower(turretOutput);
 
         double error = Math.abs(targetAngle - currentAngle);
 
@@ -100,16 +123,17 @@ public class TurretPIDFTuner extends OpMode {
         telemetry.addData("Target Angle (Deg)", targetAngle);
         telemetry.addData("Turret Error", Math.abs(targetAngle - currentAngle));
         telemetry.addData("Loop Time (ms)", loopTime);
-        telemetry.addData("Cooked Delay (ms)", cookedLoopTargetMS);
+        telemetry.addData("Cooked Delay (ms)", isCooked ? cookedLoopTargetMS : "Not In Effect rn");
         telemetry.update();
 
         // --- Cooked delay to simulate TeleOp lag (~100 ms total loop) ---
-        double remaining = cookedLoopTargetMS - loopTime;
-        if (remaining > 0) {
-            try {
-                Thread.sleep((long) remaining);
-            } catch (InterruptedException ignored) {}
-        }
+//        double remaining = cookedLoopTargetMS - loopTime;
+       // isCooked = true;
+//        if (remaining > 0) {
+//            try {
+//                Thread.sleep((long) remaining);
+//            } catch (InterruptedException ignored) {}
+//        }
 
         loopTimer.reset();
     }
