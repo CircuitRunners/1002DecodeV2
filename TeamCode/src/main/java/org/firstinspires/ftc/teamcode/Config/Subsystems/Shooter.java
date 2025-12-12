@@ -25,6 +25,7 @@ public class Shooter {
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
     private static double targetTurretPosition = 180;     // Degrees (0-360)
     private static double targetHoodAngle = 45;          // Degrees (0-90)
+
     private static double maxTurretPower = 0.8;
 
     // Hardware Constants
@@ -510,63 +511,97 @@ public class Shooter {
         turret.setPower(turretOutput);
 
         // Hood Control (No PIDF)
-        moveHoodToPosition(targetHoodAngle, currentHoodAngleDeg);
-        hoodReached = Math.abs(currentHoodAngleDeg - targetHoodAngle) <= 0.5;
+        hoodServo.setPosition(hoodAngleToServoPos(targetHoodAngle));
+        hoodReached = Math.abs(getHoodServoPositionInDegrees(hoodServo.getPosition()) - targetHoodAngle) <= 0.5;
     }
 
     // ------------------------------------
     // ##  Helpers
     // ------------------------------------
 
-    public void moveHoodToPosition(double desiredAngle, double currentAngle) {
+//    public void moveHoodToPosition(double desiredAngle, double currentAngle) {
+//
+//
+//        double SERVO_STEP = 0.05;
+//
+//        double SERVO_MIN = 0.0;
+//
+//        double SERVO_MAX = 1.0;
+//
+//        double ANGLE_TOLERANCE = 0.5;
+//
+//        double error = desiredAngle - currentAngle;
+//
+//
+//        // 1. Exit if already at desired position
+//        if (Math.abs(error) < ANGLE_TOLERANCE) {
+//            return;
+//        }
+//
+//        double pos = hoodServo.getPosition();
+//        double oldPos = pos; // Store for comparison
+//
+//        // 2. Calculate new servo position and clip it
+//        pos += (error > 0) ? SERVO_STEP : -SERVO_STEP;
+//        pos = Range.clip(pos, SERVO_MIN, SERVO_MAX);
+//
+//        if (pos == SERVO_MAX && oldPos != SERVO_MAX && error > ANGLE_TOLERANCE) {
+//
+//            if (currentAngle < MAX_LAUNCH_ANGLE_DEG) {
+//                MAX_LAUNCH_ANGLE_DEG = currentAngle; // Update the upper launch angle limit
+//                hoodCalibrationRequired = true;
+//                }
+//        }
+//
+//        if (pos == SERVO_MIN && oldPos != SERVO_MIN && error < -ANGLE_TOLERANCE) {
+//
+//            if (currentAngle > MIN_LAUNCH_ANGLE_DEG) {
+//                MIN_LAUNCH_ANGLE_DEG = currentAngle; // Update the lower launch angle limit
+//                hoodCalibrationRequired = true;
+//
+//            }
+//        }
+//        // 4. Set the new servo position
+//        hoodServo.setPosition(pos);
+//    }
+//
+//    public void setHoodTargetAngle(double target) {
+//        // Clips target angle against the dynamic launch constraints
+//        targetHoodAngle = Range.clip(target, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG);
+//    }
 
 
-        double SERVO_STEP = 0.05;
-
-        double SERVO_MIN = 0.0;
-
-        double SERVO_MAX = 1.0;
-
-        double ANGLE_TOLERANCE = 0.5;
-
-        double error = desiredAngle - currentAngle;
+    /**
+     * W James hood logic
+     */
 
 
-        // 1. Exit if already at desired position
-        if (Math.abs(error) < ANGLE_TOLERANCE) {
-            return;
-        }
-
-        double pos = hoodServo.getPosition();
-        double oldPos = pos; // Store for comparison
-
-        // 2. Calculate new servo position and clip it
-        pos += (error > 0) ? SERVO_STEP : -SERVO_STEP;
-        pos = Range.clip(pos, SERVO_MIN, SERVO_MAX);
-
-        if (pos == SERVO_MAX && oldPos != SERVO_MAX && error > ANGLE_TOLERANCE) {
-
-            if (currentAngle < MAX_LAUNCH_ANGLE_DEG) {
-                MAX_LAUNCH_ANGLE_DEG = currentAngle; // Update the upper launch angle limit
-                hoodCalibrationRequired = true;
-                }
-        }
-
-        if (pos == SERVO_MIN && oldPos != SERVO_MIN && error < -ANGLE_TOLERANCE) {
-
-            if (currentAngle > MIN_LAUNCH_ANGLE_DEG) {
-                MIN_LAUNCH_ANGLE_DEG = currentAngle; // Update the lower launch angle limit
-                hoodCalibrationRequired = true;
-
-            }
-        }
-        // 4. Set the new servo position
-        hoodServo.setPosition(pos);
+    /**
+     * Maps a desired hood angle to the required servo position [0.0, 1.0] using linear scaling.
+     */
+    private double hoodAngleToServoPos(double angle) {
+        // Map the input angle range to the output servo position range
+        return Range.scale(
+                angle,
+                MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG, // Input Range
+                0, 1              // Output Range
+        );
     }
 
-    public void setHoodTargetAngle(double target) {
-        // Clips target angle against the dynamic launch constraints
-        targetHoodAngle = Range.clip(target, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG);
+    /**
+     * Maps the current servo position [0.0, 1.0] back to the current hood angle in degrees.
+     */
+    private double getHoodServoPositionInDegrees(double currentServoPos) {
+        // Map the servo position range back to the hood angle range (INVERSE SCALING)
+        return Range.scale(
+                currentServoPos,
+                0, 1,              // Input Range
+                MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG   // Output Range (CORRECTED)
+        );
+    }
+
+    public void setHoodTargetAngle(double angle){
+        targetHoodAngle = angle;
     }
 
     public void setFlywheelPower(double power) {
