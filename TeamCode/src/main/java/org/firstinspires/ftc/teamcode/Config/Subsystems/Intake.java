@@ -180,15 +180,17 @@ public class Intake {
         }
 
         //  Initialize inventory once at the start
-        if (currentShot == 0 && greenInventory == 0 && purpleInventory == 0) {
-            DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
-            for (DetectedColor color : sensors) {
-                if (color == DetectedColor.GREEN) greenInventory++;
-                else if (color == DetectedColor.PURPLE) purpleInventory++;
-            }
-        }
+//        if (currentShot == 0 && greenInventory == 0 && purpleInventory == 0) {
+//            DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
+//            for (DetectedColor color : sensors) {
+//                if (color == DetectedColor.GREEN) greenInventory++;
+//                else if (color == DetectedColor.PURPLE) purpleInventory++;
+//            }
+//        }
+        purpleInventory = getPurpleInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+        greenInventory = getGreenInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
 
-        int totalBalls = greenInventory + purpleInventory;
+        int totalBalls = getTotalInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
         if (totalBalls == 0) return; // nothing to sort
 
        boolean allPurple = totalBalls - greenInventory == totalBalls;
@@ -257,7 +259,38 @@ public class Intake {
         }
     }
 
+    public int getGreenInventory(DetectedColor colorSensor1Value,
+                                 DetectedColor colorSensor2Value,
+                                 DetectedColor colorSensor3Value) {
+        greenInventory = 0;
+        DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
+        for (DetectedColor color : sensors) {
+            if (color == DetectedColor.GREEN) greenInventory++;
+        }
 
+        return greenInventory;
+
+    }
+
+    public int getPurpleInventory(DetectedColor colorSensor1Value,
+                                 DetectedColor colorSensor2Value,
+                                 DetectedColor colorSensor3Value) {
+        purpleInventory = 0;
+        DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
+        for (DetectedColor color : sensors) {
+            if (color == DetectedColor.PURPLE) purpleInventory++;
+        }
+
+        return purpleInventory;
+
+    }
+
+    public int getTotalInventory(DetectedColor colorSensor1Value,
+                                 DetectedColor colorSensor2Value,
+                                 DetectedColor colorSensor3Value) {
+        return getGreenInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value) +
+                getPurpleInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+    }
 
     // --- Periodic update (optional) ---
     public void update() {
