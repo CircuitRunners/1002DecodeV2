@@ -130,15 +130,15 @@ public class ShooterTesterWithIntake extends OpMode {
         }
 
 
-        shooter.update(shooter.getFlywheelVelocity(), turretPos, shooter.getHoodServoPositionInDegrees());
+        //shooter.update(shooter.getFlywheelVelocity(), turretPos, shooter.getHoodServoPositionInDegrees(turretPos));
 
 
         telemetry.addData("Pinpoint X Inches: ", pinpoint.getPosX(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Y Inches: ", pinpoint.getPosY(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Heading Degrees: ", pinpoint.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("Flywheel Velocity (RPM): ", shooter.getFlywheelVelocity()/TICKS_PER_REV * 60);
+        //telemetry.addData("Flywheel Velocity (RPM): ", shooter.getFlywheelVelocity()/TICKS_PER_REV * 60);
         telemetry.addData("Turret Position Degrees: ", sensors.getTurretPosition());
-        telemetry.addData("Hood Position Degrees: ", shooter.getHoodServoPositionInDegrees());
+        //telemetry.addData("Hood Position Degrees: ", shooter.getHoodServoPositionInDegrees(turretPos));
 
 
         telemetry.update();

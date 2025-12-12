@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
 
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
+
 import java.util.List;
 
 
@@ -33,7 +35,7 @@ public class FlywheelPIDFTuner extends OpMode {
     public static double targetVelocity = 1633; // desired speed (ticks/sec)
     public static double maxPower = 1.0;          // safety clamp
     public static final int TICKS_PER_REV = 537;
-
+    private static final String HUB_NAME = "SRSHub";
     public static boolean intakeOn = false;
     public static double cookedLoopTargetMS = 100;
 
@@ -41,6 +43,7 @@ public class FlywheelPIDFTuner extends OpMode {
     public DcMotorEx shooter1;
     public DcMotorEx shooter2;
     private PIDFController pidf;
+    private Sensors sensors;
 
     private ElapsedTime loopTimer = new ElapsedTime();
     // Removed lastTicks and lastTime since they're no longer needed for manual calculation
@@ -65,6 +68,17 @@ public class FlywheelPIDFTuner extends OpMode {
         shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
+        try {
+            // The Sensors class handles finding and configuring the SRSHub itself
+            sensors.init(hardwareMap, HUB_NAME);
+            telemetry.addData("Status", "Initialization Successful!");
+        } catch (Exception e) {
+            telemetry.addData("Status", "FATAL ERROR during initialization!");
+            telemetry.addData("Error", e.getMessage());
+
+        }
+        telemetry.update();
+
 
         pidf = new PIDFController(kP, kI, kD, kF);
         pidf.setSetPoint(targetVelocity);
@@ -76,10 +90,7 @@ public class FlywheelPIDFTuner extends OpMode {
             hub.clearBulkCache();
         }
 
-        double rPM = shooter1.getVelocity();
-        double rPM2 = shooter2.getVelocity();
-
-        double averageRPM = (rPM + rPM2) / 2;
+        double rPM = sensors.getFlywheelVelo();
 
         // --- Update gains and setpoint ---
         pidf.setPIDF(kP, kI, kD, kF);
@@ -87,7 +98,7 @@ public class FlywheelPIDFTuner extends OpMode {
 
         // --- Compute output and send to motor ---
         // 'rPM' (the measured velocity) is passed to the custom PIDF controller.
-        double output = pidf.calculate(averageRPM, targetVelocity);
+        double output = pidf.calculate(rPM, targetVelocity);
         output = Range.clip(output, 0, maxPower);
         shooter1.setPower(output);
         shooter2.setPower(output);
@@ -103,7 +114,7 @@ public class FlywheelPIDFTuner extends OpMode {
         // --- Telemetry ---
         double loopTime = loopTimer.milliseconds();
         telemetry.addData("Target Vel (ticks/s)", targetVelocity);
-        telemetry.addData("Measured Vel (ticks/s)", averageRPM);
+        telemetry.addData("Measured Vel (ticks/s)", rPM);
         telemetry.addData("Output Power", output);
         telemetry.addData("Loop Time (ms)", loopTime);
         telemetry.addData("Cooked Delay (ms)", cookedLoopTargetMS);
