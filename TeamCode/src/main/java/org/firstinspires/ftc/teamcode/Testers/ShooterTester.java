@@ -37,8 +37,12 @@ public class ShooterTester extends OpMode {
     private static final double BLUE_GOAL_X_INCHES = 6.0;
     private static final double BLUE_GOAL_Y_INCHES = 68.5;
     private static final double TICKS_PER_REV = 537.7;
-    private enum INTAKE_STATUS {INTAKING, CYCLING, IDLE, TRANSFERING};
+
+    private enum INTAKE_STATUS {INTAKING, CYCLING, IDLE, TRANSFERING}
+
+    ;
     INTAKE_STATUS intakeStatus = INTAKE_STATUS.IDLE;
+
     @Override
     public void init() {
         telemetry.addLine("Intializing...");
@@ -55,7 +59,7 @@ public class ShooterTester extends OpMode {
         sensors.init(hardwareMap, "SRSHub");
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        configurePinpoint();
+        //configurePinpoint();
 
         limelight = new LimelightCamera(hardwareMap);
         limelight.limelightCamera.start();
@@ -106,7 +110,7 @@ public class ShooterTester extends OpMode {
         telemetry.addData("Pinpoint X Inches: ", pinpoint.getPosX(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Y Inches: ", pinpoint.getPosY(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Heading Degrees: ", pinpoint.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("Flywheel Velocity (RPM): ", sensors.getFlywheelVelo()/TICKS_PER_REV * 60);
+        telemetry.addData("Flywheel Velocity (RPM): ", sensors.getFlywheelVelo() / TICKS_PER_REV * 60);
         telemetry.addData("Turret Position Degrees: ", sensors.getTurretPosition());
         //telemetry.addData("Hood Position Degrees: ", shooter.getHoodServoPositionInDegrees());
         telemetry.addLine("");
@@ -157,13 +161,16 @@ public class ShooterTester extends OpMode {
 
 
     }
-    private void configurePinpoint() {
-        pinpoint.setOffsets(1.91 , -2.64, DistanceUnit.INCH); //NEEDS TO BE MEASURED
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.REVERSED,
-                GoBildaPinpointDriver.EncoderDirection.REVERSED
-        );
-        pinpoint.recalibrateIMU();
-    }
 }
+
+// CONFIGURE PINPOINT FIRST
+//    private void configurePinpoint() {
+//        pinpoint.setOffsets(1.91 , -2.64, DistanceUnit.INCH); //NEEDS TO BE MEASURED
+//        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+//        pinpoint.setEncoderDirections(
+//                GoBildaPinpointDriver.EncoderDirection.REVERSED,
+//                GoBildaPinpointDriver.EncoderDirection.REVERSED
+//        );
+//        pinpoint.recalibrateIMU();
+//    }
+//}
