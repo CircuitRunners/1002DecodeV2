@@ -79,7 +79,7 @@ public class TurretPIDFTuner extends OpMode {
         }
         telemetry.update();
 
-//        pidf = new PIDFController(kP, kI, kD, kF);
+        pidf = new PIDFController(kP, kI, kD, kF);
 //        pidf.setSetPoint(targetAngle);
     }
 
@@ -93,7 +93,7 @@ public class TurretPIDFTuner extends OpMode {
 
         double currentAngle = sensors.getTurretPosition();
 
-        pidf.setPIDF(kP, kI, kD, kF);
+//        pidf.setPIDF(kP, kI, kD, kF);
 
         pidf.setSetPoint(targetAngle);
 

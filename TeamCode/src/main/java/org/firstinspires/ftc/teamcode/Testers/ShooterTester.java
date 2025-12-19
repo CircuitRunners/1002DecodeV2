@@ -80,7 +80,7 @@ public class ShooterTester extends OpMode {
 //        double rotate = player1.getRightX();
 //
 //        drive.drive(forward, strafe, rotate);
-        turretPos = sensors.getTurretPosition();
+
         robotFieldYawDegrees = pinpoint.getHeading(AngleUnit.DEGREES);
 
         Shooter.OptimalShot shot = shooter.calculateOptimalShot(
@@ -96,9 +96,7 @@ public class ShooterTester extends OpMode {
             double desiredTurretHeading = 0.0; //field centric auto align
             shooter.setShooterTarget(
                     pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH),
-                    BLUE_GOAL_X_INCHES, BLUE_GOAL_Y_INCHES,
-                    turretPos, robotFieldYawDegrees,
-                    turretMode, desiredTurretHeading);
+                    BLUE_GOAL_X_INCHES, BLUE_GOAL_Y_INCHES);
             //blue goal only
 
 
