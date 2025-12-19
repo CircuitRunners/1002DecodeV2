@@ -40,6 +40,8 @@ public class Intake {
     private boolean ballInTransfer = false;
     private boolean greenHasBeenShot = false;
 
+    public static boolean canShoot = false;
+
     public Intake(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
@@ -126,23 +128,27 @@ public class Intake {
         setGatePositon(GATE_CLOSED);
     }
 
+    public void setCanShoot(boolean value){
+        canShoot = value;
+    }
+
 
     public void cycle(){
         gateOpen();
         transferOn();
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE_POS);
+        setDirectionCycle();
         intake.setPower(0.4);
     }
 
     public void transfer(){
         transferOn();
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER_POS);
+        setDirectionTransfer();
         intake.setPower(1);
     }
 
     public void resetIndexer(){
         transferOff();
-        setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE_POS);
+        setDirectionCycle();
         intakeMotorIdle();
     }
 
@@ -158,7 +164,9 @@ public class Intake {
         telemetry.addLine("Sorter manual override triggered: sorting stopped.");
     }
 
-    public void sort(int numBalls, double shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
+
+
+    public void sort(double shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
                      DetectedColor colorSensor1Value,
                      DetectedColor colorSensor2Value,
                      DetectedColor colorSensor3Value) {
@@ -216,24 +224,37 @@ public class Intake {
                 || (requiredColor.equals("Purple") && purpleInventory > 0);
 
 
-
-        if (!greenHasBeenShot) {
+        if (allGreen || allPurple){
             if (!ballInTransfer) {
-                // Transfer if top ball matches required color or if no correct color remains
-                if ((requiredColor.equals("Green") && topBall == DetectedColor.GREEN) ||
-                        (requiredColor.equals("Purple") && topBall == DetectedColor.PURPLE) ||
-                        (!correctBallAvailable && topBall != null)) {
+                if (canShoot){
                     transfer();
                     ballInTransfer = true;
-                } else {
-                    cycle();
                 }
             }
         }
-        else if (greenHasBeenShot){
-            if (!ballInTransfer) {
-                    transfer();
-                    ballInTransfer = true;
+        else {
+            if (!greenHasBeenShot) {
+                if (!ballInTransfer) {
+                    // Transfer if top ball matches required color or if no correct color remains
+                    if ((requiredColor.equals("Green") && topBall == DetectedColor.GREEN) ||
+                            (requiredColor.equals("Purple") && topBall == DetectedColor.PURPLE) ||
+                            (!correctBallAvailable && topBall != null)) {
+                       if (canShoot){
+                           transfer();
+                           ballInTransfer = true;
+                       }
+
+                    } else {
+                        cycle();
+                    }
+                }
+            } else if (greenHasBeenShot) {
+                if (!ballInTransfer) {
+                    if (canShoot){
+                        transfer();
+                        ballInTransfer = true;
+                    }
+                }
             }
         }
 
