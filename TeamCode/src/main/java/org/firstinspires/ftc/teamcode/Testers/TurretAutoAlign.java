@@ -26,8 +26,8 @@ public class TurretAutoAlign extends OpMode {
     private GamepadEx player1;
     private GoBildaPinpointDriver pinpoint;
     private static final Pose2D startingPose = new Pose2D(DistanceUnit.INCH, 36, 36, AngleUnit.DEGREES, 90);
-    private static double BLUE_GOAL_X = 6.0;
-    private static double BLUE_GOAL_Y = 67.5;
+    private static double BLUE_GOAL_X = 12.0;
+    private static double BLUE_GOAL_Y = 137;
     private static final String HUB_NAME = "SRSHub";
 
     public void init() {
@@ -40,7 +40,7 @@ public class TurretAutoAlign extends OpMode {
         drive.init(hardwareMap);
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        //configurePinpoint();
+        configurePinpoint();
 
         sensors = new Sensors();
         try {
@@ -60,18 +60,31 @@ public class TurretAutoAlign extends OpMode {
         player1.readButtons();
         pinpoint.update();
 
+
+        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
+
+            //pinpoint.recalibrateIMU();
+            Pose2D newPose = new Pose2D(DistanceUnit.INCH,
+                    72,72,
+                    AngleUnit.RADIANS, Math.toRadians(90));
+            //pinpoint.setPosition(newPose);
+
+
+            pinpoint.setPosition(newPose);
+            telemetry.addLine("Pinpoint Reset - Position now 72,72 (Middle)!");
+        }
         Pose2D currentPose = pinpoint.getPosition();
 
         double forward = player1.getLeftY();
         double strafe = player1.getLeftX();
         double rotate = player1.getRightX();
 
-        double robotHeadingRad = currentPose.getHeading(AngleUnit.RADIANS);
+        double robotHeading = Math.toRadians(currentPose.getHeading(AngleUnit.DEGREES));
         double turretHeadingDeg = sensors.getTurretPosition();
 
         double theta = Math.atan2(forward, strafe);
         double r = Math.hypot(forward, strafe);
-        theta = AngleUnit.normalizeRadians(theta - robotHeadingRad);
+        theta = AngleUnit.normalizeRadians(theta - robotHeading);
 
         double newForward = r * Math.sin(theta);
         double newStrafe  = r * Math.cos(theta);
@@ -79,23 +92,28 @@ public class TurretAutoAlign extends OpMode {
         drive.drive(newForward, newStrafe, rotate);
 
 
+//calc desired angle for turret
+        double deltaY = BLUE_GOAL_Y - currentPose.getY(DistanceUnit.INCH);
+        double deltaX = BLUE_GOAL_X - currentPose.getX(DistanceUnit.INCH);
+
+        // Use Math.atan2(deltaX, deltaY) to correctly map standard (X=East, Y=North)
+        // to the required FTC Yaw (0=North, 90=East)
+        double targetFieldYawRad = Math.atan2(deltaX,deltaY);
 
 
 
-        double robotFieldX = -currentPose.getY(DistanceUnit.INCH);
-        double robotFieldY = currentPose.getX(DistanceUnit.INCH);
+        double targetFieldYaw = Math.toDegrees(targetFieldYawRad);
 
-        double dx = BLUE_GOAL_X - robotFieldX;
-        double dy = BLUE_GOAL_Y - robotFieldY;
 
-        double angleToGoalField = Math.atan2(dx, dy);
-        double turretTargetRad = AngleUnit.normalizeRadians(angleToGoalField - robotHeadingRad);
-
-        double turretTargetDeg = Math.toDegrees(turretTargetRad);
-        turret.setTurretTargetPosition(turretTargetDeg);
-
+        turret.setTurretTarget(
+                targetFieldYaw,
+                Shooter.TurretMode.FIELD_CENTRIC,
+                turretHeadingDeg,
+                robotHeading
+        );
 
         turret.update(0, turretHeadingDeg, 0);
+
 
         String data = String.format(Locale.US,
                 "{X: %.3f, Y: %.3f, H: %.3f}",
@@ -105,23 +123,23 @@ public class TurretAutoAlign extends OpMode {
         );
 
         telemetry.addData("Pinpoint Pos: ", data);
-        telemetry.addData("Field Pos: ", "X: %.3f, Y: %.3f", robotFieldX, robotFieldY);
+        telemetry.addData("Field Pos: ", "X: %.3f, Y: %.3f", currentPose.getX(DistanceUnit.INCH),currentPose.getY(DistanceUnit.INCH));
         telemetry.addData("Turret Deg: ", turretHeadingDeg);
-        telemetry.addData("Turret Target Deg", turretTargetDeg);
+        telemetry.addData("Turret Target Deg", targetFieldYaw);
 
     }
 
 
     //CONFIGURE PINPOINT FIRST
-//    private void configurePinpoint() {
-//        pinpoint.setOffsets(1.91, -2.64, DistanceUnit.INCH);
-//        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-//        pinpoint.setEncoderDirections(
-//                GoBildaPinpointDriver.EncoderDirection.REVERSED,
-//                GoBildaPinpointDriver.EncoderDirection.REVERSED
-//        );
-//        pinpoint.recalibrateIMU();
-//        pinpoint.setPosition(startingPose);
-//    }
+    private void configurePinpoint() {
+        pinpoint.setOffsets(1.91, -2.64, DistanceUnit.INCH);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        pinpoint.setEncoderDirections(
+                GoBildaPinpointDriver.EncoderDirection.REVERSED,
+                GoBildaPinpointDriver.EncoderDirection.REVERSED
+        );
+        pinpoint.recalibrateIMU();
+        pinpoint.setPosition(startingPose);
+    }
 
 }

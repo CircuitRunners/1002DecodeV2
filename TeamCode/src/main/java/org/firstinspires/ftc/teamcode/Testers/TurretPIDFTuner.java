@@ -71,9 +71,9 @@ public class TurretPIDFTuner extends OpMode {
         try {
             // The Sensors class handles finding and configuring the SRSHub itself
             sensors.init(hardwareMap, HUB_NAME);
-            telemetry.addData("Status", "Initialization Successful!");
+            telemetry.addData("Status", "SRS Initialization Successful!");
         } catch (Exception e) {
-            telemetry.addData("Status", "FATAL ERROR during initialization!");
+            telemetry.addData("Status", "FATAL ERROR during SRS initialization!");
             telemetry.addData("Error", e.getMessage());
 
         }

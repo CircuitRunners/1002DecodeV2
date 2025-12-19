@@ -158,12 +158,12 @@ public class Intake {
         telemetry.addLine("Sorter manual override triggered: sorting stopped.");
     }
 
-    public void sort(int numBalls, double beamBrake, LimelightCamera.BallOrder targetOrder,
+    public void sort(int numBalls, double shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
                      DetectedColor colorSensor1Value,
                      DetectedColor colorSensor2Value,
                      DetectedColor colorSensor3Value) {
 
-        boolean isBeamBroken = (beamBrake <= 0.5);
+        boolean isBeamBroken = (shooterBeamBrake <= 0.5);
 
 
         String[] fullTargetSequence;

@@ -268,7 +268,7 @@ public class Shooter {
     /**
      * Sets the turret's PID setpoint based on the selected mode.
      */
-    private void setTurretTarget(double inputDeg, TurretMode mode, double currentTurretAngle0_360, double robotFieldYawDeg) {
+    public void setTurretTarget(double inputDeg, TurretMode mode, double currentTurretAngle0_360, double robotFieldYawDeg) {
         double rawNewTarget_0_360;
 
         switch (mode) {
@@ -293,7 +293,7 @@ public class Shooter {
         setTurretTargetPosition(rawNewTarget_0_360);
     }
 
-    public void setTurretTargetPosition(double positionDeg) {
+    private void setTurretTargetPosition(double positionDeg) {
         if (positionDeg > 360){
             positionDeg -= 360;
         }
