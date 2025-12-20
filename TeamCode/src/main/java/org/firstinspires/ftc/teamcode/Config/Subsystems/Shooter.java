@@ -17,6 +17,13 @@ public class Shooter {
     //NOTE FOR ALL - DEGREES INCREASE COUNTERCLOCKWISE LIKE UNIT CIRCLE
     private Telemetry telemetry;
 
+    private static double currentRequiredFlywheelTicks = 0;
+    private static double currentRequiredHoodAngle = 0;
+    private static double currentRequiredInAirTOF = 0;
+
+    private static final double transferTimeSec = 0.5; //TUNE
+    private static double currentRequiredTotalTOF = currentRequiredInAirTOF + transferTimeSec;
+
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.002, 0, 0.0001, 0.000423};
     private static final double[] turretCoefficients = {0.01, 0, 0.0001, 0.005};
@@ -40,7 +47,7 @@ public class Shooter {
     // --- SHOT CONSTRAINTS (For Iterative Search) ---
     private static final double MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC = 2333.33;
 
-    // ⭐ MODIFIED: These are now the dynamic calibration limits
+
     private static double MIN_LAUNCH_ANGLE_DEG = 15.0;
     private static double MAX_LAUNCH_ANGLE_DEG = 60.0;
 
@@ -51,7 +58,7 @@ public class Shooter {
     public boolean turretReached;
     public boolean hoodReached;
 
-    // ⭐ MODIFIED: Public flag for external classes to reference
+
     public boolean hoodCalibrationRequired = false;
 
     // Hardware
@@ -324,7 +331,7 @@ public class Shooter {
      * that results in the lowest Time of Flight (T_min) while respecting the
      * MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC constraint.
      */
-    public OptimalShot calculateOptimalShot(double robotXInches, double robotYInches,
+    private OptimalShot calculateOptimalShot(double robotXInches, double robotYInches,
                                             double targetXInches, double targetYInches) {
 
         // --- 1. Geometric Setup ---
@@ -439,21 +446,35 @@ public class Shooter {
      */
     public void setShooterTarget(
             double robotXInches, double robotYInches,
-            double targetXInches, double targetYInches)
+            double targetXInches, double targetYInches, double robotXVelo, double robotYVelo)
     {
+
+
 
         // 1. Always calculate ballistics (Velo/Angle) first, as this only needs R and DeltaY.
         OptimalShot shot = calculateOptimalShot(
                 robotXInches, robotYInches,
                 targetXInches, targetYInches);
 
-        setTargetVelocityTicks(shot.requiredFlywheelTicks);
-        setHoodTargetAngle(shot.requiredHoodAngle);
+
+        targetXInches = getXVelocityOffset(robotXVelo, targetXInches, (shot.timeOfFlight + transferTimeSec));
+        targetYInches = getYVelocityOffset(robotYVelo,targetYInches,(shot.timeOfFlight + transferTimeSec));
+
+        OptimalShot newShot = calculateOptimalShot(
+                robotXInches, robotYInches,
+                targetXInches, targetYInches);
+
+        currentRequiredFlywheelTicks = newShot.requiredFlywheelTicks;
+        currentRequiredHoodAngle = newShot.requiredHoodAngle;
+        currentRequiredInAirTOF = newShot.timeOfFlight;
+
+        setTargetVelocityTicks(newShot.requiredFlywheelTicks);
+        setHoodTargetAngle(newShot.requiredHoodAngle);
     }
 
     public void setShooterTarget(
             double robotXInches, double robotYInches,
-            double targetXInches, double targetYInches,
+            double targetXInches, double targetYInches,double robotXVelo, double robotYVelo,
             double currentTurretAngle0_360,
             double robotFieldYawDeg, // Input is [-180, 180]
             TurretMode turretMode, double turretInputDeg)
@@ -464,8 +485,20 @@ public class Shooter {
                 robotXInches, robotYInches,
                 targetXInches, targetYInches);
 
-        setTargetVelocityTicks(shot.requiredFlywheelTicks);
-        setHoodTargetAngle(shot.requiredHoodAngle);
+
+        targetXInches = getXVelocityOffset(robotXVelo, targetXInches, (shot.timeOfFlight + transferTimeSec));
+        targetYInches = getYVelocityOffset(robotYVelo,targetYInches,(shot.timeOfFlight + transferTimeSec));
+
+        OptimalShot newShot = calculateOptimalShot(
+                robotXInches, robotYInches,
+                targetXInches, targetYInches);
+
+        currentRequiredFlywheelTicks = newShot.requiredFlywheelTicks;
+        currentRequiredHoodAngle = newShot.requiredHoodAngle;
+        currentRequiredInAirTOF = newShot.timeOfFlight;
+
+        setTargetVelocityTicks(newShot.requiredFlywheelTicks);
+        setHoodTargetAngle(newShot.requiredHoodAngle);
 
         double finalTurretInput = turretInputDeg;
 
@@ -600,6 +633,18 @@ public class Shooter {
         );
     }
 
+
+    private double getXVelocityOffset(double robotVeloX, double currentGoalX, double TOF){
+        double finalGoalPos = (-robotVeloX * TOF) + currentGoalX;
+        return finalGoalPos;
+    }
+
+    private double getYVelocityOffset(double robotVeloY, double currentGoalY, double TOF){
+        double finalGoalPos = (-robotVeloY * TOF) + currentGoalY;
+        return finalGoalPos;
+
+    }
+
     public void setHoodTargetAngle(double angle){
         targetHoodAngle = angle;
     }
@@ -612,6 +657,22 @@ public class Shooter {
     public void stopFlywheel() {
         setFlywheelPower(0);
         setTargetVelocityTicks(0);
+    }
+
+    public double getCurrentRequiredFlywheelTicks() {
+        return currentRequiredFlywheelTicks;
+    }
+
+    public double getCurrentRequiredHoodAngle() {
+        return currentRequiredHoodAngle;
+    }
+
+    public double getCurrentRequiredInAirTOF() {
+        return currentRequiredInAirTOF;
+    }
+
+    public double getCurrentRequiredTotalTOF() {
+        return currentRequiredTotalTOF;
     }
 }
 //wassup

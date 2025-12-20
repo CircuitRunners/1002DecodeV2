@@ -83,21 +83,21 @@ public class ShooterTester extends OpMode {
 
         robotFieldYawDegrees = pinpoint.getHeading(AngleUnit.DEGREES);
 
-        Shooter.OptimalShot shot = shooter.calculateOptimalShot(
+        shooter.setShooterTarget(
                 pinpoint.getPosX(DistanceUnit.INCH),
                 pinpoint.getPosY(DistanceUnit.INCH),
                 BLUE_GOAL_X_INCHES,
-                BLUE_GOAL_Y_INCHES
+                BLUE_GOAL_Y_INCHES, pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH)
         );
 
         if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
             updateCoordinates();
 
             double desiredTurretHeading = 0.0; //field centric auto align
-            shooter.setShooterTarget(
-                    pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH),
-                    BLUE_GOAL_X_INCHES, BLUE_GOAL_Y_INCHES);
-            //blue goal only
+//            shooter.setShooterTarget(
+//                    pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH),
+//                    BLUE_GOAL_X_INCHES, BLUE_GOAL_Y_INCHES);
+//            //blue goal only
 
 
         }
@@ -113,9 +113,9 @@ public class ShooterTester extends OpMode {
         //telemetry.addData("Hood Position Degrees: ", shooter.getHoodServoPositionInDegrees());
         telemetry.addLine("");
         telemetry.addLine("===== Auto Shot =====");
-        telemetry.addData("Flywheel Target (ticks)", shot.requiredFlywheelTicks);
-        telemetry.addData("Hood Target (deg)", shot.requiredHoodAngle);
-        telemetry.addData("Time of Flight (s)", shot.timeOfFlight);
+        telemetry.addData("Flywheel Target (ticks)", shooter.getCurrentRequiredFlywheelTicks());
+        telemetry.addData("Hood Target (deg)", shooter.getCurrentRequiredHoodAngle());
+        telemetry.addData("Time of Flight (s)", shooter.getCurrentRequiredInAirTOF());
 
 
         telemetry.update();
