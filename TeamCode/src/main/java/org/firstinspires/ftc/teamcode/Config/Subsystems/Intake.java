@@ -92,15 +92,15 @@ public class Intake {
         motorPower = 0;
     }
 
-    private void setDirectionSwitcherPosition(double position) {
+    public void setDirectionSwitcherPosition(double position) {
         transferDirectionSwitcher.setPosition(Range.clip(position, 0.0,1.0));
     }
 
-    private void setPowerTransmitionPosition(double position) {
+    public void setPowerTransmitionPosition(double position) {
         transferPowerTransmition.setPosition(Range.clip(position, 0.0,1.0));
     }
 
-    private void setGatePositon(double position) {
+    public void setGatePositon(double position) {
         gateLeft.setPosition(Range.clip(position, 0.0,1.0));
         gateRight.setPosition(Range.clip(position, 0.0,1.0));
     }

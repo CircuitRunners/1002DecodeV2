@@ -30,6 +30,7 @@ public class TurretAutoAlign extends OpMode {
     private static double BLUE_GOAL_Y = 137;
     private static final String HUB_NAME = "SRSHub";
 
+    @Override
     public void init() {
 
         player1 = new GamepadEx(gamepad1);
@@ -56,6 +57,7 @@ public class TurretAutoAlign extends OpMode {
 
     }
 
+    @Override
     public void loop() {
         player1.readButtons();
         pinpoint.update();

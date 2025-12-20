@@ -145,6 +145,7 @@ public class Sensors {
     public boolean isBeamBroken1() {
         return hub.readAnalogDigitalDevice(1) > 0.5;
     }
+    public double getBeamBreakValue() {return hub.readAnalogDigitalDevice(1);}
 
 
 
