@@ -31,7 +31,6 @@ public class ShooterTester extends OpMode {
     private boolean areBothBeamsBroken;
     private int totalInventory = 0;
     private double robotFieldYawDegrees;
-    private double turretPos;
     private Shooter.TurretMode turretMode = Shooter.TurretMode.FIELD_CENTRIC;
     private static final double METERS_TO_INCH = 39.37;
     private static final double BLUE_GOAL_X_INCHES = 6.0;
@@ -102,7 +101,7 @@ public class ShooterTester extends OpMode {
 
         }
 
-        //shooter.update(sensors.getFlywheelVelo(), turretPos, shooter.getHoodServoPositionInDegrees());
+        shooter.update(sensors.getFlywheelVelo(), sensors.getTurretPosition());
 
 
         telemetry.addData("Pinpoint X Inches: ", pinpoint.getPosX(DistanceUnit.INCH));

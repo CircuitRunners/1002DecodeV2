@@ -189,6 +189,7 @@ public class Sensors {
         int r = red;
         int g = green;
         int b = blue;
+        int differenceOffset = 30;
 
         // --- NOTHING DETECTED ---
         if (r < 120 && g < 120 && b < 120) {
@@ -196,12 +197,12 @@ public class Sensors {
         }
 
         // --- GREEN: green strongest ---
-        if (g > r && g > b) {
+        if (g - differenceOffset > r && g - differenceOffset > b) {
             return DetectedColor.GREEN;
         }
 
         // --- PURPLE: both G and B > R ---
-        if (g > r && b > r) {
+        if (g - differenceOffset> r && b - differenceOffset > r) {
             return DetectedColor.PURPLE;
         }
 

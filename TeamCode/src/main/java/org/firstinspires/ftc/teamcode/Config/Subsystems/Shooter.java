@@ -524,7 +524,7 @@ public class Shooter {
     // ##  Update Loop
     // ------------------------------------
 
-    public void update(double currentFlywheelVelo,double currentTurretAngle0_360, double currentHoodAngleDeg) {
+    public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
         flywheelVeloReached = flywheelPIDF.atSetPoint();
         turretReached = turretPIDF.atSetPoint();
 

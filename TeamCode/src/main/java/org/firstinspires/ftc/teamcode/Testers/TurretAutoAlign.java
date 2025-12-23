@@ -114,7 +114,7 @@ public class TurretAutoAlign extends OpMode {
                 robotHeading
         );
 
-        turret.update(0, turretHeadingDeg, 0);
+        turret.update(sensors.getFlywheelVelo(), sensors.getTurretPosition());
 
 
         String data = String.format(Locale.US,

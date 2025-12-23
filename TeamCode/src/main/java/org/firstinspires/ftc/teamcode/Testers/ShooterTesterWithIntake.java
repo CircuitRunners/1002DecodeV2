@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
 @Disabled
-@TeleOp(name = "ShooterTester", group = "TEST")
+@TeleOp(name = "Buns Ahh ShooterTester", group = "TEST")
 public class ShooterTesterWithIntake extends OpMode {
 
     //private MecanumDrive drive;
@@ -130,7 +130,7 @@ public class ShooterTesterWithIntake extends OpMode {
         }
 
 
-        //shooter.update(shooter.getFlywheelVelocity(), turretPos, shooter.getHoodServoPositionInDegrees(turretPos));
+        shooter.update(sensors.getFlywheelVelo(), sensors.getTurretPosition());
 
 
         telemetry.addData("Pinpoint X Inches: ", pinpoint.getPosX(DistanceUnit.INCH));
