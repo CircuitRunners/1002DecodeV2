@@ -39,6 +39,7 @@ public class Intake {
     private int purpleInventory = 0;
     private boolean ballInTransfer = false;
     private boolean greenHasBeenShot = false;
+    private boolean patternReady = false;
 
     public static boolean canShoot = false;
 
@@ -166,6 +167,123 @@ public class Intake {
 
 
 
+//    public void sort(double shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
+//                     DetectedColor colorSensor1Value,
+//                     DetectedColor colorSensor2Value,
+//                     DetectedColor colorSensor3Value) {
+//
+//        boolean isBeamBroken = (shooterBeamBrake <= 0.5);
+//
+//
+//        String[] fullTargetSequence;
+//        if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE) {
+//            fullTargetSequence = new String[]{"Green", "Purple", "Purple"};
+//        } else if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE) {
+//            fullTargetSequence = new String[]{"Purple", "Green", "Purple"};
+//        } else if (targetOrder == null){
+//            fullTargetSequence = new String[]{"Purple","Purple","Purple"};
+//            greenHasBeenShot = true;
+//        }
+//        else {
+//            fullTargetSequence = new String[]{"Purple", "Purple", "Green"};
+//        }
+//
+//        //  Initialize inventory once at the start
+////        if (currentShot == 0 && greenInventory == 0 && purpleInventory == 0) {
+////            DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
+////            for (DetectedColor color : sensors) {
+////                if (color == DetectedColor.GREEN) greenInventory++;
+////                else if (color == DetectedColor.PURPLE) purpleInventory++;
+////            }
+////        }
+//        purpleInventory = getPurpleInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+//        greenInventory = getGreenInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+//
+//        int totalBalls = getTotalInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+//        if (totalBalls == 0) return; // nothing to sort
+//
+//       boolean allPurple = totalBalls - greenInventory == totalBalls;
+//       boolean allGreen = totalBalls - purpleInventory == totalBalls;
+//
+//        int shotsToTake = Math.min(3, totalBalls);
+//
+//
+//        if (currentShot >= shotsToTake) {
+//            telemetry.addLine("Sorting complete. Resetting sorter state.");
+//            currentShot = 0;
+//            greenInventory = 0;
+//            purpleInventory = 0;
+//            ballInTransfer = false;
+//            greenHasBeenShot = false;
+//            return;
+//        }
+//
+//        String requiredColor = fullTargetSequence[currentShot];
+//        DetectedColor topBall = colorSensor1Value; // top-most ball sensor
+//
+//        boolean correctBallAvailable = (requiredColor.equals("Green") && greenInventory > 0)
+//                || (requiredColor.equals("Purple") && purpleInventory > 0);
+//
+//
+//        if (allGreen || allPurple){
+//            if (!ballInTransfer) {
+//                if (canShoot){
+//                    transfer();
+//                    ballInTransfer = true;
+//                }
+//            }
+//        }
+//        else {
+//            if (!greenHasBeenShot) {
+//                if (!ballInTransfer) {
+//                    // Transfer if top ball matches required color or if no correct color remains
+//                    if ((requiredColor.equals("Green") && topBall == DetectedColor.GREEN) ||
+//                            (requiredColor.equals("Purple") && topBall == DetectedColor.PURPLE) ||
+//                            (!correctBallAvailable && topBall != null)) {
+//                       if (canShoot){
+//                           transfer();
+//                           ballInTransfer = true;
+//                       }
+//
+//                    } else {
+//                        cycle();
+//                    }
+//                }
+//            } else if (greenHasBeenShot) {
+//                if (!ballInTransfer) {
+//                    if (canShoot){
+//                        transfer();
+//                        ballInTransfer = true;
+//                    }
+//                }
+//            }
+//        }
+//
+//
+//        if (ballInTransfer && isBeamBroken) {
+//            // Update inventory
+//            if (requiredColor.equals("Green") && greenInventory > 0) {
+//                greenInventory--;
+//            }
+//            else if (requiredColor.equals("Purple") && purpleInventory > 0) purpleInventory--;
+//
+//            // Advance slot
+//            currentShot++;
+//            ballInTransfer = false;
+//            if (requiredColor.equals("Green")){
+//                greenHasBeenShot = true;
+//            }
+//        }
+//
+//        // --- Keep cycling leftover balls until they reach transfer ---
+//        if (currentShot < shotsToTake && !ballInTransfer) {
+//            cycle();
+//        }
+//    }
+
+    private boolean lastSlot1WasNull = false;
+    private boolean patternIsLocked = false; // New flag to stop checking sensors during firing
+
     public void sort(double shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
                      DetectedColor colorSensor1Value,
                      DetectedColor colorSensor2Value,
@@ -173,111 +291,95 @@ public class Intake {
 
         boolean isBeamBroken = (shooterBeamBrake <= 0.5);
 
+        // 1. Get current state
+        DetectedColor slot1 = colorSensor1Value;
+        DetectedColor slot2 = colorSensor2Value;
+        DetectedColor slot3 = colorSensor3Value;
+        int totalBalls = getTotalInventory(slot1, slot2, slot3);
 
-        String[] fullTargetSequence;
-        if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE) {
-            fullTargetSequence = new String[]{"Green", "Purple", "Purple"};
-        } else if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE) {
-            fullTargetSequence = new String[]{"Purple", "Green", "Purple"};
-        } else if (targetOrder == null){
-            fullTargetSequence = new String[]{"Purple","Purple","Purple"};
-            greenHasBeenShot = true;
-        }
-        else {
-            fullTargetSequence = new String[]{"Purple", "Purple", "Green"};
-        }
-
-        //  Initialize inventory once at the start
-//        if (currentShot == 0 && greenInventory == 0 && purpleInventory == 0) {
-//            DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
-//            for (DetectedColor color : sensors) {
-//                if (color == DetectedColor.GREEN) greenInventory++;
-//                else if (color == DetectedColor.PURPLE) purpleInventory++;
-//            }
-//        }
-        purpleInventory = getPurpleInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
-        greenInventory = getGreenInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
-
-        int totalBalls = getTotalInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
-        if (totalBalls == 0) return; // nothing to sort
-
-       boolean allPurple = totalBalls - greenInventory == totalBalls;
-       boolean allGreen = totalBalls - purpleInventory == totalBalls;
-
-        int shotsToTake = Math.min(3, totalBalls);
-
-
-        if (currentShot >= shotsToTake) {
-            telemetry.addLine("Sorting complete. Resetting sorter state.");
-            currentShot = 0;
-            greenInventory = 0;
-            purpleInventory = 0;
-            ballInTransfer = false;
-            greenHasBeenShot = false;
+        // 2. Completion / Reset Logic
+        if (totalBalls == 0 || currentShot >= 3) {
+//            if (currentShot >= 3) {
+                currentShot = 0;
+                patternIsLocked = false;
+         //   }
+            resetIndexer();
             return;
         }
 
-        String requiredColor = fullTargetSequence[currentShot];
-        DetectedColor topBall = colorSensor1Value; // top-most ball sensor
+        // 3. Phase 1: Sorting (Only runs if we haven't started firing yet)
+        if (!patternIsLocked) {
+            if (totalBalls <= 1) {
+                patternIsLocked = true; // Nothing to sort, just fire
+            } else {
+                // Define target pattern
+                String[] pattern = getTargetArray(targetOrder);
 
-        boolean correctBallAvailable = (requiredColor.equals("Green") && greenInventory > 0)
-                || (requiredColor.equals("Purple") && purpleInventory > 0);
+                boolean s1Match = isColorMatch(slot1, pattern[0]);
+                boolean s2Match = isColorMatch(slot2, pattern[1]);
 
+                if (s1Match && s2Match) {
+                    gateClose();
+                    intakeMotorIdle();
+                    patternIsLocked = true; // ORDER ACQUIRED
+                } else {
+                    performSortingCycle(slot1);
+                }
+            }
+        }
 
-        if (allGreen || allPurple){
+        // 4. Phase 2: Firing (The "Boom Boom Boom" Phase)
+        if (patternIsLocked) {
             if (!ballInTransfer) {
-                if (canShoot){
+                if (canShoot) {
                     transfer();
                     ballInTransfer = true;
-                }
-            }
-        }
-        else {
-            if (!greenHasBeenShot) {
-                if (!ballInTransfer) {
-                    // Transfer if top ball matches required color or if no correct color remains
-                    if ((requiredColor.equals("Green") && topBall == DetectedColor.GREEN) ||
-                            (requiredColor.equals("Purple") && topBall == DetectedColor.PURPLE) ||
-                            (!correctBallAvailable && topBall != null)) {
-                       if (canShoot){
-                           transfer();
-                           ballInTransfer = true;
-                       }
-
-                    } else {
-                        cycle();
-                    }
-                }
-            } else if (greenHasBeenShot) {
-                if (!ballInTransfer) {
-                    if (canShoot){
-                        transfer();
-                        ballInTransfer = true;
-                    }
+                } else {
+                    gateClose();
+                    intakeMotorIdle();
                 }
             }
         }
 
-
+        // 5. Shot Counter
         if (ballInTransfer && isBeamBroken) {
-            // Update inventory
-            if (requiredColor.equals("Green") && greenInventory > 0) {
-                greenInventory--;
-            }
-            else if (requiredColor.equals("Purple") && purpleInventory > 0) purpleInventory--;
-
-            // Advance slot
             currentShot++;
             ballInTransfer = false;
-            if (requiredColor.equals("Green")){
-                greenHasBeenShot = true;
-            }
+        }
+    }
+
+    /**
+     * Cycle logic: Opens gate to rotate balls,
+     * but closes gate immediately when a new ball enters Slot 1.
+     */
+    private void performSortingCycle(DetectedColor currentSlot1) {
+        boolean isSlot1Null = (currentSlot1 == null);
+
+        // Transition: Slot 1 was empty, now it's not = ball "caught"
+        if (lastSlot1WasNull && !isSlot1Null) {
+            gateClose();
+            intakeMotorIdle();
+        } else {
+            cycle(); // Opens gate and runs motor
         }
 
-        // --- Keep cycling leftover balls until they reach transfer ---
-        if (currentShot < shotsToTake && !ballInTransfer) {
-            cycle();
-        }
+        lastSlot1WasNull = isSlot1Null;
+    }
+
+    private String[] getTargetArray(LimelightCamera.BallOrder targetOrder) {
+        if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE)
+            return new String[]{"Green", "Purple", "Purple"};
+        if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE)
+            return new String[]{"Purple", "Green", "Purple"};
+        if (targetOrder == null)
+            return new String[]{"Purple", "Purple", "Purple"};
+
+        return new String[]{"Purple", "Purple", "Green"};
+    }
+
+    private boolean isColorMatch(DetectedColor sensor, String required) {
+        if (sensor == null) return false;
+        return required.equals("Green") ? (sensor == DetectedColor.GREEN) : (sensor == DetectedColor.PURPLE);
     }
 
     public int getGreenInventory(DetectedColor colorSensor1Value,
