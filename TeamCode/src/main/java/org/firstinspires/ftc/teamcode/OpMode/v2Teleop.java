@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Locale;
 
-@TeleOp(name = "Zenith Teleop V2 - PS5", group = "A")
+@TeleOp(name = "Zenith Teleop V2 - Final", group = "A")
 @Configurable
 public class v2Teleop extends OpMode {
 
@@ -37,18 +37,17 @@ public class v2Teleop extends OpMode {
     private GoBildaPinpointDriver pinpoint;
 
     private GamepadEx player1;
-    private final ElapsedTime timer = new ElapsedTime();
 
     // Logic States
     private int opState = 0; // 0: Intake, 1: Fast Burst (No Sort), 2: Smart Score (Sort)
     private boolean isRedAlliance = true;
     private LimelightCamera.BallOrder targetPattern = null;
 
-    // Shot Counting
+    // Shot Counting & Beam Break Logic
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
 
-    // Field Constants
+    // Constants
     private final double RED_GOAL_X = 132.0;
     private final double BLUE_GOAL_X = 12.0;
     private final double GOAL_Y = 137.0;
@@ -72,21 +71,24 @@ public class v2Teleop extends OpMode {
         sensors.init(hardwareMap, "SRSHub");
 
         player1 = new GamepadEx(gamepad1);
-        telemetry.addLine("Zenith PS5 Ready.");
+        telemetry.addLine("Zenith Systems Online.");
     }
 
     @Override
     public void init_loop() {
-        // Options = Red, Share = Blue
         if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) isRedAlliance = true;
         if (player1.wasJustPressed(GamepadKeys.Button.SHARE)) isRedAlliance = false;
+
+        sensors.update();
+        lastBeamState = sensors.isBeamBroken();
+
         telemetry.addData("Alliance", isRedAlliance ? "RED" : "BLUE");
         telemetry.update();
     }
 
     @Override
     public void loop() {
-        // 1. HARDWARE UPDATES
+        // 1. URGENT HARDWARE UPDATES
         follower.update();
         pinpoint.update();
         sensors.update();
@@ -94,34 +96,10 @@ public class v2Teleop extends OpMode {
 
         Pose currentPose = follower.getPose();
 
-        // 2. INPUT HANDLING (PS5 Mapping)
-        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
-            follower.setPose(new Pose(72, 72, Math.toRadians(-90)));
-            gamepad1.rumble(200);
-        }
+        // 2. INPUT MAPPING
+        handleInputOverrides();
 
-        // Manual Breakout - Circle Button
-        if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
-            resetToIntake();
-            gamepad1.rumble(500);
-        }
-
-        // Mode Switching
-        if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) { // L1
-            if (opState != 1) {
-                ballsShotInState = 0;
-                opState = 1;
-            } else resetToIntake();
-        }
-
-        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) { // R1
-            if (opState != 2) {
-                ballsShotInState = 0;
-                opState = 2;
-            } else resetToIntake();
-        }
-
-        // 3. EXECUTION
+        // 3. STATE MACHINE EXECUTION
         handleDriving(currentPose);
 
         switch (opState) {
@@ -131,10 +109,43 @@ public class v2Teleop extends OpMode {
         }
 
         // 4. SUBSYSTEM SYNC
+        // Ensures the Intake subsystem's internal 'canShoot' logic respects Shooter readiness
         intake.setCanShoot(shooter.flywheelVeloReached && shooter.turretReached && shooter.hoodReached);
+
+        // Shooter needs real-time sensor data for its internal PID loops
         shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
 
         doTelemetry(currentPose);
+    }
+
+    private void handleInputOverrides() {
+        // Reset Odo (Square)
+        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
+            follower.setPose(new Pose(72, 72, Math.toRadians(-90)));
+            gamepad1.rumble(200);
+        }
+
+        // Relocalize (Triangle)
+        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
+            updateCoordinatesWithAprilTag();
+        }
+
+        // Manual Breakout (Circle)
+        if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
+            resetToIntake();
+            gamepad1.rumble(500);
+        }
+
+        // Scoring Mode Toggles
+        if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) { // L1 - Burst
+            if (opState != 1) { ballsShotInState = 0; opState = 1; }
+            else resetToIntake();
+        }
+
+        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) { // R1 - Smart Sort
+            if (opState != 2) { ballsShotInState = 0; opState = 2; }
+            else resetToIntake();
+        }
     }
 
     private void handleIntakeState() {
@@ -150,29 +161,30 @@ public class v2Teleop extends OpMode {
         applyShooterTargets(pose);
 
         if (shooter.flywheelVeloReached && shooter.hoodReached) {
-            intake.intake();
+            intake.transfer(); // Use transfer to bypass front rollers
             trackShotCount();
         }
 
         if (ballsShotInState >= 3) {
-            gamepad1.rumble(300);
+            gamepad1.rumble(350); // Single long pulse
             resetToIntake();
         }
     }
 
     private void handleScoringState(Pose pose) {
         applyShooterTargets(pose);
-        runSortingLogic();
+        runSortingLogic(); // Uses Intake.sort() which uses colors/limelight
         trackShotCount();
 
         if (ballsShotInState >= 3) {
-            gamepad1.rumble(100, 100, 200);
+            gamepad1.rumble(150, 150, 300); // Triple short pulses
             resetToIntake();
         }
     }
 
     private void trackShotCount() {
         boolean currentBeamState = sensors.isBeamBroken();
+        // Falling edge: broken -> not broken (ball has cleared the sensor)
         if (lastBeamState && !currentBeamState) {
             ballsShotInState++;
         }
@@ -193,8 +205,8 @@ public class v2Teleop extends OpMode {
         opState = 0;
         ballsShotInState = 0;
         shooter.stopFlywheel();
-        intake.sortManualOverride();
-        intake.resetIndexer();
+        intake.sortManualOverride(); // Critical: releases internal sort loops
+        intake.resetIndexer();       // Critical: clears indexer flags
     }
 
     private void runSortingLogic() {
@@ -214,13 +226,24 @@ public class v2Teleop extends OpMode {
         pinpoint.resetPosAndIMU();
     }
 
-    private void doTelemetry(Pose pose) {
-        String modeName = (opState == 0) ? "INTAKE" : (opState == 1) ? "BURST (NO SORT)" : "SMART SCORE (SORT)";
-        telemetry.addData("MODE", modeName);
-        telemetry.addData("SHOTS", ballsShotInState + "/3");
-        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
-        telemetry.addData("POS", String.format(Locale.US, "%.1f, %.1f, %.1f°", pose.getX(), pose.getY(), Math.toDegrees(pose.getHeading())));
-        telemetry.update();
+    public void updateCoordinatesWithAprilTag() {
+        limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
+        limelight.limelightCamera.pipelineSwitch(3);
+        LLResult result = limelight.getResult();
+        if (result != null && result.isValid()) {
+            for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
+                if (fr.getFiducialId() == 20 || fr.getFiducialId() == 24) {
+                    Pose3D mt1Pose = result.getBotpose();
+                    if (mt1Pose != null) {
+                        double finalX = (mt1Pose.getPosition().y * METERS_TO_INCH) + 72.0;
+                        double finalY = (-mt1Pose.getPosition().x * METERS_TO_INCH) + 72.0;
+                        follower.setPose(new Pose(finalX, finalY, follower.getHeading()));
+                        gamepad1.rumble(500);
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     private void handleDriving(Pose pose) {
@@ -232,6 +255,13 @@ public class v2Teleop extends OpMode {
         double theta = Math.atan2(forward, strafe) - heading;
         double r = Math.hypot(forward, strafe);
         drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
+    }
+
+    private void doTelemetry(Pose pose) {
+        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
+        telemetry.addData("SHOTS", ballsShotInState + "/3");
+        telemetry.addData("HEADING", Math.toDegrees(pose.getHeading()));
+        telemetry.update();
     }
 
     @Override public void stop() { limelight.limelightCamera.stop(); }
