@@ -79,7 +79,7 @@ public class ShooterTesterWithIntake extends OpMode {
 //        double rotate = player1.getRightX();
 //
 //        drive.drive(forward, strafe, rotate);
-        turretPos = sensors.getTurretPosition();
+        turretPos = sensors.getSketchTurretPosition();
         robotFieldYawDegrees = pinpoint.getHeading(AngleUnit.DEGREES);
 
         if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
@@ -130,14 +130,14 @@ public class ShooterTesterWithIntake extends OpMode {
         }
 
 
-        shooter.update(sensors.getFlywheelVelo(), sensors.getTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
 
 
         telemetry.addData("Pinpoint X Inches: ", pinpoint.getPosX(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Y Inches: ", pinpoint.getPosY(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Heading Degrees: ", pinpoint.getHeading(AngleUnit.DEGREES));
         //telemetry.addData("Flywheel Velocity (RPM): ", shooter.getFlywheelVelocity()/TICKS_PER_REV * 60);
-        telemetry.addData("Turret Position Degrees: ", sensors.getTurretPosition());
+        telemetry.addData("Turret Position Degrees: ", sensors.getSketchTurretPosition());
         //telemetry.addData("Hood Position Degrees: ", shooter.getHoodServoPositionInDegrees(turretPos));
 
 

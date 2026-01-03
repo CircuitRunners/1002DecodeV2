@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
@@ -22,9 +23,9 @@ public class Sensors {
 
     // --- CALIBRATION CONSTANTS ---
     private final int TURRET_OFFSET_DEGREES = 0;
-    private final int TURRET_CLAMP_MAX = 360;
+    private final int TURRET_MAX_TICKS = 360;
     private final int HOOD_OFFSET_DEGREES = 0;
-    private final int HOOD_CLAMP_MAX = 360;
+
 
 
 
@@ -43,9 +44,10 @@ public class Sensors {
         config.setAnalogDigitalDevice(1, SRSHub.AnalogDigitalDevice.DIGITAL); // Beam Break 1
 
         config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
-        config.setAnalogDigitalDevice(4, SRSHub.AnalogDigitalDevice.ANALOG);  // Hood Encoder
+
 
         config.setEncoder(1, SRSHub.Encoder.QUADRATURE); //flywheel encoder
+        config.setEncoder(3, SRSHub.Encoder.QUADRATURE); // turret incremental
 
         RobotLog.clearGlobalWarningMsg();
 
@@ -142,7 +144,7 @@ public class Sensors {
 
 
     // --- Digital Beam Breaks (AD pins 1 & 2) ---
-    public boolean isBeamBroken1() {
+    public boolean isBeamBroken() {
         return hub.readAnalogDigitalDevice(1) > 0.5;
     }
     public double getBeamBreakValue() {return hub.readAnalogDigitalDevice(1);}
@@ -152,32 +154,41 @@ public class Sensors {
     // --- Raw Analog Encoder Values ---
     public double getAnalogEncoder1Value() {
         return hub.readAnalogDigitalDevice(3);
+
     }
 
-    public double getAnalogEncoder2Value() {
-        return hub.readAnalogDigitalDevice(4);
+    public double getSketchTurretPosition(){
+        return Range.scale(
+                getAnalogEncoder1Value(),
+                0, TURRET_MAX_TICKS,              // Input Range
+                0, 360  // Output Range (CORRECTED)
+        );
     }
+
+//    public double getAnalogEncoder2Value() {
+//        return hub.readAnalogDigitalDevice(4);
+//    }
 
     // --- Calibrated Positions (clamping logic unchanged) ---
     public int getTurretPosition() {
         double normalizedValue = getAnalogEncoder1Value();
         int pos = (int) (Math.round(normalizedValue/3.2 * 360) + TURRET_OFFSET_DEGREES) % 360;
 
-        if (pos < 0) {pos += 360;}
-        if (pos >  360) {pos -= 360;}
+//        if (pos < 0) {pos += 360;}
+//        if (pos >  360) {pos -= 360;}
 
         return pos;
     }
 
-    public int getHoodPosition() {
-        double normalizedValue = getAnalogEncoder2Value();
-        int pos = (int) (Math.round(normalizedValue/3.2 * 360) + HOOD_OFFSET_DEGREES) % 360;
-
-        if (pos < 0) {pos += 360;}
-        if (pos >  360) {pos -= 360;}
-
-        return pos;
-    }
+//    public int getHoodPosition() {
+//        double normalizedValue = getAnalogEncoder2Value();
+//        int pos = (int) (Math.round(normalizedValue/3.2 * 360) + HOOD_OFFSET_DEGREES) % 360;
+//
+//        if (pos < 0) {pos += 360;}
+//        if (pos >  360) {pos -= 360;}
+//
+//        return pos;
+//    }
 
     // flywheel velo in ticks/sec
     public double getFlywheelVelo(){
@@ -189,7 +200,7 @@ public class Sensors {
         int r = red;
         int g = green;
         int b = blue;
-        int differenceOffset = 30;
+        int greenDifferenceOffset = 95;
 
         // --- NOTHING DETECTED ---
         if (r < 120 && g < 120 && b < 120) {
@@ -197,12 +208,12 @@ public class Sensors {
         }
 
         // --- GREEN: green strongest ---
-        if (g - differenceOffset > r && g - differenceOffset > b) {
+        if (g - greenDifferenceOffset > r && g - greenDifferenceOffset > b) {
             return DetectedColor.GREEN;
         }
 
         // --- PURPLE: both G and B > R ---
-        if (g - differenceOffset> r && b - differenceOffset > r) {
+        else if ((g + b / 2) <=55) {
             return DetectedColor.PURPLE;
         }
 

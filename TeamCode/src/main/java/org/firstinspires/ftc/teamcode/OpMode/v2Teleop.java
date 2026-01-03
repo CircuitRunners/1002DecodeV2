@@ -132,7 +132,7 @@ public class v2Teleop extends OpMode {
 
         // 5. SUBSYSTEM SYNC
         intake.setCanShoot(shooter.flywheelVeloReached && shooter.turretReached && shooter.hoodReached);
-        shooter.update(sensors.getFlywheelVelo(), sensors.getTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
 
         doTelemetry(currentPose);
     }
@@ -178,7 +178,7 @@ public class v2Teleop extends OpMode {
                 pose.getX(), pose.getY(),
                 targetX, GOAL_Y,
                 velX, velY,
-                sensors.getTurretPosition(),
+                sensors.getSketchTurretPosition(),
                 Math.toDegrees(pose.getHeading()),
                 Shooter.TurretMode.AUTO_ALIGN, 0
         );

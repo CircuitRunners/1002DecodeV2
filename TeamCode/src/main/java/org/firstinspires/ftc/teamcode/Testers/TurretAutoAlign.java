@@ -82,7 +82,7 @@ public class TurretAutoAlign extends OpMode {
         double rotate = player1.getRightX();
 
         double robotHeading = Math.toRadians(currentPose.getHeading(AngleUnit.DEGREES));
-        double turretHeadingDeg = sensors.getTurretPosition();
+        double turretHeadingDeg = sensors.getSketchTurretPosition();
 
         double theta = Math.atan2(forward, strafe);
         double r = Math.hypot(forward, strafe);
@@ -114,7 +114,7 @@ public class TurretAutoAlign extends OpMode {
                 robotHeading
         );
 
-        turret.update(sensors.getFlywheelVelo(), sensors.getTurretPosition());
+        turret.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
 
 
         String data = String.format(Locale.US,

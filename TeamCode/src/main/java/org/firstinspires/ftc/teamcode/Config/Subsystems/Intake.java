@@ -26,12 +26,12 @@ public class Intake {
     // Configurable constants
     public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
     public static double targetRPM = 0;  // default target speed
-    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.75;
-    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.3;
-    public static final double GATE_OPEN = 0.7;
-    public static final double GATE_CLOSED = 0.3;
-    public static final double TRANSFER_ON = 0.7;
-    public static final double TRANSFER_OFF = 0.3;
+    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.15;
+    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.42;
+    public static final double GATE_OPEN = 0.77;
+    public static final double GATE_CLOSED = 0.15;
+    public static final double TRANSFER_ON = 0.5;
+    public static final double TRANSFER_OFF = 0.35;
 
     //SORTING STUFF//
     private int currentShot = 0;
@@ -50,13 +50,13 @@ public class Intake {
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitcher");
+        transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitch");
         transferDirectionSwitcher.setDirection(Servo.Direction.FORWARD);
 
-        transferPowerTransmition = hardwareMap.get(Servo.class,"powerTransmition");
+        transferPowerTransmition = hardwareMap.get(Servo.class,"centerClutch");
         transferPowerTransmition.setDirection(Servo.Direction.FORWARD);
 
-        gateLeft = hardwareMap.get(Servo.class,"gateRight");
+        gateLeft = hardwareMap.get(Servo.class,"gateLeft");
         gateLeft.setDirection(Servo.Direction.REVERSE);
 
         gateRight = hardwareMap.get(Servo.class,"gateRight");

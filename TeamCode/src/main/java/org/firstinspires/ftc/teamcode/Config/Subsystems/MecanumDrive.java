@@ -29,7 +29,7 @@ public class MecanumDrive {
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        ptoLeft.setDirection(Servo.Direction.REVERSE);
+        ptoRight.setDirection(Servo.Direction.REVERSE);
 
         motors = new DcMotorEx[]{frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor};
         for (DcMotorEx motor : motors) {
@@ -67,11 +67,14 @@ public class MecanumDrive {
     }
 
     public void engagePto(){
-        setPtoPos(1);
+        setPtoPos(0.71);
+        ptoLeft.setPosition(0.71);
+        ptoRight.setPosition(0.72);
     }
 
     public void disengagePto(){
-        setPtoPos(0);
+        ptoLeft.setPosition(0.85);
+        ptoRight.setPosition(0.6);
     }
 
 

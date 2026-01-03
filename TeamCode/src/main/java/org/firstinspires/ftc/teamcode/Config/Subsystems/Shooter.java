@@ -48,10 +48,10 @@ public class Shooter {
     private static final double MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC = 2333.33;
 
 
-    private static double MIN_LAUNCH_ANGLE_DEG = 15.0;
-    private static double MAX_LAUNCH_ANGLE_DEG = 60.0;
+    private static double MIN_LAUNCH_ANGLE_DEG = 5.0;
+    private static double MAX_LAUNCH_ANGLE_DEG = 45.0;
 
-    private static final double ANGLE_SEARCH_STEP_DEG = 0.5;
+    private static final double ANGLE_SEARCH_STEP_DEG = 2.5;
 
     // Status flags
     public boolean flywheelVeloReached;
@@ -91,21 +91,21 @@ public class Shooter {
         this.telemetry = telemetry;
 
         // --- Hardware Initialization (omitted for brevity) ---
-        shooter1 = hardwareMap.get(DcMotorEx.class, "motor1");
+        shooter1 = hardwareMap.get(DcMotorEx.class, "leftShooter");
         shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        shooter2 = hardwareMap.get(DcMotorEx.class, "motor2");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
         shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turret.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         hoodServo = hardwareMap.get(Servo.class, "hood");
 
-        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
 
         shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -617,7 +617,7 @@ public class Shooter {
         return Range.scale(
                 angle,
                 MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG, // Input Range
-                0, 1              // Output Range
+                0.2, 0.025              // Output Range
         );
     }
 
@@ -628,7 +628,7 @@ public class Shooter {
         // Map the servo position range back to the hood angle range (INVERSE SCALING)
         return Range.scale(
                 currentServoPos,
-                0, 1,              // Input Range
+                0.2, 0.025,              // Input Range
                 MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG   // Output Range (CORRECTED)
         );
     }
@@ -674,5 +674,7 @@ public class Shooter {
     public double getCurrentRequiredTotalTOF() {
         return currentRequiredTotalTOF;
     }
+
+
 }
 //wassup

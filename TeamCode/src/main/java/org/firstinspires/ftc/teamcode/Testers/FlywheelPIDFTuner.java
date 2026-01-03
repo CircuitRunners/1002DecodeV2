@@ -34,7 +34,15 @@ public class FlywheelPIDFTuner extends OpMode {
     public static double kF = 0.00042;      // feedforward ≈ 1 / maxTicksPerSec  old is 0.00042
     public static double targetVelocity = 1633; // desired speed (ticks/sec)
     public static double maxPower = 1.0;          // safety clamp
-    public static final int TICKS_PER_REV = 537;
+
+    private Sensors sensors = new Sensors();
+
+    private boolean initializationFailed = false;
+
+
+
+// The name of the SRSHub in your robot configuration file
+
     private static final String HUB_NAME = "SRSHub";
     public static boolean intakeOn = false;
     public static double cookedLoopTargetMS = 100;
@@ -43,7 +51,7 @@ public class FlywheelPIDFTuner extends OpMode {
     public DcMotorEx shooter1;
     public DcMotorEx shooter2;
     private PIDFController pidf;
-    private Sensors sensors;
+
 
     private ElapsedTime loopTimer = new ElapsedTime();
     // Removed lastTicks and lastTime since they're no longer needed for manual calculation
@@ -55,28 +63,44 @@ public class FlywheelPIDFTuner extends OpMode {
         for (LynxModule hub : hubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
 
-        shooter1 = hardwareMap.get(DcMotorEx.class, "motor1");
+        shooter1 = hardwareMap.get(DcMotorEx.class, "leftShooter");
         shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        shooter2 = hardwareMap.get(DcMotorEx.class, "motor2");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
         shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
 
         shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
+        telemetry.addData("Status", "Initializing Sensors...");
+
+        telemetry.update();
+
+
+
         try {
-            // The Sensors class handles finding and configuring the SRSHub itself
+
+// The Sensors class handles finding and configuring the SRSHub itself
+
             sensors.init(hardwareMap, HUB_NAME);
+
             telemetry.addData("Status", "Initialization Successful!");
+
         } catch (Exception e) {
+
             telemetry.addData("Status", "FATAL ERROR during initialization!");
+
             telemetry.addData("Error", e.getMessage());
 
+            initializationFailed = true;
+
         }
+
         telemetry.update();
 
 
@@ -85,10 +109,50 @@ public class FlywheelPIDFTuner extends OpMode {
     }
 
     @Override
+
+    public void init_loop() {
+
+        if (initializationFailed) {
+
+            telemetry.addData("WARNING", "Fix the error and restart the OpMode.");
+
+            return;
+
+        }
+
+
+
+
+
+// Continuously update status during the INIT phase to see hub readiness
+
+        if (sensors.isHubReady()) {
+
+            sensors.update();
+
+        }
+
+
+
+// Using the new methods from your Sensors class
+
+        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+
+                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+
+        telemetry.addData("Instructions", "Press START to begin reading data.");
+
+        telemetry.update();
+
+    }
+
+    @Override
     public void loop() {
         for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
             hub.clearBulkCache();
         }
+
+        sensors.update();
 
         double rPM = sensors.getFlywheelVelo();
 
@@ -121,12 +185,12 @@ public class FlywheelPIDFTuner extends OpMode {
         telemetry.update();
 
         // --- Cooked delay to simulate TeleOp lag (~100 ms total loop) ---
-        double remaining = cookedLoopTargetMS - loopTime;
-        if (remaining > 0) {
-            try {
-                Thread.sleep((long) remaining);
-            } catch (InterruptedException ignored) {}
-        }
+//        double remaining = cookedLoopTargetMS - loopTime;
+//        if (remaining > 0) {
+//            try {
+//                Thread.sleep((long) remaining);
+//            } catch (InterruptedException ignored) {}
+//        }
 
         loopTimer.reset();
     }
