@@ -24,7 +24,7 @@ public class Sensors {
     // --- CALIBRATION CONSTANTS ---
     private final int TURRET_OFFSET_DEGREES = 0;
     private final int TURRET_MAX_TICKS = 360;
-    private final int HOOD_OFFSET_DEGREES = 0;
+    private double TURRET_SKIPPED_TICKS = 0;
 
 
 
@@ -159,14 +159,21 @@ public class Sensors {
 
     private double getRawTurretTicks(){
         return hub.readEncoder(3).position;
+
+    }
+
+    public void rezeroTurretEncoder() {
+        // Read the current absolute hardware position
+        //basically this sets the offset to what the turret thinks its current position is
+        TURRET_SKIPPED_TICKS = getRawTurretTicks();
     }
 
     public double getSketchTurretPosition(){
         return Range.scale(
-                getRawTurretTicks(),
+                getRawTurretTicks() - TURRET_SKIPPED_TICKS,
                 0, TURRET_MAX_TICKS,              // Input Range
                 0, 360  // Output Range (CORRECTED)
-        );
+        ) ;
     }
 
 //    public double getAnalogEncoder2Value() {

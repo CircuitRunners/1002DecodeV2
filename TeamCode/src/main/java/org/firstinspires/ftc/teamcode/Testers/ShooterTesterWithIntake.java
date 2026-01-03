@@ -122,8 +122,8 @@ public class ShooterTesterWithIntake extends OpMode {
             shooter.setShooterTarget(
                     pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH),
                     BLUE_GOAL_X_INCHES, BLUE_GOAL_Y_INCHES,pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH),
-                    turretPos, robotFieldYawDegrees,
-                    turretMode, desiredTurretHeading);
+                    robotFieldYawDegrees,
+                    true);
             //blue goal only
 
 

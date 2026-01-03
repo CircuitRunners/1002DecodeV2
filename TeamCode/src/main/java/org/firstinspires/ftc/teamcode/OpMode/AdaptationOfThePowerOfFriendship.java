@@ -196,8 +196,8 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 pose.getX(), pose.getY(), targetX, GOAL_Y,
                 pinpoint.getVelX(DistanceUnit.INCH),
                 pinpoint.getVelY(DistanceUnit.INCH),
-                sensors.getTurretPosition(), Math.toDegrees(pose.getHeading()),
-                Shooter.TurretMode.ROBOT_CENTRIC, 0
+                 Math.toDegrees(pose.getHeading()),
+                true
         );
 
         // Once RPM and Hood Angle are locked, engage the transfer

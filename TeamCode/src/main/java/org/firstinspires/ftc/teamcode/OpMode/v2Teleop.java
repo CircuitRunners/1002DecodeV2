@@ -196,8 +196,8 @@ public class v2Teleop extends OpMode {
         shooter.setShooterTarget(
                 pose.getX(), pose.getY(), targetX, GOAL_Y,
                 pinpoint.getVelX(DistanceUnit.INCH), pinpoint.getVelY(DistanceUnit.INCH),
-                sensors.getSketchTurretPosition(), Math.toDegrees(pose.getHeading()),
-                Shooter.TurretMode.AUTO_ALIGN, 0
+                 Math.toDegrees(pose.getHeading()),
+                true
         );
     }
 

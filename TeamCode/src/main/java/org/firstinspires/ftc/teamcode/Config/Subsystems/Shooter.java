@@ -22,7 +22,7 @@ public class Shooter {
     private static double currentRequiredInAirTOF = 0;
 
     private static final double transferTimeSec = 0.5; //TUNE
-    private static double currentRequiredTotalTOF = currentRequiredInAirTOF + transferTimeSec;
+
 
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.002, 0, 0.0001, 0.000423};
@@ -129,6 +129,8 @@ public class Shooter {
 
         turretPIDF.setTolerance(1);
 
+
+
 // Initialize targets
 
         setTargetVelocityTicks(0);
@@ -227,43 +229,57 @@ public class Shooter {
      * Normalizes an angle from [-180, 180] to [0, 360] (Robot Heading).
      */
     private static double normalizeRobotHeading0_360(double headingDeg) {
-        if (headingDeg < 0) {
-            return headingDeg *-1;
-        }
-        else if (headingDeg  > 0){
-            return 360 - headingDeg;
-        }
-        return headingDeg;
+//        if (headingDeg < 0) {
+//            return headingDeg *-1;
+//        }
+//        else if (headingDeg  > 0){
+//            return 360 - headingDeg;
+//        }
+//        return headingDeg;
+        double normalized = headingDeg % 360;
+        if (normalized < 0) normalized += 360;
+        return normalized;
     }
 
     /**
      * Translates an absolute Field Yaw (0-360) into the necessary Turret Encoder position (0-360).
      */
-    private static double convertFieldYawToTurretEncoderTarget(double targetFieldYawDeg, double robotFieldYawDeg) {
-        // 1. Convert Robot Heading from [-180, 180] to [0, 360]
-        double robotHeading360 = normalizeRobotHeading0_360(robotFieldYawDeg);
-        double targetHeading360 = normalizeRobotHeading0_360(targetFieldYawDeg);
-
-        // 2. Calculate the raw difference (angle from the robot's front)
-        double relativeAngle = targetHeading360 - robotHeading360;
-
-
-        return (relativeAngle);
-    }
+//    private static double convertFieldYawToTurretEncoderTarget(double targetFieldYawDeg, double robotFieldYawDeg) {
+//        // 1. Convert Robot Heading from [-180, 180] to [0, 360]
+//        double robotHeading360 = normalizeRobotHeading0_360(robotFieldYawDeg);
+//        double targetHeading360 = normalizeRobotHeading0_360(targetFieldYawDeg);
+//
+//        // 2. Calculate the raw difference (angle from the robot's front)
+//        double relativeAngle = targetHeading360 - robotHeading360;
+//
+//
+//        return (relativeAngle);
+//    }
 
     /**
      * Calculates the field-centric yaw angle required to hit a target.
      */
+//    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
+//                                                double targetXInches, double targetYInches) {
+//        double deltaY = targetYInches - robotYInches;
+//        double deltaX = targetXInches - robotXInches;
+//
+//        // Use Math.atan2(deltaX, deltaY) to correctly map standard (X=East, Y=North)
+//        // to the required FTC Yaw (0=North, 90=East)
+//        double targetFieldYawRad = Math.atan2(deltaX,deltaY);
+//
+//        return (Math.toDegrees(targetFieldYawRad));
+//    }
+
     private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
                                                 double targetXInches, double targetYInches) {
         double deltaY = targetYInches - robotYInches;
         double deltaX = targetXInches - robotXInches;
 
-        // Use Math.atan2(deltaX, deltaY) to correctly map standard (X=East, Y=North)
-        // to the required FTC Yaw (0=North, 90=East)
-        double targetFieldYawRad = Math.atan2(deltaX,deltaY);
+        // Standard atan2(y, x) for East = 0, North = 90
+        double targetFieldYawRad = Math.atan2(deltaY, deltaX);
 
-        return (Math.toDegrees(targetFieldYawRad));
+        return Math.toDegrees(targetFieldYawRad); // Returns (-180 to 180)
     }
 
     // ------------------------------------
@@ -275,31 +291,57 @@ public class Shooter {
     /**
      * Sets the turret's PID setpoint based on the selected mode.
      */
-    public void setTurretTarget(double inputDeg, TurretMode mode, double currentTurretAngle0_360, double robotFieldYawDeg) {
-        double rawNewTarget_0_360;
+//    public void setTurretTarget(double inputDeg, TurretMode mode, double currentTurretAngle0_360, double robotFieldYawDeg) {
+//        double rawNewTarget_0_360;
+//
+//        switch (mode) {
+//            case FIELD_CENTRIC:
+//                // InputDeg is the absolute field yaw. We calculate the required encoder target.
+//                rawNewTarget_0_360 = currentTurretAngle0_360 + convertFieldYawToTurretEncoderTarget(inputDeg, robotFieldYawDeg);
+//                break;
+//            case ROBOT_CENTRIC:
+//                // InputDeg is the desired robot-relative angle (e.g., 180 for straight ahead).
+//                rawNewTarget_0_360 = inputDeg;
+//                break;
+//            case AUTO_ALIGN:
+//                // Conversion handled in setShooterTarget
+//                rawNewTarget_0_360 = inputDeg;
+//                break;
+//            default:
+//                rawNewTarget_0_360 = currentTurretAngle0_360;
+//                break;
+//        }
+//
+//
+//        setTurretTargetPosition(rawNewTarget_0_360);
+//    }
+
+
+    public void setTurretTarget(double inputFieldDeg, TurretMode mode, double robotFieldYawDeg) {
+        double absoluteTarget = 0;
 
         switch (mode) {
             case FIELD_CENTRIC:
-                // InputDeg is the absolute field yaw. We calculate the required encoder target.
-                rawNewTarget_0_360 = currentTurretAngle0_360 + convertFieldYawToTurretEncoderTarget(inputDeg, robotFieldYawDeg);
+                // inputFieldDeg is your constant (e.g., 180 for West)
+                // Subtract robot heading to find robot-relative angle
+                absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
-            case ROBOT_CENTRIC:
-                // InputDeg is the desired robot-relative angle (e.g., 180 for straight ahead).
-                rawNewTarget_0_360 = inputDeg;
-                break;
+
             case AUTO_ALIGN:
-                // Conversion handled in setShooterTarget
-                rawNewTarget_0_360 = inputDeg;
+                // Input is already the field yaw calculated from (dx, dy)
+                // Example: calculateAutoAlignYaw(robotX, robotY, targetX, targetY)
+                absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
-            default:
-                rawNewTarget_0_360 = currentTurretAngle0_360;
+
+            case ROBOT_CENTRIC:
+                // Directly setting the turret 0-360 relative to the front of the robot
+                absoluteTarget = Range.clip(inputFieldDeg, 0, 360);
                 break;
         }
 
-
-        setTurretTargetPosition(rawNewTarget_0_360);
+        // Set the setpoint (Non-Continuous PID handles the 'long way')
+        setTurretTargetPosition(absoluteTarget);
     }
-
     private void setTurretTargetPosition(double positionDeg) {
         if (positionDeg > 360){
             positionDeg -= 360;
@@ -475,9 +517,9 @@ public class Shooter {
     public void setShooterTarget(
             double robotXInches, double robotYInches,
             double targetXInches, double targetYInches,double robotXVelo, double robotYVelo,
-            double currentTurretAngle0_360,
             double robotFieldYawDeg, // Input is [-180, 180]
-            TurretMode turretMode, double turretInputDeg)
+            boolean alignTurret
+           )
     {
 
         // 1. Always calculate ballistics (Velo/Angle) first, as this only needs R and DeltaY.
@@ -500,20 +542,18 @@ public class Shooter {
         setTargetVelocityTicks(newShot.requiredFlywheelTicks);
         setHoodTargetAngle(newShot.requiredHoodAngle);
 
-        double finalTurretInput = turretInputDeg;
 
-        // 2. Set the Turret input based on the control mode priority:
-        if (turretMode == TurretMode.FIELD_CENTRIC) {
+
+
+        if (alignTurret) {
             // A. Calculate the required absolute field yaw (last resort)
             double requiredFieldYaw = calculateAutoAlignYaw(robotXInches, robotYInches, targetXInches, targetYInches);
-
-            // B. Convert this field yaw into the required turret encoder reading
-            finalTurretInput = convertFieldYawToTurretEncoderTarget(requiredFieldYaw, robotFieldYawDeg);
+            // B. Pass to the turret setter
+            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotFieldYawDeg);
 
         }
 
-        // 3. Pass to the turret setter
-        setTurretTarget(finalTurretInput, turretMode, currentTurretAngle0_360, robotFieldYawDeg);
+
 
 //
     }
@@ -672,7 +712,7 @@ public class Shooter {
     }
 
     public double getCurrentRequiredTotalTOF() {
-        return currentRequiredTotalTOF;
+        return currentRequiredInAirTOF + transferTimeSec;
     }
 
 
