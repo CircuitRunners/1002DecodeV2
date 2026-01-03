@@ -203,9 +203,9 @@ public class Sensors {
         int greenDifferenceOffset = 95;
 
         // --- NOTHING DETECTED ---
-        if (r < 120 && g < 120 && b < 120) {
-            return null;
-        }
+//        if (r < 120 && g < 120 && b < 120) {
+//            return null;
+//        }
 
         // --- GREEN: green strongest ---
         if (g - greenDifferenceOffset > r && g - greenDifferenceOffset > b) {
