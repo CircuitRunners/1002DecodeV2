@@ -343,12 +343,12 @@ public class Shooter {
         setTurretTargetPosition(absoluteTarget);
     }
     private void setTurretTargetPosition(double positionDeg) {
-        if (positionDeg > 360){
-            positionDeg -= 360;
-        }
-        else if (positionDeg < 0){
-            positionDeg +=360;
-        }
+//        if (positionDeg > 360){
+//            positionDeg -= 360;
+//        }
+//        else if (positionDeg < 0){
+//            positionDeg +=360;
+//        }
         targetTurretPosition = positionDeg;
         turretPIDF.setSetPoint(targetTurretPosition);
     }
