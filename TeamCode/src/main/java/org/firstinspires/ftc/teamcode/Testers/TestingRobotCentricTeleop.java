@@ -1,11 +1,10 @@
-package org.firstinspires.ftc.teamcode.OpMode;
+package org.firstinspires.ftc.teamcode.Testers;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.MecanumDrive;
 
 @TeleOp(name = "Mecanum -Robot Centric")

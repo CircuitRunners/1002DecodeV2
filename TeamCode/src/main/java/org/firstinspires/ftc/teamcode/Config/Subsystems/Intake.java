@@ -69,14 +69,16 @@ public class Intake {
 
     public void intake(){
         gateClose();
-        transferOff();
+        transferOn();
+        setDirectionCycle();
         intake.setPower(1);
         motorPower = 1;
     }
 
     public void outtake(){
         gateClose();
-        transferOff();
+        transferOn();
+        setDirectionCycle();
         intake.setPower(-0.4);
         motorPower = -0.4;
     }

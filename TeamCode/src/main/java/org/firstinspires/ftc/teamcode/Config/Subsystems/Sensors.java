@@ -157,9 +157,13 @@ public class Sensors {
 
     }
 
+    private double getRawTurretTicks(){
+        return hub.readEncoder(3).position;
+    }
+
     public double getSketchTurretPosition(){
         return Range.scale(
-                getAnalogEncoder1Value(),
+                getRawTurretTicks(),
                 0, TURRET_MAX_TICKS,              // Input Range
                 0, 360  // Output Range (CORRECTED)
         );
