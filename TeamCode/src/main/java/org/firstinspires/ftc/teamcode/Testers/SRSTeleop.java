@@ -220,7 +220,9 @@ public class SRSTeleop extends OpMode {
 
 // Reference the enum from within the Sensors class
 
-        DetectedColor color = sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Green(),sensors.getColor1Blue());
+        DetectedColor color = sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(),sensors.getColor1Green());
+        DetectedColor color2 = sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(),sensors.getColor2Green());
+        DetectedColor color3 = sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(),sensors.getColor3Green());
 
     if (color == DetectedColor.GREEN){
         telemetry.addLine("Detected Color slot 1 : GREEN FN");
@@ -228,6 +230,20 @@ public class SRSTeleop extends OpMode {
     else  if (color == DetectedColor.PURPLE){
         telemetry.addLine("Detected Color slot 1 : Purple");
     }
+
+    if (color2 == DetectedColor.GREEN){
+        telemetry.addLine("Detected Color slot 2 : GREEN FN");
+    }
+    else  if (color2 == DetectedColor.PURPLE){
+        telemetry.addLine("Detected Color slot 2 : Purple");
+    }
+    if (color3 == DetectedColor.GREEN){
+            telemetry.addLine("Detected Color slot 3 : GREEN FN");
+        }
+    else  if (color3 == DetectedColor.PURPLE){
+        telemetry.addLine("Detected Color slot 3 : Purple");
+    }
+
 
         telemetry.addData("--- COLOR SENSOR (I2C) ---", "---");
 
