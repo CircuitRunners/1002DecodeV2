@@ -247,7 +247,7 @@ public class v2Teleop extends OpMode {
     }
 
     private void handleDriving(Pose pose) {
-        double forward = -player1.getLeftY();
+        double forward =-player1.getLeftY();
         double strafe = player1.getLeftX();
         double rotate = player1.getRightX();
         if (isRedAlliance) { forward = -forward; strafe = -strafe; }
