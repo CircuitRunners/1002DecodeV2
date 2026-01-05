@@ -585,7 +585,7 @@ public class Shooter {
 
         // Hood Control (No PIDF)
         hoodServo.setPosition(hoodAngleToServoPos(targetHoodAngle));
-        hoodReached = Math.abs(getHoodServoPositionInDegrees(hoodServo.getPosition()) - targetHoodAngle) <= 0.5;
+        hoodReached = Math.abs(getHoodServoPositionInDegrees(hoodServo.getPosition()) - targetHoodAngle) <= 1.5;
     }
 
     // ------------------------------------

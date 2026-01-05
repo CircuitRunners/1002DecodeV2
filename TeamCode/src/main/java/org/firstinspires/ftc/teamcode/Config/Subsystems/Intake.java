@@ -43,6 +43,8 @@ public class Intake {
 
     public static boolean canShoot = false;
 
+    public static LimelightCamera.BallOrder targetPatternFromAuto = null;
+
     public Intake(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
