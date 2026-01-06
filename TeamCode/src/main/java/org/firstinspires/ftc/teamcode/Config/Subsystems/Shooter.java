@@ -58,6 +58,8 @@ public class Shooter {
     public boolean turretReached;
     public boolean hoodReached;
 
+    boolean isShotImpossible = false;
+
 
     public boolean hoodCalibrationRequired = false;
 
@@ -506,6 +508,14 @@ public class Shooter {
                 robotXInches, robotYInches,
                 targetXInches, targetYInches);
 
+        if (newShot.timeOfFlight <= 0) {
+            isShotImpossible = true;
+            return;
+        }
+        else {
+            isShotImpossible = false;
+        }
+
         currentRequiredFlywheelTicks = newShot.requiredFlywheelTicks;
         currentRequiredHoodAngle = newShot.requiredHoodAngle;
         currentRequiredInAirTOF = newShot.timeOfFlight;
@@ -534,6 +544,14 @@ public class Shooter {
         OptimalShot newShot = calculateOptimalShot(
                 robotXInches, robotYInches,
                 targetXInches, targetYInches);
+
+        if (newShot.timeOfFlight <= 0) {
+            isShotImpossible = true;
+            return;
+        }
+        else {
+            isShotImpossible = false;
+        }
 
         currentRequiredFlywheelTicks = newShot.requiredFlywheelTicks;
         currentRequiredHoodAngle = newShot.requiredHoodAngle;
