@@ -30,7 +30,7 @@ public class Shooter {
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
-    private static double targetTurretPosition = 180;     // Degrees (0-360)
+    private static double targetTurretPosition = 0;     // Degrees (0-360)
     private static double targetHoodAngle = 45;          // Degrees (0-90)
 
     private static double maxTurretPower = 0.8;

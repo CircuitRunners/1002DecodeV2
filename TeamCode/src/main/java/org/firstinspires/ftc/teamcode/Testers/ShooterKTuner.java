@@ -22,7 +22,7 @@ public class ShooterKTuner extends OpMode {
     public static double GRAVITY = 386.1;
 
     // ===== Dashboard Tunables (Start high for 4096 encoder) =====
-    public static double targetTicksPerSec = 80000;
+    public static double targetTicksPerSec = 200000;
     public static double targetHoodAngle = 30.0;
 
     private Sensors sensors = new Sensors();
