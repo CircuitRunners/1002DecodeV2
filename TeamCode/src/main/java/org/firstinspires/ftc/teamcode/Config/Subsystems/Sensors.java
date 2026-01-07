@@ -23,7 +23,7 @@ public class Sensors {
 
     // --- CALIBRATION CONSTANTS ---
     private final int TURRET_OFFSET_DEGREES = 0;
-    private final int TURRET_MAX_TICKS = 360;
+    private final int TURRET_MAX_TICKS = 40500;
     private double TURRET_SKIPPED_TICKS = 0;
 
 
@@ -157,8 +157,8 @@ public class Sensors {
 
     }
 
-    private double getRawTurretTicks(){
-        return hub.readEncoder(3).position;
+    public double getRawTurretTicks(){
+        return hub.readEncoder(3).position * -1;
 
     }
 
@@ -224,7 +224,7 @@ public class Sensors {
         }
 
         // --- PURPLE: both G and B > R ---
-        else if ((g + b / 2) <=55) {
+        else if ( g + b > 350 && (g + b / 2) > r) {
             return DetectedColor.PURPLE;
         }
 

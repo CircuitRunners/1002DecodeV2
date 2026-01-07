@@ -25,7 +25,7 @@ public class Shooter {
 
 
     // PIDF Coefficients
-    private static final double[] flywheelCoefficients = {0.002, 0, 0.0001, 0.000423};
+    private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
     private static final double[] turretCoefficients = {0.01, 0, 0.0001, 0.005};
 
     // Target States
@@ -54,11 +54,11 @@ public class Shooter {
     private static final double ANGLE_SEARCH_STEP_DEG = 2.5;
 
     // Status flags
-    public boolean flywheelVeloReached;
-    public boolean turretReached;
-    public boolean hoodReached;
+    public static boolean flywheelVeloReached;
+    public static boolean turretReached;
+    public static boolean hoodReached;
 
-    boolean isShotImpossible = false;
+    public static boolean isShotImpossible = false;
 
 
     public boolean hoodCalibrationRequired = false;
@@ -606,6 +606,15 @@ public class Shooter {
         hoodReached = Math.abs(getHoodServoPositionInDegrees(hoodServo.getPosition()) - targetHoodAngle) <= 1.5;
     }
 
+
+    public void manualTurretOverride(double power, double currentAngle) {
+        // 1. Set the power directly
+        turret.setPower(power);
+
+        // 2. Update the setpoint to the current angle to "calm" the PID
+        targetTurretPosition = currentAngle;
+        turretPIDF.setSetPoint(targetTurretPosition);
+    }
     // ------------------------------------
     // ##  Helpers
     // ------------------------------------
@@ -732,6 +741,8 @@ public class Shooter {
     public double getCurrentRequiredTotalTOF() {
         return currentRequiredInAirTOF + transferTimeSec;
     }
+
+
 
 
 }

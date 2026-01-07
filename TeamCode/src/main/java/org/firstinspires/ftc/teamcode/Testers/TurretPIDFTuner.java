@@ -98,7 +98,7 @@ public class TurretPIDFTuner extends OpMode {
         pidf.setSetPoint(targetAngle);
 
         double turretOutput = pidf.calculate(sensors.getSketchTurretPosition());
-        turretOutput = Range.clip(turretOutput, 0, maxPower);
+        turretOutput = Range.clip(turretOutput, -maxPower, maxPower);
         turret.setPower(turretOutput);
 
         double error = Math.abs(targetAngle - currentAngle);

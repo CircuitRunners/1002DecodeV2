@@ -25,10 +25,8 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Locale;
-// Assuming this is where your Poses class lives
-// import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 
-@TeleOp(name = "Zenith Teleop V2 - Final", group = "A")
+@TeleOp(name = "Zenith Teleop V2 - Optimized", group = "A")
 @Configurable
 public class v2Teleop extends OpMode {
 
@@ -40,6 +38,7 @@ public class v2Teleop extends OpMode {
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
     private GamepadEx player1;
+    private GamepadEx player2;
 
     private int opState = 0;
     private boolean isRedAlliance = true;
@@ -73,158 +72,127 @@ public class v2Teleop extends OpMode {
         sensors.init(hardwareMap, "SRSHub");
 
         player1 = new GamepadEx(gamepad1);
+        player2 = new GamepadEx(gamepad2);
 
-        // --- ALLIANCE PRE-SELECTION LOGIC ---
-        // Replace 'Poses' with your actual class name if different
-         if(Poses.getAlliance() != null){
-            if(Poses.getAlliance() == Poses.Alliance.RED){
-                isRedAlliance = true;
-                preselectFromAuto = true;
-            } else {
-                isRedAlliance = false;
-                preselectFromAuto = true;
-            }
+        if(Poses.getAlliance() != null){
+            isRedAlliance = (Poses.getAlliance() == Poses.Alliance.RED);
+            preselectFromAuto = true;
         } else {
-            isRedAlliance = true; // Default to Red if null
+            isRedAlliance = true;
             preselectFromAuto = false;
         }
-
     }
 
     @Override
     public void init_loop() {
-        // Allow alliance switching during init_loop as well
         handleAllianceToggles();
-
         telemetry.addData("Alliance", isRedAlliance ? "RED" : "BLUE");
-        telemetry.addData("Auto Preselect", preselectFromAuto ? "YES" : "NO (Manual)");
-        telemetry.addData("Pattern", Intake.targetPatternFromAuto == null ? "NULL" : Intake.targetPatternFromAuto);
+        telemetry.addData("Auto Preselect", preselectFromAuto ? "YES" : "NO");
         telemetry.update();
     }
 
     @Override
     public void loop() {
+        // --- 1. HARDWARE UPDATES ---
         follower.update();
         pinpoint.update();
         sensors.update();
         player1.readButtons();
+        player2.readButtons();
 
+        // --- 2. DATA SNAPSHOTS (Call once, reference variables) ---
         Pose currentPose = follower.getPose();
-        Pose2D currentPinpointPose = pinpoint.getPosition();
+        double currentHeadingDeg = Math.toDegrees(currentPose.getHeading());
+        double robotVelX = pinpoint.getVelX(DistanceUnit.INCH);
+        double robotVelY = pinpoint.getVelY(DistanceUnit.INCH);
 
-        String followerData = String.format(Locale.US,
-                "{X: %.3f, Y: %.3f, H: %.3f}",
-                follower.getPose().getX(),
-                follower.getPose().getY(),
-                Math.toDegrees(follower.getPose().getHeading())
+        double currentFlywheelVelo = sensors.getFlywheelVelo();
+        double currentTurretAngle = sensors.getSketchTurretPosition();
+        boolean isBeamBroken = sensors.isBeamBroken();
+        double beamValue = sensors.getBeamBreakValue();
 
-        );
-        telemetry.addData("FOLLOWER (Pedro) Position", followerData);
-
-//        String pinpointData = String.format(Locale.US,
-//                "{X: %.3f, Y: %.3f, H: %.3f}",
-//                currentPinpointPose.getX(DistanceUnit.INCH),
-//                currentPinpointPose.getY(DistanceUnit.INCH),
-//                currentPinpointPose.getHeading(AngleUnit.DEGREES)
-//        );
-//        // Pinpoint / Odo Raw
-//        telemetry.addData("Pinpoint Position", pinpointData);
-
-        handleAllianceToggles(); // Allow real-time changes
+        // --- 3. LOGIC & OVERRIDES ---
+        handleManualTurretOverrides(currentTurretAngle);
+        handleAllianceToggles();
         handleInputOverrides();
         handleDriving(currentPose);
 
+        // --- 4. STATE MACHINE ---
         switch (opState) {
             case 0: handleIntakeState(); break;
-            case 1: handleScoringStateNoSort(currentPose); break;
-            case 2: handleScoringState(currentPose); break;
+            case 1: handleScoringStateNoSort(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken); break;
+            case 2: handleScoringState(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken, beamValue); break;
         }
 
+        // --- 5. SUBSYSTEM UPDATES ---
         intake.setCanShoot(shooter.flywheelVeloReached && shooter.turretReached && shooter.hoodReached);
-        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
+        shooter.update(currentFlywheelVelo, currentTurretAngle);
 
+        // --- 6. TELEMETRY ---
         doTelemetry();
-        extraTelemetryForTesting(); // NEW: Diagnostics for testing
-
+        extraTelemetryForTesting(currentFlywheelVelo, currentTurretAngle, isBeamBroken);
         telemetry.update();
         timer.reset();
     }
 
-    private void handleAllianceToggles() {
-        if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) {
-            isRedAlliance = true;
-            gamepad1.rumble(100);
-        }
-        if (player1.wasJustPressed(GamepadKeys.Button.SHARE)) {
-            isRedAlliance = false;
-            gamepad1.rumble(100);
-        }
-    }
-
-    private void handleInputOverrides() {
-        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
-            follower.setPose(new Pose(72, 72, Math.toRadians(-90)));
+    private void handleManualTurretOverrides(double currentAngle) {
+        // Manual control: move turret and stick PID to current position to prevent fighting
+        if (gamepad2.right_bumper) {
+            shooter.manualTurretOverride(0.5, currentAngle);
+        } else if (gamepad2.left_bumper) {
+            shooter.manualTurretOverride(-0.5, currentAngle);
         }
 
-        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
-            updateCoordinatesWithAprilTag();
-        }
-
-        // Rescan Pattern
-        if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
-            LimelightCamera.BallOrder seen = limelight.detectBallOrder();
-            if (seen != null) {
-                Intake.targetPatternFromAuto = seen;
-                gamepad1.rumble(500);
-            }
-        }
-
-        // Mode Toggles
-        if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
-            if (opState != 1) { ballsShotInState = 0; opState = 1; }
-            else {resetToIntake(); }
-        }
-
-        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-            if (opState != 2) { ballsShotInState = 0; opState = 2; }
-            else {resetToIntake(); }
+        // Hardware re-zero
+        if (player2.wasJustPressed(GamepadKeys.Button.START)) {
+            sensors.rezeroTurretEncoder();
+            gamepad2.rumble(500);
         }
     }
 
-    private void handleIntakeState() {
-        if (player1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.2) intake.intake();
-        else if (player1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.2) intake.outtake();
-        else intake.retainBalls();
-    }
-
-    private void handleScoringStateNoSort(Pose pose) {
-        applyShooterTargets(pose);
+    private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
+        applyShooterTargets(pose, vx, vy, head);
         if (shooter.flywheelVeloReached && shooter.hoodReached) {
             intake.transfer();
-            trackShotCount();
+            trackShotCount(beam);
         }
         if (ballsShotInState >= 3) resetToIntake();
     }
 
-    private void handleScoringState(Pose pose) {
-        applyShooterTargets(pose);
+    private void handleScoringState(Pose pose, double vx, double vy, double head, boolean beam, double beamVal) {
+        applyShooterTargets(pose, vx, vy, head);
 
-        // Safety check for null pattern
         LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
                 ? Intake.targetPatternFromAuto
                 : LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN;
 
-        intake.sort(sensors.getBeamBreakValue(), activePattern,
+        intake.sort(beamVal, activePattern,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
                 sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
 
-        trackShotCount();
+        trackShotCount(beam);
         if (ballsShotInState >= 3) resetToIntake();
     }
 
-    private void trackShotCount() {
-        boolean currentBeamState = sensors.isBeamBroken();
+    private void applyShooterTargets(Pose pose, double vx, double vy, double headingDeg) {
+        double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
+        shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, true);
+    }
+
+    private void handleDriving(Pose pose) {
+        double forward = player1.getLeftY();
+        double strafe = player1.getLeftX();
+        double rotate = player1.getRightX();
+
+        if (isRedAlliance) { forward = -forward; strafe = -strafe; }
+        double heading = pose.getHeading();
+        double theta = Math.atan2(forward, strafe) - heading;
+        double r = Math.hypot(forward, strafe);
+        drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
+    }
+
+    private void trackShotCount(boolean currentBeamState) {
         if (lastBeamState && !currentBeamState) {
             ballsShotInState++;
         }
@@ -240,18 +208,51 @@ public class v2Teleop extends OpMode {
         gamepad1.rumble(150);
     }
 
-    private void applyShooterTargets(Pose pose) {
-        double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
-        shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y,
-                pinpoint.getVelX(DistanceUnit.INCH), pinpoint.getVelY(DistanceUnit.INCH),
-                Math.toDegrees(pose.getHeading()), true);
+    private void handleAllianceToggles() {
+        if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) { isRedAlliance = true; gamepad1.rumble(100); }
+        if (player1.wasJustPressed(GamepadKeys.Button.SHARE)) { isRedAlliance = false; gamepad1.rumble(100); }
+    }
+
+    private void handleInputOverrides() {
+        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) follower.setPose(new Pose(72, 72, Math.toRadians(-90)));
+        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
+        if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
+            LimelightCamera.BallOrder seen = limelight.detectBallOrder();
+            if (seen != null) { Intake.targetPatternFromAuto = seen; gamepad1.rumble(500); }
+        }
+        if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+            if (opState != 1) { ballsShotInState = 0; opState = 1; } else resetToIntake();
+        }
+        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+            if (opState != 2) { ballsShotInState = 0; opState = 2; } else resetToIntake();
+        }
+    }
+
+    private void handleIntakeState() {
+        if (player1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.2) intake.intake();
+        else if (player1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.2) intake.outtake();
+        else intake.retainBalls();
     }
 
     private void configurePinpoint() {
         pinpoint.setOffsets(44.94, -170.367, DistanceUnit.MM);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.resetPosAndIMU();
+    }
+
+    private void doTelemetry() {
+        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
+        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
+        telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
+    }
+
+    private void extraTelemetryForTesting(double fVelo, double tAng, boolean beam) {
+        telemetry.addLine("--- DIAGNOSTICS ---");
+        telemetry.addData("Turret Ang", "%.2f", tAng);
+        telemetry.addData("Flywheel Velo", fVelo);
+        telemetry.addData("Beam Broken", beam);
+        telemetry.addData("Shot Possible", !shooter.isShotImpossible);
     }
 
     public void updateCoordinatesWithAprilTag() {
@@ -259,61 +260,14 @@ public class v2Teleop extends OpMode {
         limelight.limelightCamera.pipelineSwitch(3);
         LLResult result = limelight.getResult();
         if (result != null && result.isValid()) {
-            for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
-                if (fr.getFiducialId() == 20 || fr.getFiducialId() == 24) {
-                    Pose3D mt1Pose = result.getBotpose();
-                    if (mt1Pose != null) {
-                        double finalX = (mt1Pose.getPosition().y * METERS_TO_INCH) + 72.0;
-                        double finalY = (-mt1Pose.getPosition().x * METERS_TO_INCH) + 72.0;
-                        follower.setPose(new Pose(finalX, finalY, follower.getHeading()));
-                        gamepad1.rumble(500);
-                    }
-                    break;
-                }
+            Pose3D mt1Pose = result.getBotpose();
+            if (mt1Pose != null) {
+                double finalX = (mt1Pose.getPosition().y * METERS_TO_INCH) + 72.0;
+                double finalY = (-mt1Pose.getPosition().x * METERS_TO_INCH) + 72.0;
+                follower.setPose(new Pose(finalX, finalY, follower.getHeading()));
+                gamepad1.rumble(500);
             }
         }
-    }
-
-    private void handleDriving(Pose pose) {
-        double forward = player1.getLeftY();
-        double strafe = player1.getLeftX();
-        double rotate = player1.getRightX();
-
-        if (isRedAlliance) { forward = -forward; strafe = -strafe; }
-        double heading = pose.getHeading();
-        double theta = Math.atan2(forward, strafe) - heading;
-        double r = Math.hypot(forward, strafe);
-        drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
-    }
-
-
-    private void doTelemetry() {
-        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
-        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
-        telemetry.addData("SHOTS", ballsShotInState + "/3");
-        telemetry.addData("PATTERN", Intake.targetPatternFromAuto == null ? "DEFAULT (PPG)" : Intake.targetPatternFromAuto);
-        telemetry.addData("Loop Time", timer.milliseconds());
-    }
-
-    private void extraTelemetryForTesting() {
-        telemetry.addLine("--- DIAGNOSTICS ---");
-        // Shooter Diagnostics
-        telemetry.addData("Flywheel Reached", shooter.flywheelVeloReached);
-        telemetry.addData("Hood Reached", shooter.hoodReached);
-        telemetry.addData("Turret Reached", shooter.turretReached);
-        telemetry.addData("Current Flywheel Velo", sensors.getFlywheelVelo());
-
-        // Sensor/Intake Diagnostics
-        telemetry.addData("Beam Break", sensors.isBeamBroken());
-        telemetry.addData("Color 1 Detected", sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()));
-        telemetry.addData("Color 2 Detected", sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()));
-        telemetry.addData("Color 3 Detected", sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
-
-        // Raw Color Sensor Values (Red/Blue/Green)
-        telemetry.addData("S1 Raw", "R:%d B:%d G:%d", sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green());
-        telemetry.addData("S2 Raw", "R:%d B:%d G:%d", sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green());
-        telemetry.addData("S3 Raw", "R:%d B:%d G:%d", sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green());
-
     }
 
     @Override public void stop() { limelight.limelightCamera.stop(); }
