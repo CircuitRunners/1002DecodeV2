@@ -1,94 +1,108 @@
 package org.firstinspires.ftc.teamcode.Testers;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
-/**
- * PROJECTILE MOTION TUNER (K-TUNER)
- * * CONCEPT:
- * We use physics to calculate the required "Muzzle Velocity" (v) in inches per second.
- * However, we control the motor in "Encoder Ticks per Second."
- * * The variable 'k' is the CHARACTERIZATION CONSTANT. It represents the ratio between
- * the theoretical output and the electrical input, accounting for wheel diameter,
- * gear ratios, and energy loss (friction/slip).
- */
-@TeleOp(name="Shooter: K-Tuner (4096 Ticks)", group="Calibration")
-public class ShooterKTuner extends LinearOpMode {
+import java.util.List;
 
-    // PHYSICAL CONSTANTS: Measured in inches
-    private static final double TEST_DISTANCE_INCHES = 120.0; // Horizontal distance to goal
-    private static final double GOAL_HEIGHT = 38.75;          // Target height (Y)
-    private static final double LAUNCH_HEIGHT = 12.0;         // Release point height (Y0)
-    private static final double GRAVITY = 386.1;              // Acceleration (in/s^2)
+@Configurable
+@TeleOp(name = "Shooter: K-Tuner ", group = "TEST")
+public class ShooterKTuner extends OpMode {
 
+    // ===== Physics Constants (Standardized for 10ft Test) =====
+    public static double TEST_DISTANCE_INCHES = 120.0;
+    public static double GOAL_HEIGHT = 38.75;
+    public static double LAUNCH_HEIGHT = 12.0;
+    public static double GRAVITY = 386.1;
+
+    // ===== Dashboard Tunables (Start high for 4096 encoder) =====
+    public static double targetTicksPerSec = 80000;
+    public static double targetHoodAngle = 30.0;
+
+    private Sensors sensors = new Sensors();
     private Shooter shooter;
-    private double testTicksPerSec = 60000;
-    private double testAngle = 30.0;
+    private List<LynxModule> allHubs;
 
     @Override
-    public void runOpMode() {
+    public void init() {
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+
         shooter = new Shooter(hardwareMap, telemetry);
+        sensors.init(hardwareMap, "SRSHub");
 
-        telemetry.addLine("Controls:");
-        telemetry.addLine("DPAD Up/Down: Adjust Motor Velocity");
-        telemetry.addLine("Bumpers: Adjust Hood Launch Angle");
-        telemetry.addLine("X Button: EMERGENCY STOP");
+        telemetry.addLine("Ready. Place robot exactly 10ft (120in) from goal. fix turret at 0 degrees (forward over intake)");
+        telemetry.addLine("Gamepad 1: DPAD Up/Down (Speed), Bumpers (Angle)");
         telemetry.update();
+    }
 
-        waitForStart();
+    @Override
+    public void loop() {
+        // Clear bulk cache for highest frequency updates
+        for (LynxModule hub : allHubs) hub.clearBulkCache();
+        sensors.update();
 
-        while (opModeIsActive()) {
-            // --- EMPIRICAL TESTING ---
-            // Manually find the velocity/angle combination that hits the target
-            if (gamepad1.dpad_up) testTicksPerSec += 500;
-            if (gamepad1.dpad_down) testTicksPerSec -= 500;
+        // 1. GAMEPAD TUNING (Adjust targets live)
+        if (gamepad1.dpad_up) targetTicksPerSec += 200;
+        if (gamepad1.dpad_down) targetTicksPerSec -= 200;
+        if (gamepad1.right_bumper) targetHoodAngle += 0.5;
+        if (gamepad1.left_bumper) targetHoodAngle -= 0.5;
 
-            if (gamepad1.right_bumper) testAngle += 0.5;
-            if (gamepad1.left_bumper) testAngle -= 0.5;
+        // Clip the values to safe hardware limits
+        targetTicksPerSec = Range.clip(targetTicksPerSec, 0, 385000);
+        targetHoodAngle = Range.clip(targetHoodAngle, 0, 45);
 
-            if (gamepad1.x) testTicksPerSec = 0;
+        // 2. APPLY TO HARDWARE
+        shooter.setTargetVelocityTicks(targetTicksPerSec);
+        shooter.setHoodTargetAngle(targetHoodAngle);
 
-            shooter.setTargetVelocityTicks(testTicksPerSec);
-            shooter.setHoodTargetAngle(testAngle);
-            shooter.update(testTicksPerSec, 180);
+        // Snapshot the actual measured speed for the k-calculation
+        double currentTicksPerSec = sensors.getFlywheelVelo();
+        shooter.update(currentTicksPerSec, 0); // Turret fixed at 180 for tuning
 
-            // --- THE PHYSICS MODEL ---
-            // Solving for initial velocity (v) in the trajectory equation:
-            // y = x*tan(θ) - (g*x²) / (2*v²*cos²(θ))
+        // 3. THE PHYSICS CHARACTERIZATION
+        double deltaY = GOAL_HEIGHT - LAUNCH_HEIGHT;
+        double angleRad = Math.toRadians(targetHoodAngle);
+        double cosA = Math.cos(angleRad);
 
-            double deltaY = GOAL_HEIGHT - LAUNCH_HEIGHT;
-            double angleRad = Math.toRadians(testAngle);
-            double cosA = Math.cos(angleRad);
+        // Denominator: 2 * cos²(θ) * (x * tan(θ) - y)
+        double denominator = 2 * Math.pow(cosA, 2) * (TEST_DISTANCE_INCHES * Math.tan(angleRad) - deltaY);
 
-            // Calculate the denominator for the velocity formula
-            double denominator = 2 * cosA * cosA * (TEST_DISTANCE_INCHES * Math.tan(angleRad) - deltaY);
+        if (denominator > 0.0001) {
+            // v = sqrt( (g * x²) / Denominator )
+            double vReqMuzzleInchesPerSec = Math.sqrt((GRAVITY * Math.pow(TEST_DISTANCE_INCHES, 2)) / denominator);
 
-            if (denominator > 0) {
-                // Determine the theoretical Muzzle Velocity needed in inches/second
-                double vReqMuzzleInchesPerSec = Math.sqrt((GRAVITY * TEST_DISTANCE_INCHES * TEST_DISTANCE_INCHES) / denominator);
-
-                /*
-                 * CALCULATING THE RATIO (k):
-                 * k = (Required Linear Velocity) / (Applied Motor Velocity)
-                 * * This constant allows us to say:
-                 * Target_Ticks = Required_Inches_Per_Sec / k
-                 */
-                double calculatedK = vReqMuzzleInchesPerSec / testTicksPerSec;
-
-                telemetry.addData("STATUS", testTicksPerSec > 0 ? "STABILIZING" : "IDLE");
-                telemetry.addData("Motor Velocity (Ticks/s)", "%.0f", testTicksPerSec);
-                telemetry.addData("Launch Angle (Deg)", "%.1f", testAngle);
-                telemetry.addLine("--------------------------------");
-                telemetry.addLine("TUNING STEPS:");
-                telemetry.addLine("1. Verify robot is exactly 10ft away.");
-                telemetry.addLine("2. Adjust until the projectile hits the goal center.");
-                telemetry.addData("3. USE THIS CHARACTERIZATION CONSTANT", "%.8f", calculatedK);
-            } else {
-                telemetry.addLine("SYSTEM ERROR: Launch angle is physically incapable of reaching target height.");
+            // k = (Theoretical in/s) / (Measured ticks/s)
+            // This is the constant that "bridges" your specific shooter to pure physics.
+            double calculatedK = 0;
+            if (currentTicksPerSec > 100) { // Avoid division by zero when stopped
+                calculatedK = vReqMuzzleInchesPerSec / currentTicksPerSec;
             }
 
-            telemetry.update();
+            telemetry.addData("--- TARGETS ---", "");
+            telemetry.addData("Target Ticks/s", "%.0f", targetTicksPerSec);
+            telemetry.addData("Target Angle", "%.2f deg", targetHoodAngle);
+
+            telemetry.addData("--- MEASURED ---", "");
+            telemetry.addData("Measured Ticks/s", "%.2f", currentTicksPerSec);
+            telemetry.addData("Physics Req Speed", "%.2f in/s", vReqMuzzleInchesPerSec);
+
+            telemetry.addLine("--------------------------------");
+            telemetry.addData("CALCULATED K", "%.10f", calculatedK);
+            telemetry.addLine("--------------------------------");
+            telemetry.addLine("DIRECTIONS:");
+            telemetry.addLine("1. Dial speed/angle until you hit dead-center.");
+            telemetry.addLine("2. Note the 'K' and put it in MUZZLE_K_TABLE with the associated angle");
+        } else {
+            telemetry.addLine("ERROR: Geometry impossible. Increase Angle.");
         }
+
+        telemetry.update();
     }
 }
