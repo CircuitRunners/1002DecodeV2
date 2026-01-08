@@ -37,8 +37,11 @@ public class HoodTester extends OpMode {
         player1.readButtons();
 
         servoPos = hoodServo.getPosition();
-        servoAngle = Range.scale(servoPos, 0, 1, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG);
-
+        servoAngle = Range.scale(
+                servoPos,
+                0.2, 0.025,              // Input Range
+                MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG   // Output Range (CORRECTED)
+        );
         if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
             targetAngle += 5;
             targetAngle = Range.clip(targetAngle, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG);
@@ -47,7 +50,7 @@ public class HoodTester extends OpMode {
             targetAngle = Range.clip(targetAngle, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG);
         }
 
-        targetPos = Range.scale(targetAngle, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG, 0, 1);
+        targetPos = Range.scale(targetAngle, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG, 0.2, 0.025);
 
         hoodServo.setPosition(targetPos);
 
