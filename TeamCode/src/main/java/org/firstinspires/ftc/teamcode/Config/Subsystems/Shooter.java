@@ -590,7 +590,7 @@ public class Shooter {
         hoodCalibrationRequired = false;
 
         double flywheelOutput = flywheelPIDF.calculate(currentFlywheelVelo);
-        flywheelOutput = Range.clip(flywheelOutput, 0, 1);
+        flywheelOutput = Range.clip(flywheelOutput, -1, 1);
         setFlywheelPower(flywheelOutput);
 
         if (targetFlywheelVelocity == 0) {
@@ -609,7 +609,7 @@ public class Shooter {
 
     public void manualTurretOverride(double power, double currentAngle) {
         // 1. Set the power directly
-        turret.setPower(power);
+        turret.setPower(Range.clip(power,-0.6,0.6));
 
         // 2. Update the setpoint to the current angle to "calm" the PID
         targetTurretPosition = currentAngle;

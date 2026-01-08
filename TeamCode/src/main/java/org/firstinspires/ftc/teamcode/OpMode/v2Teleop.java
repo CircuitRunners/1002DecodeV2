@@ -52,6 +52,9 @@ public class v2Teleop extends OpMode {
     private final double GOAL_Y = 137.0;
     private static final double METERS_TO_INCH = 39.37;
 
+    private boolean vibratedYet = false;
+    private boolean initiateTransfer = false;
+
     private final ElapsedTime timer = new ElapsedTime();
 
     @Override
@@ -152,10 +155,22 @@ public class v2Teleop extends OpMode {
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
         applyShooterTargets(pose, vx, vy, head);
-        if (shooter.flywheelVeloReached && shooter.hoodReached) {
+        if (shooter.flywheelVeloReached && shooter.hoodReached && !vibratedYet) {
+            gamepad1.rumble(250);
+            vibratedYet = true;
+        }
+        else if (!shooter.flywheelVeloReached || !shooter.hoodReached){
+            vibratedYet = false;
+        }
+        if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+            initiateTransfer = true;
+        }
+
+        if (initiateTransfer){
             intake.transfer();
             trackShotCount(beam);
         }
+
         if (ballsShotInState >= 3) resetToIntake();
     }
 
@@ -202,6 +217,8 @@ public class v2Teleop extends OpMode {
     private void resetToIntake() {
         opState = 0;
         ballsShotInState = 0;
+        initiateTransfer = false;
+        vibratedYet = false;
         shooter.stopFlywheel();
         intake.sortManualOverride();
         intake.resetIndexer();
@@ -223,15 +240,18 @@ public class v2Teleop extends OpMode {
         if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
             if (opState != 1) { ballsShotInState = 0; opState = 1; } else resetToIntake();
         }
+        /* not till tuned sry lil bro
         if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
             if (opState != 2) { ballsShotInState = 0; opState = 2; } else resetToIntake();
         }
+        */
+
     }
 
     private void handleIntakeState() {
-        if (player1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.2) intake.intake();
-        else if (player1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.2) intake.outtake();
-        else intake.retainBalls();
+        if (gamepad1.right_trigger > 0.2) intake.intake();
+        else if (gamepad1.left_trigger > 0.2) intake.outtake();
+        else intake.intakeMotorIdle();
     }
 
     private void configurePinpoint() {
