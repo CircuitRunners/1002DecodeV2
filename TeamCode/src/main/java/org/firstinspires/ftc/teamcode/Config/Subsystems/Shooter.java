@@ -121,6 +121,8 @@ public class Shooter {
 
         );
 
+        flywheelPIDF.setTolerance(4500);
+
         turretPIDF = new PIDFController(
 
                 turretCoefficients[0], turretCoefficients[1],
@@ -129,7 +131,7 @@ public class Shooter {
 
         );
 
-        turretPIDF.setTolerance(1);
+        turretPIDF.setTolerance(2);
 
 
 
