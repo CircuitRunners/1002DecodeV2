@@ -42,7 +42,7 @@ public class Sensors {
 
         // AD devices
         config.setAnalogDigitalDevice(11, SRSHub.AnalogDigitalDevice.DIGITAL); // Beam Break 1
-
+        config.setAnalogDigitalDevice(12, SRSHub.AnalogDigitalDevice.DIGITAL);
 //        config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
 
 
@@ -145,8 +145,13 @@ public class Sensors {
 
     // --- Digital Beam Breaks (AD pins 1 & 2) ---
     public boolean isBeamBroken() {
-        return hub.readAnalogDigitalDevice(1) > 0.5;
+        return hub.readAnalogDigitalDevice(12) > 0.5;
     }
+    public boolean isBeamBroken11() {
+        return hub.readAnalogDigitalDevice(11) > 0.5;
+    }
+
+    public double getBeamBreakValue11() {return hub.readAnalogDigitalDevice(11);}
     public double getBeamBreakValue() {return hub.readAnalogDigitalDevice(12);}
 
 

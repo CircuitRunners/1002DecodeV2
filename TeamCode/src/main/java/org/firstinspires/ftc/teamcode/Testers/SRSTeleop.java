@@ -279,6 +279,11 @@ public class SRSTeleop extends OpMode {
 
         telemetry.addData("Proximity", sensors.getColor3Proximity());
 
+        telemetry.addData("break beam pin 11:",sensors.getBeamBreakValue11());
+        telemetry.addData("break beam pin 12:",sensors.getBeamBreakValue());
+        telemetry.addData("break beam value 12:",sensors.isBeamBroken11());
+        telemetry.addData("break beam value 12:",sensors.isBeamBroken());
+
 
 
 // 6. Update telemetry screen
