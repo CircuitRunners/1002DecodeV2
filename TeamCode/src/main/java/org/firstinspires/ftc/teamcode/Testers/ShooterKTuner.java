@@ -4,7 +4,6 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
@@ -12,7 +11,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import java.util.List;
 
 @Configurable
-@TeleOp(name = "Shooter: K-Tuner ", group = "TEST")
+@TeleOp(name = "Shooter: K-Tuner v2.1", group = "TEST")
 public class ShooterKTuner extends OpMode {
 
     // ===== Physics Constants (Standardized for 10ft Test) =====
@@ -21,88 +20,118 @@ public class ShooterKTuner extends OpMode {
     public static double LAUNCH_HEIGHT = 12.0;
     public static double GRAVITY = 386.1;
 
-    // ===== Dashboard Tunables (Start high for 4096 encoder) =====
-    public static double targetTicksPerSec = 200000;
-    public static double targetHoodAngle = 30.0;
+    // ===== Dashboard Tunables =====
+    public static double targetTicksPerSec = 1000.0;
+    public static double desiredHoodAngle = 30.0;
+    public static boolean enableShooter = false; // Safety toggle
 
-    private Sensors sensors = new Sensors();
+    private Sensors sensors;
     private Shooter shooter;
     private List<LynxModule> allHubs;
 
+    // Debounce state
+    private boolean lastButton = false;
+
     @Override
     public void init() {
+        // 1. Setup Hubs for Manual Caching
         allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
 
-        shooter = new Shooter(hardwareMap, telemetry);
+        // 2. Initialize Subsystems
+        sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
 
-        telemetry.addLine("Ready. Place robot exactly 10ft (120in) from goal. fix turret at 0 degrees (forward over intake)");
-        telemetry.addLine("Gamepad 1: DPAD Up/Down (Speed), Bumpers (Angle)");
+        sensors.update();
+
+        // Shooter constructor now handles PID initialization correctly
+        shooter = new Shooter(hardwareMap, telemetry);
+
+        shooter.update(sensors.getFlywheelVelo(),sensors.getSketchTurretPosition());
+
+        telemetry.addLine("Initialized.");
+        telemetry.addLine("Hood will move immediately on START.");
+        telemetry.addLine("Press Square/X to toggle Flywheel.");
         telemetry.update();
     }
 
     @Override
     public void loop() {
-        // Clear bulk cache for highest frequency updates
-        for (LynxModule hub : allHubs) hub.clearBulkCache();
+        // --- STEP 1: REFRESH HARDWARE DATA ---
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
         sensors.update();
 
-        // 1. GAMEPAD TUNING (Adjust targets live)
-        if (gamepad1.dpad_up) targetTicksPerSec += 200;
-        if (gamepad1.dpad_down) targetTicksPerSec -= 200;
-        if (gamepad1.right_bumper) targetHoodAngle += 0.5;
-        if (gamepad1.left_bumper) targetHoodAngle -= 0.5;
+        // --- STEP 2: HANDLE INPUTS ---
 
-        // Clip the values to safe hardware limits
-        targetTicksPerSec = Range.clip(targetTicksPerSec, 0, 385000);
-        targetHoodAngle = Range.clip(targetHoodAngle, 0, 45);
+        // Debounced Toggle for Square (PS) or X (Xbox)
+        boolean currentButton = gamepad1.square || gamepad1.x;
+        if (currentButton && !lastButton) {
+            enableShooter = !enableShooter;
+        }
+        lastButton = currentButton;
 
-        // 2. APPLY TO HARDWARE
-        shooter.setTargetVelocityTicks(targetTicksPerSec);
-        shooter.setHoodTargetAngle(targetHoodAngle);
+        // Tuning Controls
+        if (gamepad1.dpad_up) targetTicksPerSec += 5000;
+        if (gamepad1.dpad_down) targetTicksPerSec -= 5000;
+        if (gamepad1.right_bumper) desiredHoodAngle += 2;
+        if (gamepad1.left_bumper) desiredHoodAngle -= 2;
+        if (gamepad1.circle){
+            targetTicksPerSec +=1000;
+        }
+        if (gamepad1.circle){
+            targetTicksPerSec -=1000;
+        }
 
-        // Snapshot the actual measured speed for the k-calculation
-        double currentTicksPerSec = sensors.getFlywheelVelo();
-        shooter.update(currentTicksPerSec, 0); // Turret fixed at 180 for tuning
+        // --- STEP 3: APPLY LOGIC TO SUBSYSTEM ---
+        double currentVelo = sensors.getFlywheelVelo();
+        double currentTurret = sensors.getSketchTurretPosition();
 
-        // 3. THE PHYSICS CHARACTERIZATION
+        // Always update hood angle so it responds even if flywheel is off
+        shooter.setHoodTargetAngle(desiredHoodAngle);
+
+        if (enableShooter) {
+            shooter.setTargetVelocityTicks(targetTicksPerSec);
+        } else {
+            // This sets the internal target to 0 and cuts power
+            shooter.stopFlywheel();
+        }
+
+        // Write to hardware (Servos + Motors)
+        shooter.update(currentVelo, currentTurret);
+
+        // --- STEP 4: PHYSICS CALCULATIONS (K-FACTOR) ---
         double deltaY = GOAL_HEIGHT - LAUNCH_HEIGHT;
-        double angleRad = Math.toRadians(targetHoodAngle);
+        double angleRad = Math.toRadians(desiredHoodAngle);
         double cosA = Math.cos(angleRad);
 
         // Denominator: 2 * cos²(θ) * (x * tan(θ) - y)
-        double denominator = 2 * Math.pow(cosA, 2) * (TEST_DISTANCE_INCHES * Math.tan(angleRad) - deltaY);
+        double denom = 2 * Math.pow(cosA, 2) * (TEST_DISTANCE_INCHES * Math.tan(angleRad) - deltaY);
 
-        if (denominator > 0.0001) {
-            // v = sqrt( (g * x²) / Denominator )
-            double vReqMuzzleInchesPerSec = Math.sqrt((GRAVITY * Math.pow(TEST_DISTANCE_INCHES, 2)) / denominator);
+        telemetry.addData("STATUS", enableShooter ? "RUNNING" : "STOPPED (Press Square/X)");
 
-            // k = (Theoretical in/s) / (Measured ticks/s)
-            // This is the constant that "bridges" your specific shooter to pure physics.
-            double calculatedK = 0;
-            if (currentTicksPerSec > 100) { // Avoid division by zero when stopped
-                calculatedK = vReqMuzzleInchesPerSec / currentTicksPerSec;
-            }
+        if (denom > 0.0001) {
+            // Basic kinematic equation for projectile motion
+            double vReqMuzzle = Math.sqrt((GRAVITY * Math.pow(TEST_DISTANCE_INCHES, 2)) / denom);
 
-            telemetry.addData("--- TARGETS ---", "");
-            telemetry.addData("Target Ticks/s", "%.0f", targetTicksPerSec);
-            telemetry.addData("Target Angle", "%.2f deg", targetHoodAngle);
+            // k = muzzleVelocity / flywheelVelocity
+            double calculatedK = (currentVelo > 50) ? (vReqMuzzle / currentVelo) : 0;
 
-            telemetry.addData("--- MEASURED ---", "");
-            telemetry.addData("Measured Ticks/s", "%.2f", currentTicksPerSec);
-            telemetry.addData("Physics Req Speed", "%.2f in/s", vReqMuzzleInchesPerSec);
-
-            telemetry.addLine("--------------------------------");
-            telemetry.addData("CALCULATED K", "%.10f", calculatedK);
-            telemetry.addLine("--------------------------------");
-            telemetry.addLine("DIRECTIONS:");
-            telemetry.addLine("1. Dial speed/angle until you hit dead-center.");
-            telemetry.addLine("2. Note the 'K' and put it in MUZZLE_K_TABLE with the associated angle");
+            telemetry.addLine("--- PHYSICS ---");
+            telemetry.addData("Req Muzzle Speed", "%.2f in/s", vReqMuzzle);
+            telemetry.addData("CALCULATED K", "%.8f", calculatedK);
         } else {
-            telemetry.addLine("ERROR: Geometry impossible. Increase Angle.");
+            telemetry.addLine("GEOMETRY ERROR: Angle too low for distance!");
         }
 
+        telemetry.addLine("--- HARDWARE ---");
+        telemetry.addData("Target Ticks", "%.1f", targetTicksPerSec);
+        telemetry.addData("Actual Ticks", "%.1f", currentVelo);
+        telemetry.addData("Target Angle", "%.1f", desiredHoodAngle);
+        telemetry.addData("Turret Pos", "%.1f", currentTurret);
         telemetry.update();
     }
 }

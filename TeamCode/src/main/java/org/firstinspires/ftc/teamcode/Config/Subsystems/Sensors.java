@@ -41,9 +41,9 @@ public class Sensors {
         config.addI2CDevice(3, new SRSHub.APDS9151());
 
         // AD devices
-        config.setAnalogDigitalDevice(1, SRSHub.AnalogDigitalDevice.DIGITAL); // Beam Break 1
+        config.setAnalogDigitalDevice(11, SRSHub.AnalogDigitalDevice.DIGITAL); // Beam Break 1
 
-        config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
+//        config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
 
 
         config.setEncoder(1, SRSHub.Encoder.QUADRATURE); //flywheel encoder
@@ -147,15 +147,15 @@ public class Sensors {
     public boolean isBeamBroken() {
         return hub.readAnalogDigitalDevice(1) > 0.5;
     }
-    public double getBeamBreakValue() {return hub.readAnalogDigitalDevice(1);}
+    public double getBeamBreakValue() {return hub.readAnalogDigitalDevice(12);}
 
 
 
     // --- Raw Analog Encoder Values ---
-    public double getAnalogEncoder1Value() {
-        return hub.readAnalogDigitalDevice(3);
-
-    }
+//    public double getAnalogEncoder1Value() {
+//        return hub.readAnalogDigitalDevice(3);
+//
+//    }
 
     public double getRawTurretTicks(){
         return hub.readEncoder(3).position * -1;
@@ -181,15 +181,15 @@ public class Sensors {
 //    }
 
     // --- Calibrated Positions (clamping logic unchanged) ---
-    public int getTurretPosition() {
-        double normalizedValue = getAnalogEncoder1Value();
-        int pos = (int) (Math.round(normalizedValue/3.2 * 360) + TURRET_OFFSET_DEGREES) % 360;
-
-//        if (pos < 0) {pos += 360;}
-//        if (pos >  360) {pos -= 360;}
-
-        return pos;
-    }
+//    public int getTurretPosition() {
+//        double normalizedValue = getAnalogEncoder1Value();
+//        int pos = (int) (Math.round(normalizedValue/3.2 * 360) + TURRET_OFFSET_DEGREES) % 360;
+//
+////        if (pos < 0) {pos += 360;}
+////        if (pos >  360) {pos -= 360;}
+//
+//        return pos;
+//    }
 
 //    public int getHoodPosition() {
 //        double normalizedValue = getAnalogEncoder2Value();

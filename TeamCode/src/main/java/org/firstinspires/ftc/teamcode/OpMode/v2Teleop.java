@@ -60,6 +60,9 @@ public class v2Teleop extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(Poses.getStartingPose());
+        follower.update();
+
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         configurePinpoint();
 

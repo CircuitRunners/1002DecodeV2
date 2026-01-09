@@ -271,7 +271,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), sensors.getTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
 
         autonomousPathUpdate();
 

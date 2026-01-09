@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Config.Subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -28,10 +29,10 @@ public class Intake {
     public static double targetRPM = 0;  // default target speed
     public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.15;
     public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.42;
-    public static final double GATE_OPEN = 0.77;
-    public static final double GATE_CLOSED = 0.15;
+    public static final double GATE_OPEN = 0.15;
+    public static final double GATE_CLOSED = 0.77;
     public static final double TRANSFER_ON = 0.5;
-    public static final double TRANSFER_OFF = 0.35;
+    public static final double TRANSFER_OFF = 0.32;
 
     //SORTING STUFF//
     private int currentShot = 0;
@@ -52,6 +53,8 @@ public class Intake {
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+
         transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitch");
         transferDirectionSwitcher.setDirection(Servo.Direction.FORWARD);
 
@@ -71,8 +74,7 @@ public class Intake {
 
     public void intake(){
         gateClose();
-        transferOn();
-        setDirectionCycle();
+        transferOff();
         intake.setPower(1);
         motorPower = 1;
     }
@@ -81,7 +83,7 @@ public class Intake {
         gateClose();
         transferOn();
         setDirectionCycle();
-        intake.setPower(-0.4);
+        intake.setPower(-1);
         motorPower = -0.4;
     }
 
@@ -142,7 +144,7 @@ public class Intake {
         gateOpen();
         transferOn();
         setDirectionCycle();
-        intake.setPower(0.4);
+        intake.setPower(0.85);
     }
 
     public void transfer(){

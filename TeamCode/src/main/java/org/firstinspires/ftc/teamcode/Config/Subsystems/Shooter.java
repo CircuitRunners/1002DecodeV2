@@ -26,7 +26,7 @@ public class Shooter {
 
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
-    private static final double[] turretCoefficients = {0.01, 0, 0.0001, 0.005};
+    private static final double[] turretCoefficients = {0.1, 0, 0.002, 0.0015};
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
@@ -42,10 +42,10 @@ public class Shooter {
     private static final double GRAVITY_INCHES_PER_SEC_SQ = 386.1; // g in in/s^2
     private static final double GOAL_HEIGHT_INCHES = 38.75;       // Example goal height
     private static final double GOAL_HEIGHT_SAFETY_OFFSET_INCHES = 1.5;
-    private static final double LAUNCH_HEIGHT_INCHES = 12.0;
+    private static final double LAUNCH_HEIGHT_INCHES = 11.5; //12
 
     // --- SHOT CONSTRAINTS (For Iterative Search) ---
-    private static final double MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC = 2333.33;
+    private static final double MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC = 400000;
 
 
     private static double MIN_LAUNCH_ANGLE_DEG = 5.0;
@@ -106,6 +106,7 @@ public class Shooter {
         turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         hoodServo = hardwareMap.get(Servo.class, "hood");
+        hoodServo.setDirection(Servo.Direction.REVERSE);
 
         shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -121,7 +122,7 @@ public class Shooter {
 
         );
 
-        flywheelPIDF.setTolerance(4500);
+        //flywheelPIDF.setTolerance(4500);
 
         turretPIDF = new PIDFController(
 
@@ -137,9 +138,8 @@ public class Shooter {
 
 // Initialize targets
 
-        setTargetVelocityTicks(0);
-
-        setTurretTargetPosition(180);
+       turretPIDF.setSetPoint(0);
+       flywheelPIDF.setSetPoint(0);
 
         setHoodTargetAngle(45);
     }
@@ -343,6 +343,16 @@ public class Shooter {
                 break;
         }
 
+        // --- WIRIG DEAD ZONE HANDLING ---
+        // If target is in the 315-360 deadzone, pick the closest safe limit
+        if (absoluteTarget > 315) {
+            if (absoluteTarget > 337.5) { // Closer to 0
+                absoluteTarget = 0;
+            } else { // Closer to 315
+                absoluteTarget = 315;
+            }
+        }
+
         // Set the setpoint (Non-Continuous PID handles the 'long way')
         setTurretTargetPosition(absoluteTarget);
     }
@@ -353,8 +363,8 @@ public class Shooter {
 //        else if (positionDeg < 0){
 //            positionDeg +=360;
 //        }
-        targetTurretPosition = positionDeg;
-        turretPIDF.setSetPoint(targetTurretPosition);
+        targetTurretPosition = Range.clip(positionDeg,0,315);
+        //turretPIDF.setSetPoint(Range.clip(targetTurretPosition,0,315));
     }
 
 
@@ -365,7 +375,7 @@ public class Shooter {
 
     public void setTargetVelocityTicks(double targetTicksPerSec) {
         targetFlywheelVelocity = Range.clip(targetTicksPerSec, 0, MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC);
-        flywheelPIDF.setSetPoint(targetFlywheelVelocity);
+        //flywheelPIDF.setSetPoint(targetFlywheelVelocity);
     }
 
     // ------------------------------------
@@ -585,21 +595,26 @@ public class Shooter {
     // ------------------------------------
 
     public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
-        flywheelVeloReached = flywheelPIDF.atSetPoint();
-        turretReached = turretPIDF.atSetPoint();
+
+
+//        flywheelVeloReached = flywheelPIDF.atSetPoint();
+//        turretReached = turretPIDF.atSetPoint();
 
         // Reset calibration flag at the start of the loop
         hoodCalibrationRequired = false;
 
-        double flywheelOutput = flywheelPIDF.calculate(currentFlywheelVelo);
-        flywheelOutput = Range.clip(flywheelOutput, -1, 1);
-        setFlywheelPower(flywheelOutput);
+        flywheelPIDF.setPIDF(flywheelCoefficients[0],flywheelCoefficients[1],flywheelCoefficients[2],flywheelCoefficients[3]);
 
-        if (targetFlywheelVelocity == 0) {
-            setFlywheelPower(0);
-        }
+        double flywheelOutput = flywheelPIDF.calculate(currentFlywheelVelo,targetFlywheelVelocity);
+        flywheelOutput = Range.clip(flywheelOutput, 0, 0.8);
+        shooter1.setPower(flywheelOutput);
+        shooter2.setPower(flywheelOutput);
 
-        double turretOutput = turretPIDF.calculate(currentTurretAngle0_360);
+//        if (targetFlywheelVelocity == 0) {
+//            setFlywheelPower(0);
+//        }
+
+        double turretOutput = turretPIDF.calculate(currentTurretAngle0_360,targetTurretPosition);
         turretOutput = Range.clip(turretOutput, -maxTurretPower, maxTurretPower);
         turret.setPower(turretOutput);
 
@@ -615,7 +630,7 @@ public class Shooter {
 
         // 2. Update the setpoint to the current angle to "calm" the PID
         targetTurretPosition = currentAngle;
-        turretPIDF.setSetPoint(targetTurretPosition);
+       // turretPIDF.setSetPoint(targetTurretPosition);
     }
     // ------------------------------------
     // ##  Helpers
