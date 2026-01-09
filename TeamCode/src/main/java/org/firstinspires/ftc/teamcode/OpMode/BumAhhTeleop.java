@@ -105,7 +105,16 @@ public class BumAhhTeleop extends OpMode {
             // BumAhhShooter.targetTurretAngle = sensors.getSketchTurretPosition();
         }
 
-        drive.drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        double forward = player1.getLeftY();
+        double strafe = player1.getLeftX();
+        double rotate = player1.getRightX();
+
+        if (isRedAlliance) { forward = -forward; strafe = -strafe; }
+        double heading = follower.getPose().getHeading();
+        double theta = Math.atan2(forward, strafe) - heading;
+        double r = Math.hypot(forward, strafe);
+        drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
+
         shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
 
         telemetry.addData("Step", shootStep);
