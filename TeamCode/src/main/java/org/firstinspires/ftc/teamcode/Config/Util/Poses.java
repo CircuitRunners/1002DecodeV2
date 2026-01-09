@@ -177,6 +177,28 @@ public class Poses {
             new Pose(72, 72, Math.toRadians(90))
     );
 
+    // FAR SIDE
+    public static final AlliancePose startPoseFarSide = new AlliancePose(
+            new Pose(60, 8, Math.toRadians(180)),
+            new Pose(84, 8, Math.toRadians(0))
+    );
+    public static final AlliancePose shootPositionFarSide = new AlliancePose(
+            new Pose(60, 24, Math.toRadians(120)),
+            new Pose(84, 24, Math.toRadians(60))
+    );
+    public static final AlliancePose humanPlayerIntake = new AlliancePose(
+            new Pose(12, 8, Math.toRadians(180)),
+            new Pose(136, 8, Math.toRadians(0))
+    );
+    public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
+            new Pose(96.3, 7.2),
+            new Pose(47.7, 7.2)
+    );
+    public static final AlliancePose intake3ControlPoint = new AlliancePose(
+            new Pose(61.1, 38.5),
+            new Pose(82.9, 38.5)
+    );
+
     // =======================
     // Cross-OpMode pose storage
     // =======================
