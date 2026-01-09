@@ -281,9 +281,12 @@ public class Shooter {
         double deltaX = targetXInches - robotXInches;
 
         // Standard atan2(y, x) for East = 0, North = 90
-        double targetFieldYawRad = Math.atan2(deltaY, deltaX);
-
-        return Math.toDegrees(targetFieldYawRad); // Returns (-180 to 180)
+        double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
+        double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
+        if (targetFieldYawDeg < 0){
+            targetFieldYawDeg += 360;
+        }
+        return targetFieldYawDeg; // Returns (-180 to 180)
     }
 
     // ------------------------------------
@@ -323,18 +326,21 @@ public class Shooter {
 
     public void setTurretTarget(double inputFieldDeg, TurretMode mode, double robotFieldYawDeg) {
         double absoluteTarget = 0;
+        robotFieldYawDeg = normalizeRobotHeading0_360(robotFieldYawDeg);
 
         switch (mode) {
             case FIELD_CENTRIC:
                 // inputFieldDeg is your constant (e.g., 180 for West)
                 // Subtract robot heading to find robot-relative angle
-                absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
+                absoluteTarget = (inputFieldDeg - robotFieldYawDeg + 360) % 360;
+               // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case AUTO_ALIGN:
                 // Input is already the field yaw calculated from (dx, dy)
                 // Example: calculateAutoAlignYaw(robotX, robotY, targetX, targetY)
-                absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
+                absoluteTarget = (inputFieldDeg - robotFieldYawDeg + 360) % 360;
+                // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case ROBOT_CENTRIC:
