@@ -616,7 +616,7 @@ public class Shooter {
 
     public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
 
-        if (currentFlywheelVelo >= targetFlywheelVelocity - 1000 || currentFlywheelVelo <= targetFlywheelVelocity + 1000) {
+        if (currentFlywheelVelo >= targetFlywheelVelocity - 150 || currentFlywheelVelo <= targetFlywheelVelocity + 150) {
             flywheelVeloReached = true;
         }
         else {

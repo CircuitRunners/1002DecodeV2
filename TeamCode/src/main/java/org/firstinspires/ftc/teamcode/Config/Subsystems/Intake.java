@@ -72,11 +72,6 @@ public class Intake {
         gateRight = hardwareMap.get(Servo.class,"gateRight");
         gateRight.setDirection(Servo.Direction.FORWARD);
 
-
-
-
-
-
     }
 
 
@@ -84,6 +79,7 @@ public class Intake {
     public void intake(){
         gateClose();
         transferOff();
+        setDirectionCycle();
         intake.setPower(1);
         motorPower = 1;
     }

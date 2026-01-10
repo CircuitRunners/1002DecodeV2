@@ -55,6 +55,8 @@ public class v2Teleop extends OpMode {
     private boolean vibratedYet = false;
     private boolean initiateTransfer = false;
 
+    private boolean noAutoAlign  =false;
+
     private final ElapsedTime timer = new ElapsedTime();
 
     @Override
@@ -170,9 +172,10 @@ public class v2Teleop extends OpMode {
     private void handleManualTurretOverrides(double currentAngle) {
         // Manual control: move turret and stick PID to current position to prevent fighting
         if (gamepad2.right_bumper) {
-            shooter.manualTurretOverride(0.5, currentAngle);
+            shooter.setTurretTarget(sensors.getSketchTurretPosition() + 2, Shooter.TurretMode.ROBOT_CENTRIC,sensors.getSketchTurretPosition());
         } else if (gamepad2.left_bumper) {
-            shooter.manualTurretOverride(-0.5, currentAngle);
+
+            shooter.setTurretTarget(sensors.getSketchTurretPosition() - 2, Shooter.TurretMode.ROBOT_CENTRIC,sensors.getSketchTurretPosition());
         }
 
         // Hardware re-zero
@@ -222,7 +225,12 @@ public class v2Teleop extends OpMode {
     private void applyShooterTargets(Pose pose, double vx, double vy, double headingDeg) {
         double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
-        shooter.setTargetsByDistance(pose.getX(),pose.getY(),targetX,GOAL_Y,headingDeg,true);
+        if (noAutoAlign){
+            shooter.setTargetsByDistance(pose.getX(),pose.getY(),targetX,GOAL_Y,headingDeg,false);
+        }
+        else {
+            shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true);
+        }
     }
 
     private void handleDriving(Pose pose) {
@@ -270,6 +278,10 @@ public class v2Teleop extends OpMode {
         if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
             if (opState != 1) { ballsShotInState = 0; opState = 1; } else resetToIntake();
         }
+
+        if (player2.wasJustPressed(GamepadKeys.Button.SQUARE)) {
+            noAutoAlign = true;
+        }
         /* not till tuned sry lil bro
         if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
             if (opState != 2) { ballsShotInState = 0; opState = 2; } else resetToIntake();
@@ -289,7 +301,7 @@ public class v2Teleop extends OpMode {
     private void configurePinpoint() {
         pinpoint.setOffsets(44.94, -170.367, DistanceUnit.MM);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.resetPosAndIMU();
     }
 
