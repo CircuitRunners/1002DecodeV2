@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 
 import java.util.List;
 
-@Config
+@Configurable
 @TeleOp(name = "TurretPIDFTuner_DualTelemetry", group = "TEST")
 public class notCookedTurretTuner extends OpMode {
 
@@ -38,6 +38,8 @@ public class notCookedTurretTuner extends OpMode {
     private PIDFController pidf;
     private Sensors sensors = new Sensors();
     private ElapsedTime loopTimer = new ElapsedTime();
+
+    public static double cookedLoopTargetMS = 40;
    // private TelemetryManager panelsTelemetry;
     private static final String HUB_NAME = "SRSHub";
 
@@ -106,6 +108,7 @@ public class notCookedTurretTuner extends OpMode {
         telemetry.addData("Actual", "%.2f", currentAngle);
         telemetry.addData("Error", "%.2f", error);
         telemetry.addData("Power", "%.2f", turretOutput);
+        double loopTime = loopTimer.milliseconds();
 
         // --- PANELS TELEMETRY (Custom Dashboard / Graphs) ---
         // These can be used to create live line graphs in the UI
@@ -117,6 +120,13 @@ public class notCookedTurretTuner extends OpMode {
 //
 //        // Update both systems
 //        panelsTelemetry.update(telemetry);
+
+        double remaining = cookedLoopTargetMS - loopTime;
+        if (remaining > 0) {
+            try {
+                Thread.sleep((long) remaining);
+            } catch (InterruptedException ignored) {}
+        }
 
         loopTimer.reset();
     }

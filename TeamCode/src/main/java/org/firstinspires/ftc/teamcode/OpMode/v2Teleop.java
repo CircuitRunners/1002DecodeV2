@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Locale;
 
-@TeleOp(name = "Zenith Teleop V2 - Optimized", group = "A")
+@TeleOp(name = "Zenith Teleop", group = "A")
 @Configurable
 public class v2Teleop extends OpMode {
 
@@ -80,11 +80,18 @@ public class v2Teleop extends OpMode {
         player1 = new GamepadEx(gamepad1);
         player2 = new GamepadEx(gamepad2);
 
-        if(Poses.getAlliance() != null){
-            isRedAlliance = (Poses.getAlliance() == Poses.Alliance.RED);
-            preselectFromAuto = true;
-        } else {
-            isRedAlliance = true;
+        if(Poses.getAlliance() !=null){
+            if(Poses.getAlliance() == Poses.Alliance.RED){
+                isRedAlliance = true;
+                preselectFromAuto = true;
+            }
+            else {
+                isRedAlliance = false;
+                preselectFromAuto = true;
+            }
+        }
+        else{
+            isRedAlliance = false;
             preselectFromAuto = false;
         }
     }
@@ -108,14 +115,33 @@ public class v2Teleop extends OpMode {
 
         // --- 2. DATA SNAPSHOTS (Call once, reference variables) ---
         Pose currentPose = follower.getPose();
+        Pose2D currentPinpointPose = pinpoint.getPosition();
         double currentHeadingDeg = Math.toDegrees(currentPose.getHeading());
         double robotVelX = pinpoint.getVelX(DistanceUnit.INCH);
         double robotVelY = pinpoint.getVelY(DistanceUnit.INCH);
 
+        String data = String.format(Locale.US,
+                "{X: %.3f, Y: %.3f, H: %.3f}",
+                currentPinpointPose.getX(DistanceUnit.INCH),
+                currentPinpointPose.getY(DistanceUnit.INCH),
+                currentPinpointPose.getHeading(AngleUnit.DEGREES)
+        );
+
+        String followerData = String.format(Locale.US,
+                "{X: %.3f, Y: %.3f, H: %.3f}",
+                follower.getPose().getX(),
+                follower.getPose().getY(),
+                Math.toDegrees(follower.getPose().getHeading())
+
+        );
+
+        telemetry.addData("Position", followerData);
+        telemetry.addData("Pinpoint (BAD) Position", data);
+
         double currentFlywheelVelo = sensors.getFlywheelVelo();
         double currentTurretAngle = sensors.getSketchTurretPosition();
-        boolean isBeamBroken = sensors.isBeamBroken();
-        double beamValue = sensors.getBeamBreakValue();
+        boolean isBeamBroken = shooter.isBeamBroken();
+        boolean beamValue = shooter.isBeamBroken();
 
         // --- 3. LOGIC & OVERRIDES ---
         handleManualTurretOverrides(currentTurretAngle);
@@ -158,11 +184,11 @@ public class v2Teleop extends OpMode {
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
         applyShooterTargets(pose, vx, vy, head);
-        if (shooter.flywheelVeloReached && shooter.hoodReached && !vibratedYet) {
+        if (shooter.flywheelVeloReached  && !vibratedYet) {
             gamepad1.rumble(250);
             vibratedYet = true;
         }
-        else if (!shooter.flywheelVeloReached || !shooter.hoodReached){
+        else if (!shooter.flywheelVeloReached ){
             vibratedYet = false;
         }
         if (vibratedYet && (gamepad1.right_trigger > 0.2)){
@@ -177,7 +203,7 @@ public class v2Teleop extends OpMode {
         if (ballsShotInState >= 3) resetToIntake();
     }
 
-    private void handleScoringState(Pose pose, double vx, double vy, double head, boolean beam, double beamVal) {
+    private void handleScoringState(Pose pose, double vx, double vy, double head, boolean beam,  boolean beamVal) {
         applyShooterTargets(pose, vx, vy, head);
 
         LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
@@ -195,7 +221,8 @@ public class v2Teleop extends OpMode {
 
     private void applyShooterTargets(Pose pose, double vx, double vy, double headingDeg) {
         double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
-        shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
+       // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
+        shooter.setTargetsByDistance(pose.getX(),pose.getY(),targetX,GOAL_Y,headingDeg,true);
     }
 
     private void handleDriving(Pose pose) {
@@ -203,7 +230,7 @@ public class v2Teleop extends OpMode {
         double strafe = player1.getLeftX();
         double rotate = player1.getRightX();
 
-        if (isRedAlliance) { forward = -forward; strafe = -strafe; }
+        if (!isRedAlliance) { forward = -forward; strafe = -strafe; }
         double heading = pose.getHeading();
         double theta = Math.atan2(forward, strafe) - heading;
         double r = Math.hypot(forward, strafe);
@@ -234,7 +261,7 @@ public class v2Teleop extends OpMode {
     }
 
     private void handleInputOverrides() {
-        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) follower.setPose(new Pose(72, 72, Math.toRadians(-90)));
+        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) follower.setPose(new Pose(72, 72, Math.toRadians(90)));
         if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
         if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
             LimelightCamera.BallOrder seen = limelight.detectBallOrder();
@@ -252,6 +279,8 @@ public class v2Teleop extends OpMode {
     }
 
     private void handleIntakeState() {
+
+        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         if (gamepad1.right_trigger > 0.2) intake.intake();
         else if (gamepad1.left_trigger > 0.2) intake.outtake();
         else intake.intakeMotorIdle();
@@ -265,9 +294,12 @@ public class v2Teleop extends OpMode {
     }
 
     private void doTelemetry() {
+
         telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
         telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
         telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
+        telemetry.addData("Flywheel Reached",shooter.flywheelVeloReached ? "YEA": "NAH");
+        telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
     }
 
     private void extraTelemetryForTesting(double fVelo, double tAng, boolean beam) {

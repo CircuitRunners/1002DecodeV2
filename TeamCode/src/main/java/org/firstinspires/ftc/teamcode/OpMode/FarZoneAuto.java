@@ -189,7 +189,7 @@ public class FarZoneAuto extends OpMode {
         if (shooter.flywheelVeloReached && shooter.hoodReached) {
             intake.intake();
 
-            boolean currentBeamState = sensors.isBeamBroken();
+            boolean currentBeamState = shooter.isBeamBroken();
 
             // Increment count on "Falling Edge" (Ball has fully cleared the shooter)
             if (lastBeamState && !currentBeamState) {
@@ -241,7 +241,7 @@ public class FarZoneAuto extends OpMode {
             lastKnownAlliance = Poses.getAlliance();
         }
         sensors.update();
-        lastBeamState = sensors.isBeamBroken();
+        lastBeamState = shooter.isBeamBroken();
     }
 
     @Override
@@ -262,7 +262,7 @@ public class FarZoneAuto extends OpMode {
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
-        telemetry.addData("Beam Status", sensors.isBeamBroken() ? "BROKEN" : "CLEAR");
+        telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
         telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
         telemetry.update();
     }

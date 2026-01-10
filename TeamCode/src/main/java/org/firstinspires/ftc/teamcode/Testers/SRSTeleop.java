@@ -5,7 +5,7 @@ package org.firstinspires.ftc.teamcode.Testers;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
@@ -25,6 +25,8 @@ public class SRSTeleop extends OpMode {
 
 
     private Sensors sensors = new Sensors();
+
+
 
     private boolean initializationFailed = false;
 
@@ -51,6 +53,8 @@ public class SRSTeleop extends OpMode {
         telemetry.addData("Status", "Initializing Sensors...");
 
         telemetry.update();
+
+
 
 
 
@@ -194,6 +198,8 @@ public class SRSTeleop extends OpMode {
 
 
 
+
+
 // 3. Read Calibrated Analog Encoder Data
 
         telemetry.addData("--- ANALOG ENCODERS (DEGREES) ---", "---");
@@ -245,6 +251,9 @@ public class SRSTeleop extends OpMode {
     }
 
 
+
+
+
         telemetry.addData("--- COLOR SENSOR (I2C) ---", "---");
 
        // telemetry.addData("5. Detected Color", color != null ? color.toString() : "NONE");
@@ -279,10 +288,9 @@ public class SRSTeleop extends OpMode {
 
         telemetry.addData("Proximity", sensors.getColor3Proximity());
 
-        telemetry.addData("break beam pin 11:",sensors.getBeamBreakValue11());
-        telemetry.addData("break beam pin 12:",sensors.getBeamBreakValue());
-        telemetry.addData("break beam value 12:",sensors.isBeamBroken11());
-        telemetry.addData("break beam value 12:",sensors.isBeamBroken());
+
+
+
 
 
 

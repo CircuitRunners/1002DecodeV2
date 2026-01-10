@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -27,8 +30,8 @@ public class Intake {
     // Configurable constants
     public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
     public static double targetRPM = 0;  // default target speed
-    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.15;
-    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.42;
+    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.85;
+    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.33;
     public static final double GATE_OPEN = 0.15;
     public static final double GATE_CLOSED = 0.77;
     public static final double TRANSFER_ON = 0.5;
@@ -46,6 +49,8 @@ public class Intake {
 
     public static LimelightCamera.BallOrder targetPatternFromAuto = null;
 
+
+
     public Intake(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
@@ -56,7 +61,7 @@ public class Intake {
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitch");
-        transferDirectionSwitcher.setDirection(Servo.Direction.FORWARD);
+        transferDirectionSwitcher.setDirection(Servo.Direction.REVERSE);
 
         transferPowerTransmition = hardwareMap.get(Servo.class,"centerClutch");
         transferPowerTransmition.setDirection(Servo.Direction.FORWARD);
@@ -66,6 +71,10 @@ public class Intake {
 
         gateRight = hardwareMap.get(Servo.class,"gateRight");
         gateRight.setDirection(Servo.Direction.FORWARD);
+
+
+
+
 
 
     }
@@ -84,7 +93,7 @@ public class Intake {
         transferOn();
         setDirectionCycle();
         intake.setPower(-1);
-        motorPower = -0.4;
+        motorPower = -1;
     }
 
     public void retainBalls(){
@@ -150,6 +159,7 @@ public class Intake {
     public void transfer(){
         transferOn();
         setDirectionTransfer();
+        gateClose();
         intake.setPower(1);
     }
 
@@ -290,12 +300,12 @@ public class Intake {
     private boolean lastSlot1WasNull = false;
     private boolean patternIsLocked = false; // New flag to stop checking sensors during firing
 
-    public void sort(double shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
+    public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
                      DetectedColor colorSensor1Value,
                      DetectedColor colorSensor2Value,
                      DetectedColor colorSensor3Value) {
 
-        boolean isBeamBroken = (shooterBeamBrake <= 0.5);
+        boolean isBeamBroken = shooterBeamBrake;
 
         // 1. Get current state
         DetectedColor slot1 = colorSensor1Value;

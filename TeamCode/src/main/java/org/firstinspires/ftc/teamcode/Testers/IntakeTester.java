@@ -59,7 +59,7 @@ public class IntakeTester extends OpMode {
         DetectedColor ball2 = sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green());
         DetectedColor ball3 = sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green());
 
-        double beamBreak = sensors.getBeamBreakValue();
+        //boolean beamBreak = shooter.isBeamBroken();
 
         //intake
         if (intakeStatus != INTAKE_STATUS.TESTING) {
@@ -103,7 +103,7 @@ public class IntakeTester extends OpMode {
                     break;
 
                 case SORTING:
-                    intake.sort(beamBreak, ballOrder, ball1, ball2, ball3);
+                   // intake.sort(beamBreak, ballOrder, ball1, ball2, ball3);
                     break;
 
                 case IDLE:
@@ -116,7 +116,7 @@ public class IntakeTester extends OpMode {
             telemetry.addData("Ball1: ", ball1);
             telemetry.addData("Ball2: ", ball2);
             telemetry.addData("Ball3: ", ball3);
-            telemetry.addData("Beambreak: ", beamBreak);
+           // telemetry.addData("Beambreak: ", beamBreak);
             telemetry.addLine("");
             telemetry.update();
         }

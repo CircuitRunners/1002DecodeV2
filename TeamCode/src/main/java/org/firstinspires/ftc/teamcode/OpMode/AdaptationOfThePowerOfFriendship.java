@@ -191,20 +191,15 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
      * and counting exactly 3 shots based on beam break transitions.
      */
     private void handleAutoShooting(Pose pose, double targetX, double timeout) {
-        // Maintain Fixed Turret at 0 (Facing forward)
-        shooter.setShooterTarget(
-                pose.getX(), pose.getY(), targetX, GOAL_Y,
-                pinpoint.getVelX(DistanceUnit.INCH),
-                pinpoint.getVelY(DistanceUnit.INCH),
-                 Math.toDegrees(pose.getHeading()),
-                true
-        );
+        // Updated shooting command as requested
+        double headingDeg = Math.toDegrees(pose.getHeading());
+        shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false);
 
         // Once RPM and Hood Angle are locked, engage the transfer
         if (shooter.flywheelVeloReached && shooter.hoodReached) {
             intake.intake();
 
-            boolean currentBeamState = sensors.isBeamBroken();
+            boolean currentBeamState = shooter.isBeamBroken();
 
             // Increment count on "Falling Edge" (Ball has fully cleared the shooter)
             if (lastBeamState && !currentBeamState) {
@@ -256,7 +251,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             lastKnownAlliance = Poses.getAlliance();
         }
         sensors.update();
-        lastBeamState = sensors.isBeamBroken();
+        lastBeamState = shooter.isBeamBroken();
     }
 
     @Override
@@ -277,7 +272,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
-        telemetry.addData("Beam Status", sensors.isBeamBroken() ? "BROKEN" : "CLEAR");
+        telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
         telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
         telemetry.update();
     }

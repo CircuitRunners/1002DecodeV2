@@ -4,6 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -26,7 +27,7 @@ public class Shooter {
 
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
-    private static final double[] turretCoefficients = {0.1, 0, 0.002, 0.0015};
+    private static final double[] turretCoefficients = {0.06, 0, 0.0004, 0.0015};
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
@@ -72,6 +73,14 @@ public class Shooter {
     private PIDFController flywheelPIDF;
     private PIDFController turretPIDF;
 
+    private DigitalChannel shooterBeamBreak;
+
+    // Velocity Coefficients
+    public static double v_a = 0.00212656, v_b = -0.690055, v_c = 80.9096, v_d = -3021.17244, v_e = 221635.584;
+
+    // Hood Coefficients
+    public static double h_a = -0.00000272327, h_b = 0.000865664, h_c = -0.0980841, h_d = 4.82789, h_e = -51.50719;
+
     /**
      * Data structure for the calculated optimal shot parameters.
      * Contains only ballistics data (velocity, angle, time).
@@ -113,6 +122,9 @@ public class Shooter {
         shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        shooterBeamBreak = hardwareMap.get(DigitalChannel.class, "beamBreak");
+        shooterBeamBreak.setMode(DigitalChannel.Mode.INPUT);
 
         flywheelPIDF = new PIDFController(
 
@@ -190,10 +202,11 @@ public class Shooter {
 // ---------------------------------------------------------------------------
     private static final double[][] MUZZLE_K_TABLE = {
             //  angleDeg,  k-factor
-            {20, 0.150},  // TODO: replace with measured value
-            {30, 0.157},
-            {40, 0.166},
-            {50, 0.172}
+            {16, 0.00222749},
+            {26, 0.00131546},  // TODO: replace with measured value
+            {30, 0.00114602},
+            {34, 0.00109951},
+            {44, 0.00093616}
     };
 
     // Given a hood angle (in degrees), return the correct k-factor by
@@ -241,8 +254,9 @@ public class Shooter {
 //        }
 //        return headingDeg;
         double normalized = headingDeg % 360;
+        normalized *= -1;
         if (normalized < 0) normalized += 360;
-        return normalized;
+        return  normalized;
     }
 
     /**
@@ -351,11 +365,11 @@ public class Shooter {
 
         // --- WIRIG DEAD ZONE HANDLING ---
         // If target is in the 315-360 deadzone, pick the closest safe limit
-        if (absoluteTarget > 315) {
-            if (absoluteTarget > 337.5) { // Closer to 0
+        if (absoluteTarget > 265) {
+            if (absoluteTarget > 270) { // Closer to 0
                 absoluteTarget = 0;
             } else { // Closer to 315
-                absoluteTarget = 315;
+                absoluteTarget = 265;
             }
         }
 
@@ -369,8 +383,8 @@ public class Shooter {
 //        else if (positionDeg < 0){
 //            positionDeg +=360;
 //        }
-        targetTurretPosition = Range.clip(positionDeg,0,315);
-        //turretPIDF.setSetPoint(Range.clip(targetTurretPosition,0,315));
+        targetTurretPosition = Range.clip(positionDeg,0,265);
+        //targetTurretPosition = Range.clip(positionDeg,0,315);
     }
 
 
@@ -602,9 +616,21 @@ public class Shooter {
 
     public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
 
+        if (currentFlywheelVelo >= targetFlywheelVelocity - 1000 || currentFlywheelVelo <= targetFlywheelVelocity + 1000) {
+            flywheelVeloReached = true;
+        }
+        else {
+            flywheelVeloReached = false;
+        }
 
-//        flywheelVeloReached = flywheelPIDF.atSetPoint();
-//        turretReached = turretPIDF.atSetPoint();
+        if (currentTurretAngle0_360 >= targetTurretPosition - 0.7 || currentTurretAngle0_360 <= targetTurretPosition + 0.7) {
+            turretReached = true;
+        }
+        else {
+            turretReached = false;
+        }
+
+
 
         // Reset calibration flag at the start of the loop
         hoodCalibrationRequired = false;
@@ -763,6 +789,37 @@ public class Shooter {
 
     public double getCurrentRequiredTotalTOF() {
         return currentRequiredInAirTOF + transferTimeSec;
+    }
+
+    public boolean isBeamBroken() {
+        if (shooterBeamBreak.getState() == false){
+            return true;
+        }
+        return false;
+    }
+
+    public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign) {
+        double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
+
+        double hoodPos;
+        double velo;
+
+        // Quartic calculation for Velocity
+        velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
+                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
+
+
+        // Quartic calculation for Hood
+        hoodPos = (h_a * Math.pow(x, 4)) + (h_b * Math.pow(x, 3)) +
+                (h_c * Math.pow(x, 2)) + (h_d * x) + h_e;
+
+        setTargetVelocityTicks(velo);
+        setHoodTargetAngle(hoodPos);
+        if (autoAlign){
+            double requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY);
+            // B. Pass to the turret setter
+            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotAngle);
+        }
     }
 
 

@@ -5,6 +5,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
@@ -27,6 +28,7 @@ public class ShooterKTuner extends OpMode {
 
     private Sensors sensors;
     private Shooter shooter;
+    private Intake intake;
     private List<LynxModule> allHubs;
 
     // Debounce state
@@ -50,6 +52,8 @@ public class ShooterKTuner extends OpMode {
         shooter = new Shooter(hardwareMap, telemetry);
 
         shooter.update(sensors.getFlywheelVelo(),sensors.getSketchTurretPosition());
+
+        intake = new Intake(hardwareMap, telemetry);
 
         telemetry.addLine("Initialized.");
         telemetry.addLine("Hood will move immediately on START.");
@@ -82,9 +86,18 @@ public class ShooterKTuner extends OpMode {
         if (gamepad1.circle){
             targetTicksPerSec +=1000;
         }
-        if (gamepad1.circle){
+        if (gamepad1.triangle){
             targetTicksPerSec -=1000;
         }
+
+        if (gamepad1.right_trigger > 0.2){
+            intake.transfer();
+        }
+        else{
+            intake.intakeMotorIdle();
+        }
+
+
 
         // --- STEP 3: APPLY LOGIC TO SUBSYSTEM ---
         double currentVelo = sensors.getFlywheelVelo();

@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -21,6 +24,8 @@ public class Sensors {
     private SRSHub.APDS9151 colorSensor2;
     private SRSHub.APDS9151 colorSensor3;
 
+
+
     // --- CALIBRATION CONSTANTS ---
     private final int TURRET_OFFSET_DEGREES = 0;
     private final int TURRET_MAX_TICKS = 40500;
@@ -40,9 +45,13 @@ public class Sensors {
         config.addI2CDevice(2, new SRSHub.APDS9151());
         config.addI2CDevice(3, new SRSHub.APDS9151());
 
+
+
+
+
+
         // AD devices
-        config.setAnalogDigitalDevice(11, SRSHub.AnalogDigitalDevice.DIGITAL); // Beam Break 1
-        config.setAnalogDigitalDevice(12, SRSHub.AnalogDigitalDevice.DIGITAL);
+
 //        config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
 
 
@@ -61,6 +70,8 @@ public class Sensors {
         colorSensor1 = hub.getI2CDevice(1, SRSHub.APDS9151.class);
         colorSensor2 = hub.getI2CDevice(2, SRSHub.APDS9151.class);
         colorSensor3 = hub.getI2CDevice(3, SRSHub.APDS9151.class);
+
+
 
     }
 
@@ -144,15 +155,9 @@ public class Sensors {
 
 
     // --- Digital Beam Breaks (AD pins 1 & 2) ---
-    public boolean isBeamBroken() {
-        return hub.readAnalogDigitalDevice(12) > 0.5;
-    }
-    public boolean isBeamBroken11() {
-        return hub.readAnalogDigitalDevice(11) > 0.5;
-    }
 
-    public double getBeamBreakValue11() {return hub.readAnalogDigitalDevice(11);}
-    public double getBeamBreakValue() {return hub.readAnalogDigitalDevice(12);}
+
+
 
 
 
@@ -207,9 +212,12 @@ public class Sensors {
 //    }
 
     // flywheel velo in ticks/sec
-    public double getFlywheelVelo(){
+    public double getFlywheelVelo() {
         return hub.readEncoder(1).velocity;
     }
+
+
+
 
 
     public DetectedColor getDetectedColor(int red, int blue, int green) {
