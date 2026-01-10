@@ -44,6 +44,8 @@ public class FarZoneAuto extends OpMode {
     private final double RED_GOAL_X = 132.0;
     private final double BLUE_GOAL_X = 12.0;
     private final double GOAL_Y = 137.0;
+    private boolean doTransfer = false;
+
 
     private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2;
 
@@ -87,7 +89,7 @@ public class FarZoneAuto extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                intake.retainBalls();
+//                intake.retainBalls();
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, true);
                     setPathState();
@@ -95,24 +97,26 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 3.5);
+                if (!follower.isBusy()) {
+                    handleAutoShooting(currentPose, targetX, 4.5);
+                }
                 break;
 
             case 2: // Drive to Intake 1
                 intake.intake();
                 if (!follower.isBusy()) {
                     follower.followPath(humanPlayerIntake, true);
-                    setPathState();
+                    setPathState(4);
                 }
                 break;
 
-            case 3: // Gate logic
-                intake.intake();
-                if (!follower.isBusy()) {
-                    follower.followPath(humanPlayerIntake, true);
-                    setPathState();
-                }
-                break;
+//            case 3: // Gate logic
+//                intake.intake();
+//                if (!follower.isBusy()) {
+//                    follower.followPath(humanPlayerIntake, true);
+//                    setPathState();
+//                }
+//                break;
 
             case 4: // Return to Shoot 1
                 if (!follower.isBusy()) {
@@ -122,7 +126,9 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 5: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 2.5);
+                if (!follower.isBusy()) {
+                    handleAutoShooting(currentPose, targetX, 4.5);
+                }
                 break;
 
             case 6: // Drive to Intake 2
@@ -141,7 +147,9 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 8: // Shoot 3 Balls (Cycle 2)
-                handleAutoShooting(currentPose, targetX, 2.5);
+                if (!follower.isBusy()) {
+                    handleAutoShooting(currentPose, targetX, 4.5);
+                }
                 break;
 
             case 9: // Drive to Intake 3
@@ -160,7 +168,9 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 11: // Final 3 Balls
-                handleAutoShooting(currentPose, targetX, 2.5);
+                if (!follower.isBusy()) {
+                    handleAutoShooting(currentPose, targetX, 4.5);
+                }
                 break;
 
             default:
@@ -176,34 +186,39 @@ public class FarZoneAuto extends OpMode {
      * and counting exactly 3 shots based on beam break transitions.
      */
     private void handleAutoShooting(Pose pose, double targetX, double timeout) {
-        // Maintain Fixed Turret at 0 (Facing forward)
-        shooter.setShooterTarget(
-                pose.getX(), pose.getY(), targetX, GOAL_Y,
-                pinpoint.getVelX(DistanceUnit.INCH),
-                pinpoint.getVelY(DistanceUnit.INCH),
-                Math.toDegrees(pose.getHeading()),
-                true
-        );
+        // Updated shooting command as requested
+        double headingDeg = Math.toDegrees(pose.getHeading());
+        shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false);
+        //shooter.flywheelVeloReached = false;
+
 
         // Once RPM and Hood Angle are locked, engage the transfer
-        if (shooter.flywheelVeloReached && shooter.hoodReached) {
-            intake.intake();
+        if (shooter.flywheelVeloReached  && pathTimer.getElapsedTimeSeconds() >=3) {
+            doTransfer = true;
 
-            boolean currentBeamState = shooter.isBeamBroken();
-
-            // Increment count on "Falling Edge" (Ball has fully cleared the shooter)
-            if (lastBeamState && !currentBeamState) {
-                ballsShotInState++;
-            }
-            lastBeamState = currentBeamState;
+//            boolean currentBeamState = shooter.isBeamBroken();
+//
+//            // Increment count on "Falling Edge" (Ball has fully cleared the shooter)
+//            if (lastBeamState && !currentBeamState) {
+//                ballsShotInState++;
+//            }
+//            lastBeamState = currentBeamState;
         }
+
+        if (doTransfer){
+            intake.transfer();
+        }
+
 
         // Advance to next state if 3 balls fired OR the safety timer expires
-        if (ballsShotInState >= 3 || pathTimer.getElapsedTimeSeconds() > timeout) {
+        if (pathTimer.getElapsedTimeSeconds() > timeout) {
+            doTransfer = false;
+            shooter.stopFlywheel();
             ballsShotInState = 0;
-            intake.resetIndexer();
+            intake.intakeMotorIdle();
             setPathState();
         }
+
     }
 
     public void setPathState(int pState) {
@@ -235,11 +250,34 @@ public class FarZoneAuto extends OpMode {
     @Override
     public void init_loop() {
         Poses.updateAlliance(gamepad1, telemetry);
+
+
         if (Poses.getAlliance() != lastKnownAlliance) {
-            follower.setStartingPose(Poses.get(Poses.startPoseFarSide));
+            follower.setStartingPose(Poses.get(Poses.startPoseGoalSide));
             buildPaths();
+
             lastKnownAlliance = Poses.getAlliance();
+            telemetry.addData("STATUS", "Paths Rebuilt for " + lastKnownAlliance);
+            telemetry.addLine("");
         }
+
+        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+
+                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+
+
+
+
+        telemetry.addLine("--- Alliance Selector ---");
+        telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
+        telemetry.addLine("");
+        telemetry.addData("Alliance Set", Poses.getAlliance());
+        telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
+
+        telemetry.addData("X Pos", follower.getPose().getX());
+        telemetry.addData("Y Pos", follower.getPose().getY());
+        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+        telemetry.update();
         sensors.update();
         lastBeamState = shooter.isBeamBroken();
     }
