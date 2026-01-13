@@ -34,8 +34,8 @@ public class Intake {
     public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.33;
     public static final double GATE_OPEN = 0.15;
     public static final double GATE_CLOSED = 0.77;
-    public static final double TRANSFER_ON = 0.5;
-    public static final double TRANSFER_OFF = 0.32;
+    public static final double TRANSFER_ON = 0.45;
+    public static final double TRANSFER_OFF = 0.85;
 
     //SORTING STUFF//
     private int currentShot = 0;
@@ -64,7 +64,7 @@ public class Intake {
         transferDirectionSwitcher.setDirection(Servo.Direction.REVERSE);
 
         transferPowerTransmition = hardwareMap.get(Servo.class,"centerClutch");
-        transferPowerTransmition.setDirection(Servo.Direction.FORWARD);
+        transferPowerTransmition.setDirection(Servo.Direction.REVERSE);
 
         gateLeft = hardwareMap.get(Servo.class,"gateLeft");
         gateLeft.setDirection(Servo.Direction.REVERSE);
@@ -391,7 +391,11 @@ public class Intake {
 
     private boolean isColorMatch(DetectedColor sensor, String required) {
         if (sensor == null) return false;
-        return required.equals("Green") ? (sensor == DetectedColor.GREEN) : (sensor == DetectedColor.PURPLE);
+
+        if ((required.equals("Green") && sensor == DetectedColor.GREEN) || (required.equals("Purple") && sensor == DetectedColor.PURPLE)){
+            return true;
+        }
+        return false;
     }
 
     public int getGreenInventory(DetectedColor colorSensor1Value,

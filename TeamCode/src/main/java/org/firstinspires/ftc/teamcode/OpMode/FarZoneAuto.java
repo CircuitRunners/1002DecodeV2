@@ -98,7 +98,7 @@ public class FarZoneAuto extends OpMode {
 
             case 1: // Shoot 3 Preloads
                 if (!follower.isBusy()) {
-                    handleAutoShooting(currentPose, targetX, 4.5);
+                    handleAutoShooting(currentPose, targetX, 4.5,-2);
                 }
                 break;
 
@@ -127,7 +127,7 @@ public class FarZoneAuto extends OpMode {
 
             case 5: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
-                    handleAutoShooting(currentPose, targetX, 4.5);
+                    handleAutoShooting(currentPose, targetX, 4.5,-2);
                 }
                 break;
 
@@ -148,7 +148,7 @@ public class FarZoneAuto extends OpMode {
 
             case 8: // Shoot 3 Balls (Cycle 2)
                 if (!follower.isBusy()) {
-                    handleAutoShooting(currentPose, targetX, 4.5);
+                    handleAutoShooting(currentPose, targetX, 4.5,-2);
                 }
                 break;
 
@@ -169,7 +169,7 @@ public class FarZoneAuto extends OpMode {
 
             case 11: // Final 3 Balls
                 if (!follower.isBusy()) {
-                    handleAutoShooting(currentPose, targetX, 4.5);
+                    handleAutoShooting(currentPose, targetX, 4.5,-2);
                 }
                 break;
 
@@ -185,10 +185,10 @@ public class FarZoneAuto extends OpMode {
      * Logic for calculating ballistics, locking turret,
      * and counting exactly 3 shots based on beam break transitions.
      */
-    private void handleAutoShooting(Pose pose, double targetX, double timeout) {
+    private void handleAutoShooting(Pose pose, double targetX, double timeout,double mannualHoodAdjust) {
         // Updated shooting command as requested
         double headingDeg = Math.toDegrees(pose.getHeading());
-        shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false);
+        shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,mannualHoodAdjust,false);
         //shooter.flywheelVeloReached = false;
 
 

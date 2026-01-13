@@ -8,6 +8,7 @@ import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
 
 @TeleOp(name = "SortTester", group = "TEST")
@@ -28,6 +29,7 @@ public class IntakeTester extends OpMode {
     private double GATE_CLOSE = 0.3;
     private double TRANSFER_ON = 0.7;
     private double TRANSFER_OFF = 0.3;
+    private Shooter shooter;
 
 
     @Override
@@ -38,6 +40,7 @@ public class IntakeTester extends OpMode {
         intake = new Intake(hardwareMap, telemetry);
 
         sensors = new Sensors();
+        shooter = new Shooter(hardwareMap,telemetry);
         try {
             // The Sensors class handles finding and configuring the SRSHub itself
             sensors.init(hardwareMap, HUB_NAME);
@@ -47,6 +50,8 @@ public class IntakeTester extends OpMode {
             telemetry.addData("Error", e.getMessage());
 
         }
+
+        intake.setCanShoot(false);
         telemetry.update();
 
     }
@@ -54,6 +59,7 @@ public class IntakeTester extends OpMode {
     @Override
     public void loop() {
         player1.readButtons();
+        sensors.update();
 
         DetectedColor ball1 = sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green());
         DetectedColor ball2 = sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green());
@@ -93,6 +99,16 @@ public class IntakeTester extends OpMode {
                 }
             }
 
+            if (gamepad2.square){
+                intake.sort(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
+            }
+
+            if (gamepad2.left_bumper){
+                intake.setCanShoot(true);
+            }
+            if (gamepad2.right_bumper){
+                intake.setCanShoot(false);
+            }
 
             switch (intakeStatus) {
                 case INTAKING:
@@ -103,7 +119,7 @@ public class IntakeTester extends OpMode {
                     break;
 
                 case SORTING:
-                   // intake.sort(beamBreak, ballOrder, ball1, ball2, ball3);
+//                    intake.sort(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
                     break;
 
                 case IDLE:
@@ -112,10 +128,25 @@ public class IntakeTester extends OpMode {
 
             }
 
-            telemetry.addData("Intake Status: ", intakeStatus);
-            telemetry.addData("Ball1: ", ball1);
-            telemetry.addData("Ball2: ", ball2);
-            telemetry.addData("Ball3: ", ball3);
+            if (ball1 == DetectedColor.GREEN){
+                telemetry.addLine("Detected Color slot 1 : GREEN FN");
+            }
+            else  if (ball1 == DetectedColor.PURPLE){
+                telemetry.addLine("Detected Color slot 1 : Purple");
+            }
+
+            if (ball2 == DetectedColor.GREEN){
+                telemetry.addLine("Detected Color slot 2 : GREEN FN");
+            }
+            else  if (ball2 == DetectedColor.PURPLE){
+                telemetry.addLine("Detected Color slot 2 : Purple");
+            }
+            if (ball3 == DetectedColor.GREEN){
+                telemetry.addLine("Detected Color slot 3 : GREEN FN");
+            }
+            else  if (ball3 == DetectedColor.PURPLE){
+                telemetry.addLine("Detected Color slot 3 : Purple");
+            }
            // telemetry.addData("Beambreak: ", beamBreak);
             telemetry.addLine("");
             telemetry.update();

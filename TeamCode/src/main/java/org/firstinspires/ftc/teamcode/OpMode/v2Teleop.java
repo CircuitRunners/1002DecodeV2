@@ -49,7 +49,7 @@ public class v2Teleop extends OpMode {
 
     private final double RED_GOAL_X = 132.0;
     private final double BLUE_GOAL_X = 12.0;
-    private final double GOAL_Y = 137.0;
+    private final double GOAL_Y = 140.0;
     private static final double METERS_TO_INCH = 39.37;
 
     private boolean vibratedYet = false;
@@ -119,8 +119,8 @@ public class v2Teleop extends OpMode {
         Pose currentPose = follower.getPose();
         Pose2D currentPinpointPose = pinpoint.getPosition();
         double currentHeadingDeg = Math.toDegrees(currentPose.getHeading());
-        double robotVelX = pinpoint.getVelX(DistanceUnit.INCH);
-        double robotVelY = pinpoint.getVelY(DistanceUnit.INCH);
+        double robotVelX = pinpoint.getVelX(DistanceUnit.METER);
+        double robotVelY = pinpoint.getVelY(DistanceUnit.METER);
 
         String data = String.format(Locale.US,
                 "{X: %.3f, Y: %.3f, H: %.3f}",
@@ -171,18 +171,29 @@ public class v2Teleop extends OpMode {
 
     private void handleManualTurretOverrides(double currentAngle) {
         // Manual control: move turret and stick PID to current position to prevent fighting
-        if (gamepad2.right_bumper) {
-            shooter.setTurretTarget(sensors.getSketchTurretPosition() + 2, Shooter.TurretMode.ROBOT_CENTRIC,sensors.getSketchTurretPosition());
-        } else if (gamepad2.left_bumper) {
+        if (gamepad2.dpad_right) {
+            shooter.setTurretTarget(sensors.getSketchTurretPosition() + 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
+        }
+        else if (gamepad2.dpad_left) {
 
-            shooter.setTurretTarget(sensors.getSketchTurretPosition() - 2, Shooter.TurretMode.ROBOT_CENTRIC,sensors.getSketchTurretPosition());
+            shooter.setTurretTarget(sensors.getSketchTurretPosition() - 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
         }
 
         // Hardware re-zero
-        if (player2.wasJustPressed(GamepadKeys.Button.START)) {
+        if (player2.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
             sensors.rezeroTurretEncoder();
             gamepad2.rumble(500);
+            //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         }
+
+        if (player2.wasJustPressed(GamepadKeys.Button.CROSS)){
+            shooter.setTurretTarget(limelight.updateError(), Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
+        }
+        if (player2.wasJustPressed(GamepadKeys.Button.CIRCLE)){
+            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
+        }
+
+        //square turns it off
     }
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
@@ -225,11 +236,19 @@ public class v2Teleop extends OpMode {
     private void applyShooterTargets(Pose pose, double vx, double vy, double headingDeg) {
         double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
-        if (noAutoAlign){
-            shooter.setTargetsByDistance(pose.getX(),pose.getY(),targetX,GOAL_Y,headingDeg,false);
+        if (isRedAlliance) {
+            if (noAutoAlign) {
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,true);
+            } else {
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,true);
+            }
         }
-        else {
-            shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true);
+        else{
+            if (noAutoAlign) {
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,false);
+            } else {
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,false);
+            }
         }
     }
 
@@ -292,7 +311,7 @@ public class v2Teleop extends OpMode {
 
     private void handleIntakeState() {
 
-        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
+        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         if (gamepad1.right_trigger > 0.2) intake.intake();
         else if (gamepad1.left_trigger > 0.2) intake.outtake();
         else intake.intakeMotorIdle();

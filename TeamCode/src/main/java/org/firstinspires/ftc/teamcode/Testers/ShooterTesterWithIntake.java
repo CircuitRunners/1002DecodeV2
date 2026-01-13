@@ -119,11 +119,11 @@ public class ShooterTesterWithIntake extends OpMode {
             updateCoordinates();
 
             double desiredTurretHeading = 0.0; //field centric auto align
-            shooter.setShooterTarget(
-                    pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH),
-                    BLUE_GOAL_X_INCHES, BLUE_GOAL_Y_INCHES,pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH),
-                    robotFieldYawDegrees,
-                    true);
+//            shooter.setShooterTarget(
+//                    pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH),
+//                    BLUE_GOAL_X_INCHES, BLUE_GOAL_Y_INCHES,pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH),
+//                    robotFieldYawDegrees,
+//                    true);
             //blue goal only
 
 

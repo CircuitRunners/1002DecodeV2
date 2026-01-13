@@ -67,12 +67,12 @@ public class BumAhhTeleop extends OpMode {
             double targetX = isRedAlliance ? 132.0 : 12.0;
             double targetY = 137.0;
 
-            shooter.setShooterTarget(
-                    follower.getPose().getX(), follower.getPose().getY(),
-                    targetX, targetY, 0, 0,
-                    Math.toDegrees(follower.getPose().getHeading()),
-                    autoAlignEnabled
-            );
+//            shooter.setShooterTarget(
+//                    follower.getPose().getX(), follower.getPose().getY(),
+//                    targetX, targetY, 0, 0,
+//                    Math.toDegrees(follower.getPose().getHeading()),
+//                    autoAlignEnabled
+//            );
 
             /* shooter.setTargetsByDistance(
                 follower.getPose().getX(), follower.getPose().getY(),

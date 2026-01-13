@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Testers;
 
 
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -19,8 +18,6 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 
 
 import java.util.List;
-
-
 
 
 //@Disabled
@@ -115,10 +112,9 @@ public class TurretPIDFTuner extends OpMode {
         }
 
 
-
-
         // --- Telemetry ---
         double loopTime = loopTimer.milliseconds();
+        telemetry.addData("MOTOR ENCODER Current Pos : ", turret.getCurrentPosition());
         telemetry.addData("Current Angle (Deg): ", currentAngle);
         telemetry.addData("Target Angle (Deg)", targetAngle);
         telemetry.addData("Turret Error", Math.abs(targetAngle - currentAngle));
@@ -128,7 +124,7 @@ public class TurretPIDFTuner extends OpMode {
 
         // --- Cooked delay to simulate TeleOp lag (~100 ms total loop) ---
 //        double remaining = cookedLoopTargetMS - loopTime;
-       // isCooked = true;
+        // isCooked = true;
 //        if (remaining > 0) {
 //            try {
 //                Thread.sleep((long) remaining);

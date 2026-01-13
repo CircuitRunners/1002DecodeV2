@@ -82,12 +82,12 @@ public class ShooterTester extends OpMode {
 
         robotFieldYawDegrees = pinpoint.getHeading(AngleUnit.DEGREES);
 
-        shooter.setShooterTarget(
-                pinpoint.getPosX(DistanceUnit.INCH),
-                pinpoint.getPosY(DistanceUnit.INCH),
-                BLUE_GOAL_X_INCHES,
-                BLUE_GOAL_Y_INCHES, pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH)
-        );
+//        shooter.setShooterTarget(
+//                pinpoint.getPosX(DistanceUnit.INCH),
+//                pinpoint.getPosY(DistanceUnit.INCH),
+//                BLUE_GOAL_X_INCHES,
+//                BLUE_GOAL_Y_INCHES, pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH)
+//        );
 
         if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
             updateCoordinates();

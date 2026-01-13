@@ -24,6 +24,9 @@ public class Shooter {
 
     private static final double transferTimeSec = 0.5; //TUNE
 
+//    public static double slotOneBLueAtan = 0;
+//    public static double slotTwoBLueAtan = 0;
+
 
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
@@ -37,13 +40,19 @@ public class Shooter {
     private static double maxTurretPower = 0.8;
 
     // Hardware Constants
-    //public static final int TICKS_PER_REV = 537; // Example value for a common motor
+    //public static final int MOTOR_TICKS_PER_REV = 537; // Example value for a common motor
 
     // --- PHYSICS CONSTANTS ---
-    private static final double GRAVITY_INCHES_PER_SEC_SQ = 386.1; // g in in/s^2
-    private static final double GOAL_HEIGHT_INCHES = 38.75;       // Example goal height
-    private static final double GOAL_HEIGHT_SAFETY_OFFSET_INCHES = 1.5;
-    private static final double LAUNCH_HEIGHT_INCHES = 11.5; //12
+    private static final double GRAVITY = 9.81;
+
+    // Heights (meters)
+    private static final double LAUNCH_HEIGHT_METERS = 0.2946;              // 11.6 in
+    private static final double GOAL_HEIGHT_METERS = 0.9843;                // 38.75 in
+    private static final double GOAL_HEIGHT_SAFETY_OFFSET_METERS = 0.051;  // 2 in
+
+    // Effective height we want the ball to reach
+    private static final double EFFECTIVE_GOAL_HEIGHT_METERS =
+            GOAL_HEIGHT_METERS + GOAL_HEIGHT_SAFETY_OFFSET_METERS;
 
     // --- SHOT CONSTRAINTS (For Iterative Search) ---
     private static final double MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC = 400000;
@@ -86,17 +95,7 @@ public class Shooter {
      * Contains only ballistics data (velocity, angle, time).
      * NOTE: Velocity is in Ticks/Sec.
      */
-    public static class OptimalShot {
-        public double requiredFlywheelTicks;    // Ticks/Sec
-        public double requiredHoodAngle;        // degrees (0-90)
-        public double timeOfFlight;             // seconds
 
-        public OptimalShot(double ticks, double reqAngle, double tof) {
-            this.requiredFlywheelTicks = ticks;
-            this.requiredHoodAngle = reqAngle;
-            this.timeOfFlight = tof;
-        }
-    }
 
     public Shooter(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
@@ -147,11 +146,10 @@ public class Shooter {
         turretPIDF.setTolerance(2);
 
 
-
 // Initialize targets
 
-       turretPIDF.setSetPoint(0);
-       flywheelPIDF.setSetPoint(0);
+        turretPIDF.setSetPoint(0);
+        flywheelPIDF.setSetPoint(0);
 
         setHoodTargetAngle(45);
     }
@@ -256,51 +254,31 @@ public class Shooter {
         double normalized = headingDeg % 360;
         normalized *= -1;
         if (normalized < 0) normalized += 360;
-        return  normalized;
+        return normalized;
     }
 
-    /**
-     * Translates an absolute Field Yaw (0-360) into the necessary Turret Encoder position (0-360).
-     */
-//    private static double convertFieldYawToTurretEncoderTarget(double targetFieldYawDeg, double robotFieldYawDeg) {
-//        // 1. Convert Robot Heading from [-180, 180] to [0, 360]
-//        double robotHeading360 = normalizeRobotHeading0_360(robotFieldYawDeg);
-//        double targetHeading360 = normalizeRobotHeading0_360(targetFieldYawDeg);
-//
-//        // 2. Calculate the raw difference (angle from the robot's front)
-//        double relativeAngle = targetHeading360 - robotHeading360;
-//
-//
-//        return (relativeAngle);
-//    }
-
-    /**
-     * Calculates the field-centric yaw angle required to hit a target.
-     */
-//    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
-//                                                double targetXInches, double targetYInches) {
-//        double deltaY = targetYInches - robotYInches;
-//        double deltaX = targetXInches - robotXInches;
-//
-//        // Use Math.atan2(deltaX, deltaY) to correctly map standard (X=East, Y=North)
-//        // to the required FTC Yaw (0=North, 90=East)
-//        double targetFieldYawRad = Math.atan2(deltaX,deltaY);
-//
-//        return (Math.toDegrees(targetFieldYawRad));
-//    }
 
     private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
-                                                double targetXInches, double targetYInches) {
+                                                double targetXInches, double targetYInches, boolean isRed) {
         double deltaY = targetYInches - robotYInches;
         double deltaX = targetXInches - robotXInches;
 
         // Standard atan2(y, x) for East = 0, North = 90
         double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
+        double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
+        //double targetFieldYawRadBlue = Math.atan2(slotOneBLueAtan, slotTwoBLueAtan);
         double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
-        if (targetFieldYawDeg < 0){
+        if (targetFieldYawDeg < 0) {
             targetFieldYawDeg += 360;
         }
-        return targetFieldYawDeg; // Returns (-180 to 180)
+        double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
+        if (targetFieldYawDegBlue < 0) {
+            targetFieldYawDegBlue += 360;
+        }
+        if (isRed) {
+            return targetFieldYawDeg;
+        }
+        return targetFieldYawDegBlue; // Returns (-180 to 180)
     }
 
     // ------------------------------------
@@ -309,33 +287,6 @@ public class Shooter {
     public enum TurretMode {
         ROBOT_CENTRIC, FIELD_CENTRIC, AUTO_ALIGN
     }
-    /**
-     * Sets the turret's PID setpoint based on the selected mode.
-     */
-//    public void setTurretTarget(double inputDeg, TurretMode mode, double currentTurretAngle0_360, double robotFieldYawDeg) {
-//        double rawNewTarget_0_360;
-//
-//        switch (mode) {
-//            case FIELD_CENTRIC:
-//                // InputDeg is the absolute field yaw. We calculate the required encoder target.
-//                rawNewTarget_0_360 = currentTurretAngle0_360 + convertFieldYawToTurretEncoderTarget(inputDeg, robotFieldYawDeg);
-//                break;
-//            case ROBOT_CENTRIC:
-//                // InputDeg is the desired robot-relative angle (e.g., 180 for straight ahead).
-//                rawNewTarget_0_360 = inputDeg;
-//                break;
-//            case AUTO_ALIGN:
-//                // Conversion handled in setShooterTarget
-//                rawNewTarget_0_360 = inputDeg;
-//                break;
-//            default:
-//                rawNewTarget_0_360 = currentTurretAngle0_360;
-//                break;
-//        }
-//
-//
-//        setTurretTargetPosition(rawNewTarget_0_360);
-//    }
 
 
     public void setTurretTarget(double inputFieldDeg, TurretMode mode, double robotFieldYawDeg) {
@@ -346,20 +297,20 @@ public class Shooter {
             case FIELD_CENTRIC:
                 // inputFieldDeg is your constant (e.g., 180 for West)
                 // Subtract robot heading to find robot-relative angle
-                absoluteTarget = (inputFieldDeg - robotFieldYawDeg + 360) % 360;
-               // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
+                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 270);
+                // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case AUTO_ALIGN:
                 // Input is already the field yaw calculated from (dx, dy)
                 // Example: calculateAutoAlignYaw(robotX, robotY, targetX, targetY)
-                absoluteTarget = (inputFieldDeg - robotFieldYawDeg + 360) % 360;
+                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 270);
                 // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case ROBOT_CENTRIC:
                 // Directly setting the turret 0-360 relative to the front of the robot
-                absoluteTarget = Range.clip(inputFieldDeg, 0, 360);
+                absoluteTarget = Range.clip(inputFieldDeg, -270, 270);
                 break;
         }
 
@@ -376,6 +327,7 @@ public class Shooter {
         // Set the setpoint (Non-Continuous PID handles the 'long way')
         setTurretTargetPosition(absoluteTarget);
     }
+
     private void setTurretTargetPosition(double positionDeg) {
 //        if (positionDeg > 360){
 //            positionDeg -= 360;
@@ -383,10 +335,9 @@ public class Shooter {
 //        else if (positionDeg < 0){
 //            positionDeg +=360;
 //        }
-        targetTurretPosition = Range.clip(positionDeg,0,265);
+        targetTurretPosition = Range.clip(positionDeg, -265, 265);
         //targetTurretPosition = Range.clip(positionDeg,0,315);
     }
-
 
 
     // ------------------------------------
@@ -407,206 +358,100 @@ public class Shooter {
      * that results in the lowest Time of Flight (T_min) while respecting the
      * MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC constraint.
      */
-    private OptimalShot calculateOptimalShot(double robotXInches, double robotYInches,
-                                            double targetXInches, double targetYInches) {
 
-        // --- 1. Geometric Setup ---
-        double R = Math.hypot(targetXInches - robotXInches, targetYInches - robotYInches);
-        double deltaY = (GOAL_HEIGHT_INCHES + GOAL_HEIGHT_SAFETY_OFFSET_INCHES)  - LAUNCH_HEIGHT_INCHES;
-
-        if (R < 0.1) {
-            return new OptimalShot(0.0, 90.0, 0.0);
-        }
-
-        // --- 2. Initialize Search Variables ---
-        double bestTimeOfFlight = Double.MAX_VALUE;
-        double optimalVeloTicks = 0.0;
-        double optimalAngleDeg = 0.0;
-
-
-
-        // Search bounds are now the dynamic launch angle constraints
-        double searchMinAngle = MIN_LAUNCH_ANGLE_DEG;
-        double searchMaxAngle = MAX_LAUNCH_ANGLE_DEG;
-
-        if (searchMinAngle >= searchMaxAngle) {
-            telemetry.addData("Shot Error", "Invalid Angle Range (Max <= Min)");
-            return new OptimalShot(0.0, 0.0, -1.0);
-        }
-
-        // --- 3. Iterative Search for T_min within Constraints ---
-        for (double alphaDeg = searchMinAngle; alphaDeg <= searchMaxAngle; alphaDeg += ANGLE_SEARCH_STEP_DEG) {
-
-            double k = getKForAngle(alphaDeg);
-            double V_muzzle_max_limit = MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC * k;
-
-            double alphaRad = Math.toRadians(alphaDeg);
-
-
-
-            // Calculate Required Velocity in In/Sec (V_req) for this specific angle
-            double denominator = 2 * Math.pow(Math.cos(alphaRad), 2) * (R * Math.tan(alphaRad) - deltaY);
-
-            if (denominator <= 0.001) {
-                continue;
-            }
-
-            double V_req_sq = (GRAVITY_INCHES_PER_SEC_SQ * R * R) / denominator;
-            double V_req_muzzle = Math.sqrt(V_req_sq);
-
-            // --- 4. Apply Safety/Power Constraint ---
-            if (V_req_muzzle > V_muzzle_max_limit) {
-                continue;
-            }
-
-            // --- 5. Calculate Time of Flight (T_min) ---
-            double T_current = calculateTOF(R, deltaY, V_req_muzzle, alphaRad);
-
-            if (T_current > 0 && T_current < bestTimeOfFlight) {
-                bestTimeOfFlight = T_current;
-                optimalAngleDeg = alphaDeg;
-                optimalVeloTicks = V_req_muzzle / k;
-            }
-        }
-
-        // --- 6. Final Result Check ---
-        if (bestTimeOfFlight == Double.MAX_VALUE) {
-            telemetry.addData("Shot Error", "No safe shot found for distance: " + R);
-            return new OptimalShot(0.0, 0.0, -1.0);
-        }
-
-        return new OptimalShot(optimalVeloTicks, optimalAngleDeg, bestTimeOfFlight);
-    }
-
-    // --- Helper for Time of Flight ---
-    /**
-     * Calculates the Time of Flight (T) based on horizontal motion.
-     * NOTE: The V_muzzle used here was already calculated in the T_min search
-     * to guarantee hitting the target height (deltaY).
-     */
-    private double calculateTOF(double R, double deltaY, double V_muzzle, double alpha_rad) {
-//        double V_y_initial = V_muzzle * Math.sin(alpha_rad);
-//        double discriminant = Math.pow(V_y_initial, 2) - 2 * GRAVITY_INCHES_PER_SEC_SQ * deltaY;
-//
-//        if (discriminant < 0) return -1.0;
-//
-//        double t_short = (V_y_initial - Math.sqrt(discriminant)) / GRAVITY_INCHES_PER_SEC_SQ;
-//
-//        if (t_short < 0) {
-//            return (V_y_initial + Math.sqrt(discriminant)) / GRAVITY_INCHES_PER_SEC_SQ;
-//        }
-//        return t_short;
-
-
-        // Horizontal component of velocity (V_x)
-        double V_x = V_muzzle * Math.cos(alpha_rad);
-
-        // If horizontal velocity is zero (vertical shot) or negative (impossible), return an error.
-        if (V_x <= 0) {
-            return -1.0;
-        }
-
-        // Time of Flight (T) = Horizontal Distance (R) / Horizontal Velocity (V_x)
-        // The complex quadratic solve (discriminant) is not needed because the
-        // V_muzzle is already guaranteed to solve the vertical equation.
-        return R / V_x;
-
-    }
 
     // ------------------------------------
     // ## ️ Set Target Wrapper
     // ------------------------------------
 
-    /**
-     * Calculates the ballistics (Velo, Angle) and applies controls (Turret, Flywheel, Hood).
-     */
-    public void setShooterTarget(
-            double robotXInches, double robotYInches,
-            double targetXInches, double targetYInches, double robotXVelo, double robotYVelo)
-    {
 
 
 
-        // 1. Always calculate ballistics (Velo/Angle) first, as this only needs R and DeltaY.
-        OptimalShot shot = calculateOptimalShot(
-                robotXInches, robotYInches,
-                targetXInches, targetYInches);
+    /* ========================================================= */
+    /* ========== ROBOT VELOCITY ALONG SHOT DIRECTION ============ */
+    /* ========================================================= */
 
+    // --- Physical Constants (Meters & Seconds) ---
+    private static final double TICKS_PER_REV_ENCODER = 4096.0;
+    private static final double WHEEL_RADIUS_METERS = 0.036; // 36mm
+    private static final double GEAR_RATIO = 33.0 / 27.0;
 
-        targetXInches = getXVelocityOffset(robotXVelo, targetXInches, (shot.timeOfFlight + transferTimeSec));
-        targetYInches = getYVelocityOffset(robotYVelo,targetYInches,(shot.timeOfFlight + transferTimeSec));
+    // Variables outside the loop to persist "memory" between frames
+    private double persistentShotTime = 0.5;
+    private double finalAdjustedVeloTicks = 0;
+    private double finalAdjustedHoodDeg = 0;
+    private double finalAdjustedTurretFieldYaw = 0;
 
-        OptimalShot newShot = calculateOptimalShot(
-                robotXInches, robotYInches,
-                targetXInches, targetYInches);
+    public void calculateIterativeShot(
+            double robotX, double robotY, double goalX, double goalY,
+            double robotVeloX, double robotVeloY,double robotHeading, boolean isRed) {
 
-        if (newShot.timeOfFlight <= 0) {
-            isShotImpossible = true;
-            return;
+        // Start with the real goal position
+        double virtualGoalX = goalX;
+        double virtualGoalY = goalY;
+
+        // Run 5 iterations to converge on the moving target
+        for (int i = 0; i < 5; i++) {
+            // 1. Calculate distance to our "Virtual Goal"
+            double dist = Math.hypot(virtualGoalX - robotX, virtualGoalY - robotY);
+
+            // 2. Get base Ticks and Hood from your Quartic curves for this distance
+            double baseTicks = (v_a * Math.pow(dist, 4)) + (v_b * Math.pow(dist, 3)) +
+                    (v_c * Math.pow(dist, 2)) + (v_d * dist) + v_e;
+
+            double baseHood = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
+                    (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
+
+            // 3. Convert Ticks to Meters/Sec to find Time of Flight
+            // Formula: Ticks -> Meters/Sec -> calculateTimeToGoalSeconds
+            double ticksToMeters = (1.0 / 4096.0) * (2 * Math.PI) * 0.036 * (33.0 / 27.0);
+            double muzzleVeloMeters = baseTicks * ticksToMeters;
+
+            persistentShotTime = calculateTimeToGoalSeconds(muzzleVeloMeters, baseHood);
+
+            // 4. Update the Virtual Goal position based on robot velocity
+            // New Pos = Current Pos + (-Robot Velocity * Time)
+            virtualGoalX = goalX - (robotVeloX * (persistentShotTime + transferTimeSec));
+            virtualGoalY = goalY - (robotVeloY * (persistentShotTime + transferTimeSec));
+
+            // 5. Store the final results from this iteration
+            finalAdjustedVeloTicks = baseTicks;
+            finalAdjustedHoodDeg = baseHood;
+            finalAdjustedTurretFieldYaw = calculateAutoAlignYaw(robotX, robotY, virtualGoalX, virtualGoalY, isRed);
         }
-        else {
-            isShotImpossible = false;
-        }
 
-        currentRequiredFlywheelTicks = newShot.requiredFlywheelTicks;
-        currentRequiredHoodAngle = newShot.requiredHoodAngle;
-        currentRequiredInAirTOF = newShot.timeOfFlight;
-
-        setTargetVelocityTicks(newShot.requiredFlywheelTicks);
-        setHoodTargetAngle(newShot.requiredHoodAngle);
+        // After the loop, apply the results to the hardware
+        setTargetVelocityTicks(finalAdjustedVeloTicks);
+        setHoodTargetAngle(Range.clip(finalAdjustedHoodDeg, 0, 45));
+        // Turret uses the yaw calculated for the VIRTUAL goal
+        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading);
     }
 
-    public void setShooterTarget(
-            double robotXInches, double robotYInches,
-            double targetXInches, double targetYInches,double robotXVelo, double robotYVelo,
-            double robotFieldYawDeg, // Input is [-180, 180]
-            boolean alignTurret
-           )
-    {
 
-        // 1. Always calculate ballistics (Velo/Angle) first, as this only needs R and DeltaY.
-        OptimalShot shot = calculateOptimalShot(
-                robotXInches, robotYInches,
-                targetXInches, targetYInches);
+    private static double calculateTimeToGoalSeconds(
+            double exitVelocityMetersPerSec,
+            double hoodAngleDegrees) {
 
+        // Convert angle to radians for trig
+        double hoodAngleRadians = Math.toRadians(hoodAngleDegrees);
 
-        targetXInches = getXVelocityOffset(robotXVelo, targetXInches, (shot.timeOfFlight + transferTimeSec));
-        targetYInches = getYVelocityOffset(robotYVelo,targetYInches,(shot.timeOfFlight + transferTimeSec));
+        // Vertical component of ball velocity
+        double verticalVelocityMetersPerSec =
+                exitVelocityMetersPerSec * Math.sin(hoodAngleRadians);
 
-        OptimalShot newShot = calculateOptimalShot(
-                robotXInches, robotYInches,
-                targetXInches, targetYInches);
+        // Height difference between shooter and goal
+        double deltaHeightMeters =
+                EFFECTIVE_GOAL_HEIGHT_METERS - LAUNCH_HEIGHT_METERS;
 
-        if (newShot.timeOfFlight <= 0) {
-            isShotImpossible = true;
-            return;
-        }
-        else {
-            isShotImpossible = false;
-        }
-
-        currentRequiredFlywheelTicks = newShot.requiredFlywheelTicks;
-        currentRequiredHoodAngle = newShot.requiredHoodAngle;
-        currentRequiredInAirTOF = newShot.timeOfFlight;
-
-        setTargetVelocityTicks(newShot.requiredFlywheelTicks);
-        setHoodTargetAngle(newShot.requiredHoodAngle);
-
-
-
-
-        if (alignTurret) {
-            // A. Calculate the required absolute field yaw (last resort)
-            double requiredFieldYaw = calculateAutoAlignYaw(robotXInches, robotYInches, targetXInches, targetYInches);
-            // B. Pass to the turret setter
-            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotFieldYawDeg);
-
-        }
-
-
-
+        // Solve y(t) = v*t - 0.5*g*t^2 = deltaHeight
+        return (verticalVelocityMetersPerSec
+                + Math.sqrt(
+                verticalVelocityMetersPerSec * verticalVelocityMetersPerSec
+                        + 2.0 * GRAVITY * deltaHeightMeters))
+                / GRAVITY;
+    }
 //
-    }
+
 
 
 
@@ -667,62 +512,6 @@ public class Shooter {
     // ------------------------------------
     // ##  Helpers
     // ------------------------------------
-
-//    public void moveHoodToPosition(double desiredAngle, double currentAngle) {
-//
-//
-//        double SERVO_STEP = 0.05;
-//
-//        double SERVO_MIN = 0.0;
-//
-//        double SERVO_MAX = 1.0;
-//
-//        double ANGLE_TOLERANCE = 0.5;
-//
-//        double error = desiredAngle - currentAngle;
-//
-//
-//        // 1. Exit if already at desired position
-//        if (Math.abs(error) < ANGLE_TOLERANCE) {
-//            return;
-//        }
-//
-//        double pos = hoodServo.getPosition();
-//        double oldPos = pos; // Store for comparison
-//
-//        // 2. Calculate new servo position and clip it
-//        pos += (error > 0) ? SERVO_STEP : -SERVO_STEP;
-//        pos = Range.clip(pos, SERVO_MIN, SERVO_MAX);
-//
-//        if (pos == SERVO_MAX && oldPos != SERVO_MAX && error > ANGLE_TOLERANCE) {
-//
-//            if (currentAngle < MAX_LAUNCH_ANGLE_DEG) {
-//                MAX_LAUNCH_ANGLE_DEG = currentAngle; // Update the upper launch angle limit
-//                hoodCalibrationRequired = true;
-//                }
-//        }
-//
-//        if (pos == SERVO_MIN && oldPos != SERVO_MIN && error < -ANGLE_TOLERANCE) {
-//
-//            if (currentAngle > MIN_LAUNCH_ANGLE_DEG) {
-//                MIN_LAUNCH_ANGLE_DEG = currentAngle; // Update the lower launch angle limit
-//                hoodCalibrationRequired = true;
-//
-//            }
-//        }
-//        // 4. Set the new servo position
-//        hoodServo.setPosition(pos);
-//    }
-//
-//    public void setHoodTargetAngle(double target) {
-//        // Clips target angle against the dynamic launch constraints
-//        targetHoodAngle = Range.clip(target, MIN_LAUNCH_ANGLE_DEG, MAX_LAUNCH_ANGLE_DEG);
-//    }
-
-
-    /**
-     * W James hood logic
-     */
 
 
     /**
@@ -798,7 +587,7 @@ public class Shooter {
         return false;
     }
 
-    public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign) {
+    public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign, double hoodMannualAdjustment, boolean isRed) {
         double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
 
         double hoodPos;
@@ -814,9 +603,45 @@ public class Shooter {
                 (h_c * Math.pow(x, 2)) + (h_d * x) + h_e;
 
         setTargetVelocityTicks(velo);
-        setHoodTargetAngle(hoodPos);
+        setHoodTargetAngle(Range.clip(hoodPos + hoodMannualAdjustment,0,45));
         if (autoAlign){
-            double requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY);
+
+            double requiredFieldYaw;
+            if (isRed) {
+                requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY,true);
+            }
+
+            else {
+                requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY,false);
+            }
+            // B. Pass to the turret setter
+            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotAngle);
+        }
+    }
+
+    public void setTargetsByDistanceAdjustable(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign,double flywheelMannualAdjustment, double hoodMannualAdjustment, boolean isRed) {
+        double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
+
+        double hoodPos;
+        double velo;
+
+        // Quartic calculation for Velocity
+        velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
+                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
+
+
+        // Quartic calculation for Hood
+        hoodPos = (h_a * Math.pow(x, 4)) + (h_b * Math.pow(x, 3)) +
+                (h_c * Math.pow(x, 2)) + (h_d * x) + h_e;
+
+        setTargetVelocityTicks(velo + flywheelMannualAdjustment);
+        setHoodTargetAngle(Range.clip(hoodPos + hoodMannualAdjustment,0,45));
+        if (autoAlign){
+            double requiredFieldYaw;
+            if (!isRed) {
+                requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, false);
+            }
+            else { requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, true);}
             // B. Pass to the turret setter
             setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotAngle);
         }
