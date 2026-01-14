@@ -43,16 +43,18 @@ public class Shooter {
     //public static final int MOTOR_TICKS_PER_REV = 537; // Example value for a common motor
 
     // --- PHYSICS CONSTANTS ---
-    private static final double GRAVITY = 9.81;
+    private static final double GRAVITY = 386.088; // in/s^2
 
     // Heights (meters)
-    private static final double LAUNCH_HEIGHT_METERS = 0.2946;              // 11.6 in
-    private static final double GOAL_HEIGHT_METERS = 0.9843;                // 38.75 in
-    private static final double GOAL_HEIGHT_SAFETY_OFFSET_METERS = 0.051;  // 2 in
+    private static final double LAUNCH_HEIGHT_IN = 11.6;
+    private static final double GOAL_HEIGHT_IN = 38.75;
+    private static final double GOAL_HEIGHT_SAFETY_OFFSET_IN = 2.0;
+
+    private static final double EFFECTIVE_GOAL_HEIGHT_IN =
+            GOAL_HEIGHT_IN + GOAL_HEIGHT_SAFETY_OFFSET_IN;
 
     // Effective height we want the ball to reach
-    private static final double EFFECTIVE_GOAL_HEIGHT_METERS =
-            GOAL_HEIGHT_METERS + GOAL_HEIGHT_SAFETY_OFFSET_METERS;
+
 
     // --- SHOT CONSTRAINTS (For Iterative Search) ---
     private static final double MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC = 400000;
@@ -371,9 +373,9 @@ public class Shooter {
     /* ========== ROBOT VELOCITY ALONG SHOT DIRECTION ============ */
     /* ========================================================= */
 
-    // --- Physical Constants (Meters & Seconds) ---
+    // --- Physical Constants (inches & Seconds) ---
     private static final double TICKS_PER_REV_ENCODER = 4096.0;
-    private static final double WHEEL_RADIUS_METERS = 0.036; // 36mm
+    private static final double WHEEL_RADIUS_IN = 1.417;
     private static final double GEAR_RATIO = 33.0 / 27.0;
 
     // Variables outside the loop to persist "memory" between frames
@@ -382,6 +384,8 @@ public class Shooter {
     private double finalAdjustedHoodDeg = 0;
     private double finalAdjustedTurretFieldYaw = 0;
 
+
+    //pass in everything in inches and degrees (inch/sec for velo too)
     public void calculateIterativeShot(
             double robotX, double robotY, double goalX, double goalY,
             double robotVeloX, double robotVeloY,double robotHeading, boolean isRed) {
@@ -402,12 +406,13 @@ public class Shooter {
             double baseHood = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
                     (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
 
-            // 3. Convert Ticks to Meters/Sec to find Time of Flight
-            // Formula: Ticks -> Meters/Sec -> calculateTimeToGoalSeconds
-            double ticksToMeters = (1.0 / 4096.0) * (2 * Math.PI) * 0.036 * (33.0 / 27.0);
-            double muzzleVeloMeters = baseTicks * ticksToMeters;
+            // 3. Convert Ticks to Inches/Sec to find Time of Flight
+            // Formula: Ticks -> Inches/Sec -> calculateTimeToGoalSeconds
+            double ticksToInches =
+                    (1.0 / TICKS_PER_REV_ENCODER) * (2 * Math.PI) * WHEEL_RADIUS_IN * (GEAR_RATIO); // 36mm = 1.417 in
+            double muzzleVeloInches = baseTicks * ticksToInches;
 
-            persistentShotTime = calculateTimeToGoalSeconds(muzzleVeloMeters, baseHood);
+            persistentShotTime = calculateTimeToGoalSeconds(muzzleVeloInches, baseHood,dist);
 
             // 4. Update the Virtual Goal position based on robot velocity
             // New Pos = Current Pos + (-Robot Velocity * Time)
@@ -429,26 +434,26 @@ public class Shooter {
 
 
     private static double calculateTimeToGoalSeconds(
-            double exitVelocityMetersPerSec,
-            double hoodAngleDegrees) {
+            double exitVelocityInchesPerSec,
+            double hoodAngleDegrees, double currentDistance) {
 
         // Convert angle to radians for trig
-        double hoodAngleRadians = Math.toRadians(hoodAngleDegrees);
+        double hoodRad = Math.toRadians(hoodAngleDegrees);
 
-        // Vertical component of ball velocity
-        double verticalVelocityMetersPerSec =
-                exitVelocityMetersPerSec * Math.sin(hoodAngleRadians);
+        double vX = exitVelocityInchesPerSec * Math.cos(hoodRad);
+        double vY = exitVelocityInchesPerSec * Math.sin(hoodRad);
 
-        // Height difference between shooter and goal
-        double deltaHeightMeters =
-                EFFECTIVE_GOAL_HEIGHT_METERS - LAUNCH_HEIGHT_METERS;
+// Solve vertical motion for height constraint (as you already do)
+        double deltaHeightIn = EFFECTIVE_GOAL_HEIGHT_IN - LAUNCH_HEIGHT_IN;
 
-        // Solve y(t) = v*t - 0.5*g*t^2 = deltaHeight
-        return (verticalVelocityMetersPerSec
-                + Math.sqrt(
-                verticalVelocityMetersPerSec * verticalVelocityMetersPerSec
-                        + 2.0 * GRAVITY * deltaHeightMeters))
-                / GRAVITY;
+        double tHeight = (vY + Math.sqrt(vY*vY + 2*GRAVITY*deltaHeightIn)) / GRAVITY;
+
+// Solve horizontal motion for distance
+        double horizontalDistanceIn = currentDistance; // pass this in
+        double tHorizontal = horizontalDistanceIn / vX;
+
+// FINAL TOF = max of the two
+        return Math.max(tHeight, tHorizontal);
     }
 //
 
