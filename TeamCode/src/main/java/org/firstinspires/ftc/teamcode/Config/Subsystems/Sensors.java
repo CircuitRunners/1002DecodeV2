@@ -56,7 +56,7 @@ public class Sensors {
 
 
         config.setEncoder(1, SRSHub.Encoder.QUADRATURE); //flywheel encoder
-        config.setEncoder(3, SRSHub.Encoder.QUADRATURE); // turret incremental
+        //config.setEncoder(3, SRSHub.Encoder.QUADRATURE); // turret incremental
 
         RobotLog.clearGlobalWarningMsg();
 
@@ -167,24 +167,24 @@ public class Sensors {
 //
 //    }
 
-    public double getRawTurretTicks(){
-        return hub.readEncoder(3).position * -1;
+//    public double getRawTurretTicks(){
+//        return hub.readEncoder(3).position * -1;
+//
+//    }
 
-    }
-
-    public void rezeroTurretEncoder() {
-        // Read the current absolute hardware position
-        //basically this sets the offset to what the turret thinks its current position is
-        TURRET_SKIPPED_TICKS = getRawTurretTicks();
-    }
-
-    public double getSketchTurretPosition(){
-        return Range.scale(
-                getRawTurretTicks() - TURRET_SKIPPED_TICKS,
-                0, TURRET_MAX_TICKS,              // Input Range
-                0, 360  // Output Range (CORRECTED)
-        ) ;
-    }
+//    public void rezeroTurretEncoder() {
+//        // Read the current absolute hardware position
+//        //basically this sets the offset to what the turret thinks its current position is
+//        TURRET_SKIPPED_TICKS = getRawTurretTicks();
+//    }
+//
+//    public double getSketchTurretPosition(){
+//        return Range.scale(
+//                getRawTurretTicks() - TURRET_SKIPPED_TICKS,
+//                0, TURRET_MAX_TICKS,              // Input Range
+//                0, 360  // Output Range (CORRECTED)
+//        ) ;
+//    }
 
 //    public double getAnalogEncoder2Value() {
 //        return hub.readAnalogDigitalDevice(4);
@@ -241,7 +241,7 @@ public class Sensors {
             return DetectedColor.PURPLE;
         }
 
-        else if (g - 50 > r && g - 50 > b){
+        else if (g - 40 > r && g - 40 > b){
             return DetectedColor.GREEN;
         }
         else if (b + 12 >= g && g - 25 > r ){

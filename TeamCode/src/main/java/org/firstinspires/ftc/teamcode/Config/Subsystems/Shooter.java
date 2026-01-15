@@ -20,9 +20,9 @@ public class Shooter {
 
     private static double currentRequiredFlywheelTicks = 0;
     private static double currentRequiredHoodAngle = 0;
-    private static double currentRequiredInAirTOF = 0;
+    //private static double currentRequiredInAirTOF = 0;
 
-    private static final double transferTimeSec = 0.5; //TUNE
+    private static final double transferTimeSec = 0.0; //TUNE
 
 //    public static double slotOneBLueAtan = 0;
 //    public static double slotTwoBLueAtan = 0;
@@ -301,32 +301,24 @@ public class Shooter {
             case FIELD_CENTRIC:
                 // inputFieldDeg is your constant (e.g., 180 for West)
                 // Subtract robot heading to find robot-relative angle
-                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 270);
+                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
                 // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case AUTO_ALIGN:
                 // Input is already the field yaw calculated from (dx, dy)
                 // Example: calculateAutoAlignYaw(robotX, robotY, targetX, targetY)
-                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 270);
+                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
                 // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case ROBOT_CENTRIC:
                 // Directly setting the turret 0-360 relative to the front of the robot
-                absoluteTarget = Range.clip(inputFieldDeg, -270, 270);
+                absoluteTarget = Range.clip(inputFieldDeg, -360, 360);
                 break;
         }
 
-        // --- WIRIG DEAD ZONE HANDLING ---
-        // If target is in the 315-360 deadzone, pick the closest safe limit
-        if (absoluteTarget > 265) {
-            if (absoluteTarget > 270) { // Closer to 0
-                absoluteTarget = 0;
-            } else { // Closer to 315
-                absoluteTarget = 265;
-            }
-        }
+
 
         // Set the setpoint (Non-Continuous PID handles the 'long way')
         setTurretTargetPosition(absoluteTarget);
@@ -339,8 +331,33 @@ public class Shooter {
 //        else if (positionDeg < 0){
 //            positionDeg +=360;
 //        }
-        targetTurretPosition = Range.clip(positionDeg, -265, 265);
+       // targetTurretPosition = Range.clip(positionDeg, -265, 265);
         //targetTurretPosition = Range.clip(positionDeg,0,315);
+
+
+
+        // 2. Map 0 -> 360 into -180 -> 180
+        // If input is 0..180, it stays 0..180
+        // If input is 181..360, it becomes -179..0
+        double physicalTarget;
+        if (positionDeg <= 180) {
+            physicalTarget = positionDeg;
+        } else {
+            physicalTarget = positionDeg - 360;
+        }
+
+        // --- WIRIG DEAD ZONE HANDLING ---
+        // If target is in the 315-360 deadzone, pick the closest safe limit
+        if (Math.abs(physicalTarget) > 175) {
+            if (physicalTarget > 0) { // Closer to 0
+                physicalTarget = 175;
+            } else { // Closer to 315
+                physicalTarget = -175;
+            }
+        }
+
+        // 3. Clip to stay away from the physical hardstops (e.g., +/- 175)
+        targetTurretPosition = Range.clip(physicalTarget, -175, 175);
     }
 
 
@@ -381,7 +398,7 @@ public class Shooter {
     private static final double GEAR_RATIO = 33.0 / 27.0;
 
     // Variables outside the loop to persist "memory" between frames
-    private double persistentShotTime = 0.5;
+    private double persistentShotTime = 0.0;
     private double finalAdjustedVeloTicks = 0;
     private double finalAdjustedHoodDeg = 0;
     private double finalAdjustedTurretFieldYaw = 0;
@@ -546,20 +563,20 @@ public class Shooter {
     }
 
 
-    private double getXVelocityOffset(double robotVeloX, double currentGoalX, double TOF){
-        double finalGoalPos = (-robotVeloX * TOF) + currentGoalX;
-        return finalGoalPos;
-    }
-
-    private double getYVelocityOffset(double robotVeloY, double currentGoalY, double TOF){
-        double finalGoalPos = (-robotVeloY * TOF) + currentGoalY;
-        return finalGoalPos;
-
-    }
-    private double getTurretAngle() {
-        double currentTicks = turret.getCurrentPosition();
-        return ((currentTicks / ticksPerRevolution) / gearRatio) * 360;
-    }
+//    private double getXVelocityOffset(double robotVeloX, double currentGoalX, double TOF){
+//        double finalGoalPos = (-robotVeloX * TOF) + currentGoalX;
+//        return finalGoalPos;
+//    }
+//
+//    private double getYVelocityOffset(double robotVeloY, double currentGoalY, double TOF){
+//        double finalGoalPos = (-robotVeloY * TOF) + currentGoalY;
+//        return finalGoalPos;
+//
+//    }
+//    private double getTurretAngle() {
+//        double currentTicks = turret.getCurrentPosition();
+//        return ((currentTicks / ticksPerRevolution) / gearRatio) * 360;
+//    }
 
     public void setHoodTargetAngle(double angle){
         targetHoodAngle = angle;
@@ -583,13 +600,7 @@ public class Shooter {
         return currentRequiredHoodAngle;
     }
 
-    public double getCurrentRequiredInAirTOF() {
-        return currentRequiredInAirTOF;
-    }
 
-    public double getCurrentRequiredTotalTOF() {
-        return currentRequiredInAirTOF + transferTimeSec;
-    }
 
     public boolean isBeamBroken() {
         if (shooterBeamBreak.getState() == false){
@@ -661,8 +672,8 @@ public class Shooter {
     public double getCurrentTurretPosition(){
         return Range.scale(
                 turret.getCurrentPosition(),
-                0, 1440,              // Input Range
-                0, 360
+                -720, 720,              // Input Range
+                -180, 180
         );// Output Range (CORRECTED)
     }
 

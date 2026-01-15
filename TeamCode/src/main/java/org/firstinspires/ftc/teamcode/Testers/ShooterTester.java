@@ -114,7 +114,7 @@ public class ShooterTester extends OpMode {
         telemetry.addLine("===== Auto Shot =====");
         telemetry.addData("Flywheel Target (ticks)", shooter.getCurrentRequiredFlywheelTicks());
         telemetry.addData("Hood Target (deg)", shooter.getCurrentRequiredHoodAngle());
-        telemetry.addData("Time of Flight (s)", shooter.getCurrentRequiredInAirTOF());
+        //telemetry.addData("Time of Flight (s)", shooter.getCurrentRequiredInAirTOF());
 
 
         telemetry.update();

@@ -318,7 +318,7 @@ public class v2Teleop extends OpMode {
     }
 
     private void configurePinpoint() {
-        pinpoint.setOffsets(44.94, -170.367, DistanceUnit.MM);
+        pinpoint.setOffsets(136.603, 59.24, DistanceUnit.MM);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.resetPosAndIMU();
