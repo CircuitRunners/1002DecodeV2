@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.Testers;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+//import com.acmerobotics.dashboard.FtcDashboard;
+//import com.acmerobotics.dashboard.config.Config;
+//import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -17,7 +17,6 @@ import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
-import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
 import java.util.List;
 
@@ -36,10 +35,11 @@ public class notCookedTurretTuner extends OpMode {
 
     // ===== Hardware & State =====
     private DcMotorEx turret;
+    private double ticksPerRevolution = 145.1;
+    private double gearRatio = 149.0/15.0;
     private PIDFController pidf;
     private Sensors sensors = new Sensors();
     private ElapsedTime loopTimer = new ElapsedTime();
-    private Shooter shooter;
 
     public static double cookedLoopTargetMS = 40;
    // private TelemetryManager panelsTelemetry;
@@ -50,7 +50,6 @@ public class notCookedTurretTuner extends OpMode {
         // Initialize Panels Telemetry system
        // panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         // 1. Bulk Read Setup for faster loop times
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
@@ -61,13 +60,11 @@ public class notCookedTurretTuner extends OpMode {
         // 2. Motor Setup
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        turret.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // 3. Direction logic based on the Dashboard toggle
         turret.setDirection(isReversed ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
-
-        shooter = new Shooter(hardwareMap,telemetry);
 
         // 4. Sensor Initialization
         try {
@@ -93,7 +90,9 @@ public class notCookedTurretTuner extends OpMode {
 
         // Update sensor data
         sensors.update();
-        double currentAngle = shooter.getCurrentTurretPosition();
+        double currentTicks = turret.getCurrentPosition();
+        double currentAngle = ((currentTicks / ticksPerRevolution) / gearRatio) * 360;
+
 
         // Update PID coefficients and target live from Dashboard
         pidf.setPIDF(kP, kI, kD, kF);

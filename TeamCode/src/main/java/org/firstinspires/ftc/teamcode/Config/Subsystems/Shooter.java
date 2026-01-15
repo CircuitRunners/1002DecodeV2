@@ -30,11 +30,13 @@ public class Shooter {
 
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
-    private static final double[] turretCoefficients = {0.06, 0, 0.0004, 0.0015};
+    private static final double[] turretCoefficients = {0.0087, 0, 0.00002, 0.00001};
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
-    private static double targetTurretPosition = 0;     // Degrees (0-360)
+    private static double targetTurretPosition = 0;
+    private double ticksPerRevolution = 145.1;
+    private double gearRatio = 149.0/15.0;// Degrees (0-360)
     private static double targetHoodAngle = 45;          // Degrees (0-90)
 
     private static double maxTurretPower = 0.8;
@@ -553,6 +555,10 @@ public class Shooter {
         double finalGoalPos = (-robotVeloY * TOF) + currentGoalY;
         return finalGoalPos;
 
+    }
+    private double getTurretAngle() {
+        double currentTicks = turret.getCurrentPosition();
+        return ((currentTicks / ticksPerRevolution) / gearRatio) * 360;
     }
 
     public void setHoodTargetAngle(double angle){
