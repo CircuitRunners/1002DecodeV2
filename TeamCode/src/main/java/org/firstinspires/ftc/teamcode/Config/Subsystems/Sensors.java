@@ -241,6 +241,13 @@ public class Sensors {
             return DetectedColor.PURPLE;
         }
 
+        else if (g - 50 > r && g - 50 > b){
+            return DetectedColor.GREEN;
+        }
+        else if (b + 12 >= g && g - 25 > r ){
+            return DetectedColor.PURPLE;
+        }
+
         // --- everything else counts as NONE ---
         return null;
     }

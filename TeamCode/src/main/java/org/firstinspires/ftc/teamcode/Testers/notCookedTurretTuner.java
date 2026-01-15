@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
 import java.util.List;
 
@@ -38,6 +39,7 @@ public class notCookedTurretTuner extends OpMode {
     private PIDFController pidf;
     private Sensors sensors = new Sensors();
     private ElapsedTime loopTimer = new ElapsedTime();
+    private Shooter shooter;
 
     public static double cookedLoopTargetMS = 40;
    // private TelemetryManager panelsTelemetry;
@@ -65,6 +67,8 @@ public class notCookedTurretTuner extends OpMode {
         // 3. Direction logic based on the Dashboard toggle
         turret.setDirection(isReversed ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
 
+        shooter = new Shooter(hardwareMap,telemetry);
+
         // 4. Sensor Initialization
         try {
             sensors.init(hardwareMap, HUB_NAME);
@@ -89,7 +93,7 @@ public class notCookedTurretTuner extends OpMode {
 
         // Update sensor data
         sensors.update();
-        double currentAngle = sensors.getSketchTurretPosition();
+        double currentAngle = shooter.getCurrentTurretPosition();
 
         // Update PID coefficients and target live from Dashboard
         pidf.setPIDF(kP, kI, kD, kF);

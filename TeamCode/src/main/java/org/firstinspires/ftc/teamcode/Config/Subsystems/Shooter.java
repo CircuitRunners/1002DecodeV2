@@ -652,6 +652,21 @@ public class Shooter {
         }
     }
 
+    public double getCurrentTurretPosition(){
+        return Range.scale(
+                turret.getCurrentPosition(),
+                0, 1440,              // Input Range
+                0, 360
+        );// Output Range (CORRECTED)
+    }
+
+    public void rezeroTurretPosition(){
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        setTurretTarget(0,TurretMode.ROBOT_CENTRIC,getCurrentTurretPosition());
+    }
+
 
 
 

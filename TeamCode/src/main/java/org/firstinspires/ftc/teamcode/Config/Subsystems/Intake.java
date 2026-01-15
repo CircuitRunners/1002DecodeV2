@@ -42,8 +42,7 @@ public class Intake {
     private int greenInventory = 0;
     private int purpleInventory = 0;
     private boolean ballInTransfer = false;
-    private boolean greenHasBeenShot = false;
-    private boolean patternReady = false;
+
 
     public static boolean canShoot = false;
 
@@ -167,6 +166,8 @@ public class Intake {
 
     public void sortManualOverride() {
         ballInTransfer = false;
+        patternIsLocked = false;
+
         currentShot = 0;
 
         greenInventory = 0;
@@ -293,7 +294,7 @@ public class Intake {
 //        }
 //    }
 
-    private boolean lastSlot1WasNull = false;
+    private boolean lastSlot1WasNull = true;
     private boolean patternIsLocked = false; // New flag to stop checking sensors during firing
 
     public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
@@ -310,10 +311,11 @@ public class Intake {
         int totalBalls = getTotalInventory(slot1, slot2, slot3);
 
         // 2. Completion / Reset Logic
-        if (totalBalls == 0 || currentShot >= 3) {
+        if (totalBalls == 0 ) {
 //            if (currentShot >= 3) {
                 currentShot = 0;
                 patternIsLocked = false;
+                lastSlot1WasNull = true;
          //   }
             resetIndexer();
             return;
@@ -325,16 +327,26 @@ public class Intake {
                 patternIsLocked = true; // Nothing to sort, just fire
             } else {
                 // Define target pattern
+
                 String[] pattern = getTargetArray(targetOrder);
+                if (slot1 != null && slot2 != null) {
+                    boolean s1Match = isColorMatch(slot1, pattern[0]);
+                    boolean s2Match = isColorMatch(slot2, pattern[1]);
 
-                boolean s1Match = isColorMatch(slot1, pattern[0]);
-                boolean s2Match = isColorMatch(slot2, pattern[1]);
-
-                if (s1Match && s2Match) {
-                    gateClose();
-                    intakeMotorIdle();
-                    patternIsLocked = true; // ORDER ACQUIRED
-                } else {
+                    if (s1Match && s2Match) {
+                        gateClose();
+                        intakeMotorIdle();
+                        patternIsLocked = true; // ORDER ACQUIRED
+                    } else {
+                        // Pattern doesn't match, keep moving
+                        performSortingCycle(slot1);
+                    }
+                } else if (slot1 != null && slot2 == null) {
+                    intake();
+                }
+                else {
+                    // We have > 1 ball total, but slot 2 is currently empty.
+                    // Keep cycling until that second ball moves up into view.
                     performSortingCycle(slot1);
                 }
             }

@@ -15,6 +15,7 @@ import com.seattlesolvers.solverslib.controller.PIDFController;
 
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
 
 import java.util.List;
@@ -46,6 +47,8 @@ public class TurretPIDFTuner extends OpMode {
     // ===== Hardware =====
     private PIDFController pidf;
 
+    private Shooter shooter;
+
     private ElapsedTime loopTimer = new ElapsedTime();
     // Removed lastTicks and lastTime since they're no longer needed for manual calculation
 
@@ -64,6 +67,8 @@ public class TurretPIDFTuner extends OpMode {
 
 
         sensors = new Sensors();
+
+        shooter = new Shooter(hardwareMap,telemetry);
 
         try {
             // The Sensors class handles finding and configuring the SRSHub itself
@@ -88,13 +93,13 @@ public class TurretPIDFTuner extends OpMode {
 
         sensors.update();
 
-        double currentAngle = sensors.getSketchTurretPosition();
+        double currentAngle = shooter.getCurrentTurretPosition();
 
 //        pidf.setPIDF(kP, kI, kD, kF);
 
         pidf.setSetPoint(targetAngle);
 
-        double turretOutput = pidf.calculate(sensors.getSketchTurretPosition());
+        double turretOutput = pidf.calculate(shooter.getCurrentTurretPosition());
         turretOutput = Range.clip(turretOutput, -maxPower, maxPower);
         turret.setPower(turretOutput);
 

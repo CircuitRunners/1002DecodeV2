@@ -141,7 +141,7 @@ public class v2Teleop extends OpMode {
         telemetry.addData("Pinpoint (BAD) Position", data);
 
         double currentFlywheelVelo = sensors.getFlywheelVelo();
-        double currentTurretAngle = sensors.getSketchTurretPosition();
+        double currentTurretAngle = shooter.getCurrentTurretPosition();
         boolean isBeamBroken = shooter.isBeamBroken();
         boolean beamValue = shooter.isBeamBroken();
 
@@ -172,16 +172,16 @@ public class v2Teleop extends OpMode {
     private void handleManualTurretOverrides(double currentAngle) {
         // Manual control: move turret and stick PID to current position to prevent fighting
         if (gamepad2.dpad_right) {
-            shooter.setTurretTarget(sensors.getSketchTurretPosition() + 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
+            shooter.setTurretTarget(shooter.getCurrentTurretPosition() + 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
         }
         else if (gamepad2.dpad_left) {
 
-            shooter.setTurretTarget(sensors.getSketchTurretPosition() - 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
+            shooter.setTurretTarget(shooter.getCurrentTurretPosition() - 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
         }
 
         // Hardware re-zero
         if (player2.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
-            sensors.rezeroTurretEncoder();
+            shooter.rezeroTurretPosition();
             gamepad2.rumble(500);
             //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         }
