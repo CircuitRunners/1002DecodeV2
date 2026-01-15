@@ -22,7 +22,7 @@ import java.util.List;
 
 @Configurable
 @Autonomous(name = "GS 12 Ball - Fixed Turret", group = "A", preselectTeleOp = "v2Teleop")
-public class AdaptationOfThePowerOfFriendship extends OpMode {
+public class gateOpenerAuto extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -45,7 +45,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     private boolean doTransfer = false;
 
-    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,park;
+    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, park;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
@@ -55,52 +55,47 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 .build();
 
         // Path 2: Shoot to Intake 1
-        intake1 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.pickupLine1)))
+        intake2 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.25)
                 .build();
 
-        // Path 3: Intake 1 to Gate
-        openGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine1), Poses.get(Poses.pickupLine1ToGateControlPoint), Poses.get(Poses.openGate)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(90), 0.45)
-                .build();
-
-        // Path 4: Gate back to Shoot
+        // Path 3: Travel back to shoot
         travelBackToShoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.openGate), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Math.toRadians(90), Poses.get(Poses.shootPositionGoalSide3).getHeading())
-                .build();
-
-        // Path 5: Shoot to Intake 2
-        intake2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine2).getHeading(), 0.45)
-                .build();
-
-        // Path 6: Intake 2 back to Shoot
-        travelBackToShoot2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine2), Poses.get(Poses.shootPositionGoalSide2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
 
-        // Path 7: Shoot to Intake 3
-        intake3 = follower.pathBuilder()
+        openGate = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.openGateAutoIntake)))
+                .setConstantHeadingInterpolation(Poses.get(Poses.openGateAutoIntake).getHeading())
+                .build();
+
+        // Path 6: Intake 2 back to Shoot
+        travelBackToShootFromGate = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.openGateAutoIntake), Poses.get(Poses.openGateAutoIntakeControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateAutoIntake).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .build();
+
+        intake1 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.pickupLine1)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.45)
+                .build();
+
+        travelBackToShootFromIntake1 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine1), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .build();
+
+        intake3  = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
                 .build();
 
-        // Path 8: Intake 3 back to final Shoot
-        travelBackToShoot3 = follower.pathBuilder()
+        travelBackToShootFromIntake3 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
-
-        park  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine2).getHeading(), 0.45)
-                .build();
-
 
     }
 
@@ -126,7 +121,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 2: // Drive to Intake 1
                 intake.intake();
                 if (!follower.isBusy()) {
-                    follower.followPath(intake1, true);
+                    follower.followPath(intake2, true);
                     setPathState();
                 }
                 break;
@@ -134,69 +129,67 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 3: // Gate logic
                 intake.intake();
                 if (!follower.isBusy()) {
-                    follower.followPath(openGate, true);
-                    setPathState();
-                }
-                break;
-
-            case 4: // Return to Shoot 1
-                if (!follower.isBusy()) {
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
-            case 5: // Shoot 3 Balls (Cycle 1)
+            case 4: // Return to Shoot 1
                 if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
                     handleAutoShooting(currentPose, targetX, 4.5,0);
                 }
                 break;
 
-            case 6: // Drive to Intake 2
-                intake.intake();
+            case 9:
+            case 5: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
-                    follower.followPath(intake2, false);
+                    follower.followPath(openGate, true);
                     setPathState();
                 }
                 break;
 
+            case 10:
+            case 6: // WAIT at Gate (2.5s)
+                intake.intake(); // keep intaking while stalled
+
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
+                    setPathState();
+                }
+                break;
+
+            case 11:
             case 7: // Return to Shoot 2
                 if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShoot2, true);
+                    follower.followPath(travelBackToShootFromGate, true);
                     setPathState();
                 }
                 break;
 
+            case 12:
             case 8: // Shoot 3 Balls (Cycle 2)
                 if (!follower.isBusy()) {
                     handleAutoShooting(currentPose, targetX, 4.5,0);
                 }
                 break;
 
-            case 9: // Drive to Intake 3
+            case 13:
                 intake.intake();
                 if (!follower.isBusy()) {
-                    follower.followPath(intake3, false);
+                    follower.followPath(intake1, true);
                     setPathState();
                 }
                 break;
 
-            case 10: // Return to Shoot 3
+            case 14:
                 if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShoot3, true);
+                    follower.followPath(travelBackToShootFromIntake1, true);
                     setPathState();
                 }
                 break;
 
-            case 11: // Final 3 Balls
-                if (!follower.isBusy()) {
+            case 15: // Return to Shoot 1
+                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
                     handleAutoShooting(currentPose, targetX, 4.5,0);
-                }
-                break;
-
-            case 12: // Final 3 Balls
-                if (!follower.isBusy()) {
-                    follower.followPath(park,true);
                 }
                 break;
 
