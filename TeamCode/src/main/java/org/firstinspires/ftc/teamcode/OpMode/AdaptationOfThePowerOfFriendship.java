@@ -51,7 +51,9 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.shootPositionGoalSide2)))
+
                 .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+
                 .build();
 
         // Path 2: Shoot to Intake 1
@@ -63,6 +65,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         // Path 3: Intake 1 to Gate
         openGate = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.pickupLine1), Poses.get(Poses.pickupLine1ToGateControlPoint), Poses.get(Poses.openGate)))
+
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(90), 0.45)
                 .build();
 
@@ -326,7 +329,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         autonomousPathUpdate();
 

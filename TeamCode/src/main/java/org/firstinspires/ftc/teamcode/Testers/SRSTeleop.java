@@ -205,8 +205,8 @@ public class SRSTeleop extends OpMode {
         telemetry.addData("--- ANALOG ENCODERS (DEGREES) ---", "---");
 
        // telemetry.addData("1. Turret Position", sensors.getTurretPosition());
-        telemetry.addData("1. Turret RAW Position", sensors.getRawTurretTicks());
-        telemetry.addData("1. Turret SKETCH Position", sensors.getSketchTurretPosition());
+//        telemetry.addData("1. Turret RAW Position", sensors.getRawTurretTicks());
+//        telemetry.addData("1. Turret SKETCH Position", sensors.getSketchTurretPosition());
 
         telemetry.addData("2. Flywheel Velo", sensors.getFlywheelVelo());
 

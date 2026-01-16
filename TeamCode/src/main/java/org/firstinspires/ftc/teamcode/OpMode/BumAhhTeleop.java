@@ -101,7 +101,7 @@ public class BumAhhTeleop extends OpMode {
         }
 
         if (!autoAlignEnabled) {
-            shooter.manualTurretOverride(-gamepad2.right_stick_x * 0.5, sensors.getSketchTurretPosition());
+            shooter.manualTurretOverride(-gamepad2.right_stick_x * 0.5, shooter.getCurrentTurretPosition());
             // BumAhhShooter.targetTurretAngle = sensors.getSketchTurretPosition();
         }
 
@@ -115,7 +115,7 @@ public class BumAhhTeleop extends OpMode {
         double r = Math.hypot(forward, strafe);
         drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
 
-        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         telemetry.addData("Step", shootStep);
         telemetry.addData("Align", autoAlignEnabled);

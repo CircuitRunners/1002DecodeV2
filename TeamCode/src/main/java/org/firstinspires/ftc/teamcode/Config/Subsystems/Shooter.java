@@ -89,10 +89,13 @@ public class Shooter {
     private DigitalChannel shooterBeamBreak;
 
     // Velocity Coefficients
-    public static double v_a = 0.00212656, v_b = -0.690055, v_c = 80.9096, v_d = -3021.17244, v_e = 221635.584;
+//    public static double v_a = 0.00212656, v_b = -0.690055, v_c = 80.9096, v_d = -3021.17244, v_e = 221635.584;
+    public static double v_a = 0.000647695, v_b = -0.259442, v_c = 38.24422, v_d = -1368.8142, v_e = 201294.578;
+
 
     // Hood Coefficients
-    public static double h_a = -0.00000272327, h_b = 0.000865664, h_c = -0.0980841, h_d = 4.82789, h_e = -51.50719;
+    //public static double h_a = -0.00000272327, h_b = 0.000865664, h_c = -0.0980841, h_d = 4.82789, h_e = -51.50719;
+    public static double h_a = -(6.98128e-7), h_b = 0.000270536, h_c = -0.0389242, h_d = 2.54016, h_e = -23.61655;
 
     /**
      * Data structure for the calculated optimal shot parameters.

@@ -79,7 +79,7 @@ public class KShooterTester extends OpMode {
 
             // --- 2. SUBSYSTEM UPDATE ---
             double currentVelo = sensors.getFlywheelVelo();
-            double currentTurret = sensors.getSketchTurretPosition();
+            double currentTurret = shooter.getCurrentTurretPosition();
 
             shooter.setHoodTargetAngle(desiredHoodAngle);
             if (enableShooter) {

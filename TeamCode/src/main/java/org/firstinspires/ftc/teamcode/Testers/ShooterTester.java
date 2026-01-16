@@ -101,14 +101,14 @@ public class ShooterTester extends OpMode {
 
         }
 
-        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
 
         telemetry.addData("Pinpoint X Inches: ", pinpoint.getPosX(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Y Inches: ", pinpoint.getPosY(DistanceUnit.INCH));
         telemetry.addData("Pinpoint Heading Degrees: ", pinpoint.getHeading(AngleUnit.DEGREES));
         telemetry.addData("Flywheel Velocity (RPM): ", sensors.getFlywheelVelo() / TICKS_PER_REV * 60);
-        telemetry.addData("Turret Position Degrees: ", sensors.getSketchTurretPosition());
+        telemetry.addData("Turret Position Degrees: ", shooter.getCurrentTurretPosition());
         //telemetry.addData("Hood Position Degrees: ", shooter.getHoodServoPositionInDegrees());
         telemetry.addLine("");
         telemetry.addLine("===== Auto Shot =====");

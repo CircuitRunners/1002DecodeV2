@@ -294,7 +294,7 @@ public class FarZoneAuto extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), sensors.getSketchTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         autonomousPathUpdate();
 

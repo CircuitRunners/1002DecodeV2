@@ -66,7 +66,7 @@ public class ShootingWhileMovingTester extends OpMode{
             // Shooter constructor now handles PID initialization correctly
             shooter = new Shooter(hardwareMap, telemetry);
 
-            shooter.update(sensors.getFlywheelVelo(),sensors.getSketchTurretPosition());
+            shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
             intake = new Intake(hardwareMap, telemetry);
 
@@ -121,7 +121,7 @@ public class ShootingWhileMovingTester extends OpMode{
 
             // --- STEP 3: APPLY LOGIC TO SUBSYSTEM ---
             double currentVelo = sensors.getFlywheelVelo();
-            double currentTurret = sensors.getSketchTurretPosition();
+            double currentTurret = shooter.getCurrentTurretPosition();
 
             // Always update hood angle so it responds even if flywheel is off
 
