@@ -48,7 +48,7 @@ public class Shooter {
     private static final double GRAVITY = 386.088; // in/s^2
 
     // Heights (meters)
-    private static final double LAUNCH_HEIGHT_IN = 11.6;
+    private static final double LAUNCH_HEIGHT_IN = 16; //11.6
     private static final double GOAL_HEIGHT_IN = 38.75;
     private static final double GOAL_HEIGHT_SAFETY_OFFSET_IN = 2.0;
 
@@ -165,54 +165,28 @@ public class Shooter {
     /**
      * Lookup table for angle to associated k (conversion factor) value
      */
-
+/**
+ * Calibrated muzzle velocity conversion table
+ *
+ * k = muzzleVelocity (in/s) / flywheelTicksPerSec
+ *
+ * Tuned using real shot data with an effective launch height of ~16 in.
+ * These values intentionally absorb:
+ *  - ball compression
+ *  - hood friction
+ *  - spin lift
+ *
+ * DO NOT try to "fix" these with physics — trust the table.
+ */
+private static final double[][] MUZZLE_K_TABLE = {
+        // angleDeg ,   k
+        { 38.0, 0.00098 },
+        { 42.0, 0.00092 },
+        { 44.0, 0.00090 },
+        { 45.0, 0.00090 }
+};
     // ---------------------------------------------------------------------------
-// MUZZLE VELOCITY LOOKUP TABLE (TUNING GUIDE)
-// ---------------------------------------------------------------------------
-// This table maps hood angle -> conversion factor k,
-// where:  muzzleVelocity = k * flywheelTicksPerSec
-//
-// WHY WE NEED THIS:
-// As the hood angle changes, the compression and friction change.
-// This means the same flywheel RPM produces different muzzle exit speeds.
-// A fixed k value causes distance errors, so we model k as a function of angle.
-//
-// HOW TO TUNE THESE VALUES:
-// 1. Make a simple tuning OpMode that:
-//      - Sets the hood to a known angle (e.g., 20°, 30°, 40°, 50°)
-//      - Sets the flywheel to a fixed velocity (ex: 3000 ticks/sec)
-//      - Lets you shoot one ring at a time
-//
-// 2. For each angle, place the robot at a known distance (ex: 3m).
-//    Measure the ACTUAL muzzle velocity using high-speed video or a
-//    field measurement (time-of-flight or distance travelled).
-//
-// 3. Compute k for that angle:
-//        k = measuredMuzzleVelocity / commandedFlywheelTicksPerSec
-//    Example:
-//        measured = 14.8 m/s,
-//        ticks/sec = 3000
-//        k = 14.8 / 3000 = 0.00493
-//
-// 4. Update the table row with this k value.
-//
-// 5. Repeat for at least 4 angles across  hood's full range.
-//
-// 6. The interpolation function will smoothly fill the gaps in between.
-//
-// IMPORTANT:
-// - All k values MUST increase slowly with angle (due to friction),
-//   but the curve should be smooth — no sharp jumps.
-// - Re-measure after changing flywheel grip, hood padding, or motor swaps.
-// ---------------------------------------------------------------------------
-    private static final double[][] MUZZLE_K_TABLE = {
-            //  angleDeg,  k-factor
-            {16, 0.00222749},
-            {26, 0.00131546},  // TODO: replace with measured value
-            {30, 0.00114602},
-            {34, 0.00109951},
-            {44, 0.00093616}
-    };
+// 
 
     // Given a hood angle (in degrees), return the correct k-factor by
     // linearly interpolating between the nearest lookup table entries.
