@@ -415,6 +415,8 @@ public class Intake {
     private boolean isSorting = false;
     private int internalTotalBalls = 0;
 
+    //BEFORE CALLING: RUN INTAKE BACKWARDS TO ENSURE ALL COLOR SENSORS GET A ACCURATE READING
+
     public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
                      DetectedColor colorSensor1Value,
                      DetectedColor colorSensor2Value,
