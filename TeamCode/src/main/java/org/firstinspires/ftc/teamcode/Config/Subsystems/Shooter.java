@@ -30,7 +30,7 @@ public class Shooter {
 
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
-    private static final double[] turretCoefficients = {0.0087, 0, 0.00002, 0.00001};
+    private static final double[] turretCoefficients = {0.087, 0.000, 0.00399995, 0.0009};
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
@@ -90,12 +90,12 @@ public class Shooter {
 
     // Velocity Coefficients
 //    public static double v_a = 0.00212656, v_b = -0.690055, v_c = 80.9096, v_d = -3021.17244, v_e = 221635.584;
-    public static double v_a = 0.000647695, v_b = -0.259442, v_c = 38.24422, v_d = -1368.8142, v_e = 201294.578;
+    public static double v_a = -0.000419907, v_b = 0.162408, v_c = -21.9297, v_d = 1991.28761, v_e = 150460.825;
 
 
     // Hood Coefficients
     //public static double h_a = -0.00000272327, h_b = 0.000865664, h_c = -0.0980841, h_d = 4.82789, h_e = -51.50719;
-    public static double h_a = -(6.98128e-7), h_b = 0.000270536, h_c = -0.0389242, h_d = 2.54016, h_e = -23.61655;
+    public static double h_a = -(2.52835e-7), h_b = 0.00012437, h_c = -0.0230779, h_d = 1.9269, h_e = -17.60642;
 
     /**
      * Data structure for the calculated optimal shot parameters.
@@ -351,16 +351,16 @@ public class Shooter {
 
         // --- WIRIG DEAD ZONE HANDLING ---
         // If target is in the 315-360 deadzone, pick the closest safe limit
-        if (Math.abs(physicalTarget) > 175) {
+        if (Math.abs(physicalTarget) >= 178) {
             if (physicalTarget > 0) { // Closer to 0
-                physicalTarget = 175;
+                physicalTarget = physicalTarget;
             } else { // Closer to 315
-                physicalTarget = -175;
+                physicalTarget = -178;
             }
         }
 
         // 3. Clip to stay away from the physical hardstops (e.g., +/- 175)
-        targetTurretPosition = Range.clip(physicalTarget, -175, 175);
+        targetTurretPosition = Range.clip(physicalTarget, -178, 180);
     }
 
 

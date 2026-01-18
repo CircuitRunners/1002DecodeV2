@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "GS 12 Ball - Fixed Turret", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "GS 12 Ball ", group = "A", preselectTeleOp = "v2Teleop")
 public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     private Follower follower;

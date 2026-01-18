@@ -294,65 +294,198 @@ public class Intake {
 //        }
 //    }
 
-    private boolean lastSlot1WasNull = true;
+    private boolean lastSlot1WasNull = false;
     private boolean patternIsLocked = false; // New flag to stop checking sensors during firing
+
+//    public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
+//                     DetectedColor colorSensor1Value,
+//                     DetectedColor colorSensor2Value,
+//                     DetectedColor colorSensor3Value) {
+//
+//        boolean isBeamBroken = shooterBeamBrake;
+//
+//        // 1. Get current state
+//        DetectedColor slot1 = colorSensor1Value;
+//        DetectedColor slot2 = colorSensor2Value;
+//        DetectedColor slot3 = colorSensor3Value;
+//        int totalBalls = getTotalInventory(slot1, slot2, slot3);
+//
+//        // 2. Completion / Reset Logic
+//        if (totalBalls == 0 ) {
+////            if (currentShot >= 3) {
+//                currentShot = 0;
+//                patternIsLocked = false;
+//                lastSlot1WasNull = true;
+//         //   }
+//            resetIndexer();
+//            return;
+//        }
+//
+//        // 3. Phase 1: Sorting (Only runs if we haven't started firing yet)
+//        if (!patternIsLocked) {
+//            if (totalBalls <= 1) {
+//                patternIsLocked = true; // Nothing to sort, just fire
+//            } else {
+//                // Define target pattern
+//
+//                String[] pattern = getTargetArray(targetOrder);
+//                if (slot1 != null && slot2 != null) {
+//                    boolean s1Match = isColorMatch(slot1, pattern[0]);
+//                    boolean s2Match = isColorMatch(slot2, pattern[1]);
+//
+//                    if (s1Match && s2Match) {
+//                        gateClose();
+//                        intakeMotorIdle();
+//                        patternIsLocked = true; // ORDER ACQUIRED
+//                    } else {
+//                        // Pattern doesn't match, keep moving
+//                        performSortingCycle(slot1);
+//                    }
+//                } else if (slot1 != null && slot2 == null) {
+//                    intake();
+//                }
+//                else {
+//                    // We have > 1 ball total, but slot 2 is currently empty.
+//                    // Keep cycling until that second ball moves up into view.
+//                    performSortingCycle(slot1);
+//                }
+//            }
+//        }
+//
+//        // 4. Phase 2: Firing (The "Boom Boom Boom" Phase)
+//        if (patternIsLocked) {
+//            if (!ballInTransfer) {
+//                if (canShoot) {
+//                    transfer();
+//                    ballInTransfer = true;
+//                } else {
+//                    gateClose();
+//                    intakeMotorIdle();
+//                }
+//            }
+//        }
+//
+//        // 5. Shot Counter
+//        if (ballInTransfer && isBeamBroken) {
+//            currentShot++;
+//            totalBalls--;
+//            ballInTransfer = false;
+//        }
+//    }
+//
+//    /**
+//     * Cycle logic: Opens gate to rotate balls,
+//     * but closes gate immediately when a new ball enters Slot 1.
+//     */
+//    private void performSortingCycle(DetectedColor currentSlot1) {
+//        boolean isSlot1Null = (currentSlot1 == null);
+//
+//        // Transition: Slot 1 was empty, now it's not = ball "caught"
+//        if (lastSlot1WasNull && !isSlot1Null) {
+//            gateClose();
+//            intakeMotorIdle();
+//        } else {
+//            cycle(); // Opens gate and runs motor
+//        }
+//
+//        lastSlot1WasNull = isSlot1Null;
+//    }
+//
+//    private String[] getTargetArray(LimelightCamera.BallOrder targetOrder) {
+//        if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE)
+//            return new String[]{"Green", "Purple", "Purple"};
+//        if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE)
+//            return new String[]{"Purple", "Green", "Purple"};
+//        if (targetOrder == null)
+//            return new String[]{"Purple", "Purple", "Purple"};
+//
+//        return new String[]{"Purple", "Purple", "Green"};
+//    }
+//
+//    private boolean isColorMatch(DetectedColor sensor, String required) {
+//        if (sensor == null) return false;
+//
+//        if ((required.equals("Green") && sensor == DetectedColor.GREEN) || (required.equals("Purple") && sensor == DetectedColor.PURPLE)){
+//            return true;
+//        }
+//        return false;
+//    }
+//
+
+    private boolean isSorting = false;
+    private int internalTotalBalls = 0;
 
     public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
                      DetectedColor colorSensor1Value,
                      DetectedColor colorSensor2Value,
                      DetectedColor colorSensor3Value) {
 
+        // 1. INITIALIZATION: Only happens the moment sorting starts
+        if (!isSorting) {
+            internalTotalBalls = getTotalInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+
+            if (internalTotalBalls > 0) {
+                isSorting = true;
+                patternIsLocked = false;
+                currentShot = 0;
+                telemetry.addLine("--- SORT STARTED: Inventory Locked ---");
+            } else {
+                resetIndexer();
+                return; // Nothing to do
+            }
+        }
+
+        // 2. DATA SNAPSHOT (For logic/telemetry)
+        String[] pattern = getTargetArray(targetOrder);
         boolean isBeamBroken = shooterBeamBrake;
 
-        // 1. Get current state
-        DetectedColor slot1 = colorSensor1Value;
-        DetectedColor slot2 = colorSensor2Value;
-        DetectedColor slot3 = colorSensor3Value;
-        int totalBalls = getTotalInventory(slot1, slot2, slot3);
+        // --- TELEMETRY ---
+        telemetry.addData("Status", patternIsLocked ? "PHASE 2: FIRING" : "PHASE 1: SORTING");
+        telemetry.addData("Inventory (Locked)", internalTotalBalls);
+        telemetry.addData("Shots Taken", currentShot);
+        telemetry.addData("Target", "%s, %s, %s", pattern[0], pattern[1], pattern[2]);
+        telemetry.addData("Real-time Sensors", "[%s] [%s] [%s]",
+                colorSensor1Value != null ? colorSensor1Value : "-",
+                colorSensor2Value != null ? colorSensor2Value : "-",
+                colorSensor3Value != null ? colorSensor3Value : "-");
 
-        // 2. Completion / Reset Logic
-        if (totalBalls == 0 ) {
-//            if (currentShot >= 3) {
-                currentShot = 0;
-                patternIsLocked = false;
-                lastSlot1WasNull = true;
-         //   }
+        // 3. COMPLETION CHECK
+        if (currentShot >= internalTotalBalls || internalTotalBalls == 0) {
+            telemetry.addLine("--- SORT COMPLETE: Resetting ---");
+            isSorting = false;
+            internalTotalBalls = 0;
+            currentShot = 0;
+            patternIsLocked = false;
             resetIndexer();
             return;
         }
 
-        // 3. Phase 1: Sorting (Only runs if we haven't started firing yet)
+        // 4. PHASE 1: SORTING (Ordering the balls)
         if (!patternIsLocked) {
-            if (totalBalls <= 1) {
-                patternIsLocked = true; // Nothing to sort, just fire
-            } else {
-                // Define target pattern
+            // If only 1 ball, no sorting needed
+            if (internalTotalBalls == 1) {
+                patternIsLocked = true;
+            }
+            // If sensors currently see the top two balls
+            else if (colorSensor1Value != null && colorSensor2Value != null) {
+                boolean s1Match = isColorMatch(colorSensor1Value, pattern[0]);
+                boolean s2Match = isColorMatch(colorSensor2Value, pattern[1]);
 
-                String[] pattern = getTargetArray(targetOrder);
-                if (slot1 != null && slot2 != null) {
-                    boolean s1Match = isColorMatch(slot1, pattern[0]);
-                    boolean s2Match = isColorMatch(slot2, pattern[1]);
-
-                    if (s1Match && s2Match) {
-                        gateClose();
-                        intakeMotorIdle();
-                        patternIsLocked = true; // ORDER ACQUIRED
-                    } else {
-                        // Pattern doesn't match, keep moving
-                        performSortingCycle(slot1);
-                    }
-                } else if (slot1 != null && slot2 == null) {
-                    intake();
+                if (s1Match && s2Match) {
+                    gateClose();
+                    intakeMotorIdle();
+                    patternIsLocked = true;
+                } else {
+                    performSortingCycle(colorSensor1Value);
                 }
-                else {
-                    // We have > 1 ball total, but slot 2 is currently empty.
-                    // Keep cycling until that second ball moves up into view.
-                    performSortingCycle(slot1);
-                }
+            }
+            else {
+                // Balls are moving between sensors; keep cycling until they land in slots
+                performSortingCycle(colorSensor1Value);
             }
         }
 
-        // 4. Phase 2: Firing (The "Boom Boom Boom" Phase)
+        // 5. PHASE 2: FIRING
         if (patternIsLocked) {
             if (!ballInTransfer) {
                 if (canShoot) {
@@ -365,51 +498,28 @@ public class Intake {
             }
         }
 
-        // 5. Shot Counter
+        // 6. SHOT TRACKER (The only place we decrement/advance)
         if (ballInTransfer && isBeamBroken) {
             currentShot++;
             ballInTransfer = false;
+            // The loop will now check if currentShot >= internalTotalBalls to finish
         }
     }
 
-    /**
-     * Cycle logic: Opens gate to rotate balls,
-     * but closes gate immediately when a new ball enters Slot 1.
-     */
     private void performSortingCycle(DetectedColor currentSlot1) {
         boolean isSlot1Null = (currentSlot1 == null);
 
-        // Transition: Slot 1 was empty, now it's not = ball "caught"
+        // If a ball just hit Slot 1, stop the motor to "catch" it and check color
         if (lastSlot1WasNull && !isSlot1Null) {
             gateClose();
             intakeMotorIdle();
-        } else {
-            cycle(); // Opens gate and runs motor
+        } else if (isSlot1Null) {
+            // Motor only runs when Slot 1 is empty to bring the next ball up
+            cycle();
         }
 
         lastSlot1WasNull = isSlot1Null;
     }
-
-    private String[] getTargetArray(LimelightCamera.BallOrder targetOrder) {
-        if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE)
-            return new String[]{"Green", "Purple", "Purple"};
-        if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE)
-            return new String[]{"Purple", "Green", "Purple"};
-        if (targetOrder == null)
-            return new String[]{"Purple", "Purple", "Purple"};
-
-        return new String[]{"Purple", "Purple", "Green"};
-    }
-
-    private boolean isColorMatch(DetectedColor sensor, String required) {
-        if (sensor == null) return false;
-
-        if ((required.equals("Green") && sensor == DetectedColor.GREEN) || (required.equals("Purple") && sensor == DetectedColor.PURPLE)){
-            return true;
-        }
-        return false;
-    }
-
     public int getGreenInventory(DetectedColor colorSensor1Value,
                                  DetectedColor colorSensor2Value,
                                  DetectedColor colorSensor3Value) {
@@ -443,6 +553,33 @@ public class Intake {
                 getPurpleInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
     }
 
+
+
+
+
+    /**
+     * Returns the target colors based on the Limelight pattern.
+     */
+    private String[] getTargetArray(LimelightCamera.BallOrder targetOrder) {
+        if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE)
+            return new String[]{"Green", "Purple", "Purple"};
+        if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE)
+            return new String[]{"Purple", "Green", "Purple"};
+        if (targetOrder == null)
+            return new String[]{"Purple", "Purple", "Purple"};
+
+        return new String[]{"Purple", "Purple", "Green"};
+    }
+
+    /**
+     * Checks if a specific sensor reading matches a required color string.
+     */
+    private boolean isColorMatch(DetectedColor sensor, String required) {
+        if (sensor == null) return false;
+        if (required.equals("Green") && sensor == DetectedColor.GREEN) return true;
+        if (required.equals("Purple") && sensor == DetectedColor.PURPLE) return true;
+        return false;
+    }
     // --- Periodic update (optional) ---
     public void update() {
 //        telemetry.addData("Target RPM", targetRPM);

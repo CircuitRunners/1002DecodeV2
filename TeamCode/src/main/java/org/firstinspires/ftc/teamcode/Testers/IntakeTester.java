@@ -68,162 +68,171 @@ public class IntakeTester extends OpMode {
         //boolean beamBreak = shooter.isBeamBroken();
 
         //intake
-        if (intakeStatus != INTAKE_STATUS.TESTING) {
-            if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-                switch (intakeStatus) {
-                    case IDLE:
-                        intakeStatus = INTAKE_STATUS.INTAKING;
-                        break;
+//        if (intakeStatus != INTAKE_STATUS.TESTING) {
+//            if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+//                switch (intakeStatus) {
+//                    case IDLE:
+//                        intakeStatus = INTAKE_STATUS.INTAKING;
+//                        break;
+//
+//                    case INTAKING:
+//                        intakeStatus = INTAKE_STATUS.IDLE;
+//                        break;
+//
+//                }
+//            }
+//
+//            //sort
+////            if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
+////                switch (intakeStatus) {
+////                    case IDLE:
+////                        intakeStatus = INTAKE_STATUS.SORTING;
+////                        break;
+////
+////                    case INTAKING:
+////                        intakeStatus = INTAKE_STATUS.SORTING;
+////                        break;
+////
+////                    case SORTING:
+////                        intakeStatus = INTAKE_STATUS.IDLE;
+////
+////                }
+////            }
+//
+//
+//
+////            switch (intakeStatus) {
+////                case INTAKING:
+////                    intake.intake();
+////                    if (ball1 != null) { //whichever color sensor is first
+////                        intake.cycle();
+////                    }
+////                    break;
+////
+////                case SORTING:
+//////                    intake.sort(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
+////                    break;
+////
+////                case IDLE:
+////                    intake.intakeMotorIdle();
+////                    break;
+////
+////            }
+//
+//        }
 
-                    case INTAKING:
-                        intakeStatus = INTAKE_STATUS.IDLE;
-                        break;
-
-                }
-            }
-
-            //sort
-            if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
-                switch (intakeStatus) {
-                    case IDLE:
-                        intakeStatus = INTAKE_STATUS.SORTING;
-                        break;
-
-                    case INTAKING:
-                        intakeStatus = INTAKE_STATUS.SORTING;
-                        break;
-
-                    case SORTING:
-                        intakeStatus = INTAKE_STATUS.IDLE;
-
-                }
-            }
-
-            if (gamepad2.square){
-                intake.sort(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
-            }
-
-            if (gamepad2.left_bumper){
-                intake.setCanShoot(true);
-            }
-            if (gamepad2.right_bumper){
-                intake.setCanShoot(false);
-            }
-
-            switch (intakeStatus) {
-                case INTAKING:
-                    intake.intake();
-                    if (ball1 != null) { //whichever color sensor is first
-                        intake.cycle();
-                    }
-                    break;
-
-                case SORTING:
-//                    intake.sort(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
-                    break;
-
-                case IDLE:
-                    intake.intakeMotorIdle();
-                    break;
-
-            }
-
-            if (ball1 == DetectedColor.GREEN){
-                telemetry.addLine("Detected Color slot 1 : GREEN FN");
-            }
-            else  if (ball1 == DetectedColor.PURPLE){
-                telemetry.addLine("Detected Color slot 1 : Purple");
-            }
-
-            if (ball2 == DetectedColor.GREEN){
-                telemetry.addLine("Detected Color slot 2 : GREEN FN");
-            }
-            else  if (ball2 == DetectedColor.PURPLE){
-                telemetry.addLine("Detected Color slot 2 : Purple");
-            }
-            if (ball3 == DetectedColor.GREEN){
-                telemetry.addLine("Detected Color slot 3 : GREEN FN");
-            }
-            else  if (ball3 == DetectedColor.PURPLE){
-                telemetry.addLine("Detected Color slot 3 : Purple");
-            }
-           // telemetry.addData("Beambreak: ", beamBreak);
-            telemetry.addLine("");
-            telemetry.update();
+        if (gamepad2.right_trigger > 0.2){
+            intake.intake();
+        }
+        if (gamepad2.left_trigger > 0.2){
+            intake.intakeMotorIdle();
+        }
+        if (gamepad2.x){
+            intake.sort(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
         }
 
+        if (gamepad2.left_bumper){
+            intake.setCanShoot(true);
+        }
+        if (gamepad2.right_bumper){
+            intake.setCanShoot(false);
+        }
+
+
+        if (ball1 == DetectedColor.GREEN){
+            telemetry.addLine("Detected Color slot 1 : GREEN FN");
+        }
+        else  if (ball1 == DetectedColor.PURPLE){
+            telemetry.addLine("Detected Color slot 1 : Purple");
+        }
+
+        if (ball2 == DetectedColor.GREEN){
+            telemetry.addLine("Detected Color slot 2 : GREEN FN");
+        }
+        else  if (ball2 == DetectedColor.PURPLE){
+            telemetry.addLine("Detected Color slot 2 : Purple");
+        }
+        if (ball3 == DetectedColor.GREEN){
+            telemetry.addLine("Detected Color slot 3 : GREEN FN");
+        }
+        else  if (ball3 == DetectedColor.PURPLE){
+            telemetry.addLine("Detected Color slot 3 : Purple");
+        }
+        // telemetry.addData("Beambreak: ", beamBreak);
+        telemetry.addLine("");
+        telemetry.update();
 
 
 
 
         //servo testing
-        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-            if (intakeStatus != INTAKE_STATUS.TESTING) {
-                intakeStatus = INTAKE_STATUS.TESTING;
-            } else {
-                intakeStatus = INTAKE_STATUS.IDLE;
-            }
-        }
-
-        if (intakeStatus == INTAKE_STATUS.TESTING) {
-
-            if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
-                testingStatus = TESTING_SERVO.TRANSFER_DIRECTION;
-            } else if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
-                testingStatus = TESTING_SERVO.TRANSFER_SERVO;
-            } else if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
-                testingStatus = TESTING_SERVO.GATE;
-            }
-
-            switch (testingStatus) {
-                case TRANSFER_DIRECTION:
-                    if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-                        TRANSFER_DIRECTION_TRANSFER_POS += 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-                        TRANSFER_DIRECTION_TRANSFER_POS -= 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
-                        TRANSFER_DIRECTION_CYCLE_POS += 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-                        TRANSFER_DIRECTION_CYCLE_POS -= 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
-                        intake.setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER_POS);
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-                        intake.setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE_POS);
-                    }
-                    break;
-
-                case TRANSFER_SERVO:
-                    if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-                        TRANSFER_ON += 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-                        TRANSFER_ON -= 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
-                        TRANSFER_OFF += 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-                        TRANSFER_OFF -= 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
-                        intake.setPowerTransmitionPosition(TRANSFER_ON);
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-                        intake.setPowerTransmitionPosition(TRANSFER_OFF);
-                    }
-                    break;
-
-                case GATE:
-                    if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-                        GATE_OPEN += 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-                        GATE_OPEN -= 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
-                        GATE_CLOSE += 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-                        GATE_CLOSE -= 0.05;
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
-                        intake.setGatePositon(GATE_CLOSE);
-                    } else if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-                        intake.setGatePositon(GATE_OPEN);
-                    }
-                    break;
-            }
+//        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+//            if (intakeStatus != INTAKE_STATUS.TESTING) {
+//                intakeStatus = INTAKE_STATUS.TESTING;
+//            } else {
+//                intakeStatus = INTAKE_STATUS.IDLE;
+//            }
+//        }
+//
+//        if (intakeStatus == INTAKE_STATUS.TESTING) {
+//
+//            if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
+//                testingStatus = TESTING_SERVO.TRANSFER_DIRECTION;
+//            } else if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
+//                testingStatus = TESTING_SERVO.TRANSFER_SERVO;
+//            } else if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
+//                testingStatus = TESTING_SERVO.GATE;
+//            }
+//
+//            switch (testingStatus) {
+//                case TRANSFER_DIRECTION:
+//                    if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+//                        TRANSFER_DIRECTION_TRANSFER_POS += 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+//                        TRANSFER_DIRECTION_TRANSFER_POS -= 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
+//                        TRANSFER_DIRECTION_CYCLE_POS += 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+//                        TRANSFER_DIRECTION_CYCLE_POS -= 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+//                        intake.setDirectionSwitcherPosition(TRANSFER_DIRECTION_TRANSFER_POS);
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+//                        intake.setDirectionSwitcherPosition(TRANSFER_DIRECTION_CYCLE_POS);
+//                    }
+//                    break;
+//
+//                case TRANSFER_SERVO:
+//                    if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+//                        TRANSFER_ON += 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+//                        TRANSFER_ON -= 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
+//                        TRANSFER_OFF += 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+//                        TRANSFER_OFF -= 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+//                        intake.setPowerTransmitionPosition(TRANSFER_ON);
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+//                        intake.setPowerTransmitionPosition(TRANSFER_OFF);
+//                    }
+//                    break;
+//
+//                case GATE:
+//                    if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+//                        GATE_OPEN += 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+//                        GATE_OPEN -= 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
+//                        GATE_CLOSE += 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+//                        GATE_CLOSE -= 0.05;
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+//                        intake.setGatePositon(GATE_CLOSE);
+//                    } else if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+//                        intake.setGatePositon(GATE_OPEN);
+//                    }
+//                    break;
+//            }
 
             telemetry.addLine("TESTING SERVO POSITION");
             telemetry.addData("Intake Status: ", intakeStatus);
@@ -242,6 +251,8 @@ public class IntakeTester extends OpMode {
 
 
 
+
+
     }
 
-}
+

@@ -49,7 +49,7 @@ public class v2Teleop extends OpMode {
 
     private final double RED_GOAL_X = 127.0;
     private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 132.0;
+    private final double GOAL_Y = 136.0;
     private static final double METERS_TO_INCH = 39.37;
 
     private boolean vibratedYet = false;
