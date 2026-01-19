@@ -195,8 +195,8 @@ public class Poses {
             new Pose(84, 24, Math.toRadians(60))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
-            new Pose(12, 8, Math.toRadians(180)),
-            new Pose(136, 8, Math.toRadians(0))
+            new Pose(7, 8, Math.toRadians(180)),
+            new Pose(137, 8, Math.toRadians(0))
     );
     public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
             new Pose(96.3, 7.2),
