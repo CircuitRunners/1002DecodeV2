@@ -873,6 +873,49 @@ public class Intake {
         lastBeamState = currentBeamState;
     }
 
+    public void doSortingTelemetry(DetectedColor s1, DetectedColor s2, DetectedColor s3,
+                             LimelightCamera.BallOrder targetOrder, boolean beam) {
+        telemetry.addLine("=== INTAKE SORT DIAGNOSTICS ===");
+        telemetry.addData("State", "%s (%.1f ms)", currentState, stateTimer.milliseconds());
+        telemetry.addData("Beam Break", beam ? "BROKEN (Ball Exiting)" : "CLEAR");
+
+        // --- Slot 1 Logic ---
+        if (s1 == DetectedColor.GREEN) {
+            telemetry.addLine("Detected Color slot 1 : GREEN FN");
+        } else if (s1 == DetectedColor.PURPLE) {
+            telemetry.addLine("Detected Color slot 1 : Purple");
+        } else {
+            telemetry.addLine("Detected Color slot 1 : NONE");
+        }
+
+        // --- Slot 2 Logic ---
+        if (s2 == DetectedColor.GREEN) {
+            telemetry.addLine("Detected Color slot 2 : GREEN FN");
+        } else if (s2 == DetectedColor.PURPLE) {
+            telemetry.addLine("Detected Color slot 2 : Purple");
+        } else {
+            telemetry.addLine("Detected Color slot 2 : NONE");
+        }
+
+        // --- Slot 3 Logic ---
+        if (s3 == DetectedColor.GREEN) {
+            telemetry.addLine("Detected Color slot 3 : GREEN FN");
+        } else if (s3 == DetectedColor.PURPLE) {
+            telemetry.addLine("Detected Color slot 3 : Purple");
+        } else {
+            telemetry.addLine("Detected Color slot 3 : NONE");
+        }
+
+        telemetry.addLine("--- Internal State ---");
+        telemetry.addData("Inventory", "T:%d | G:%d | P:%d", internalTotalBalls, greenInventory, purpleInventory);
+        telemetry.addData("Shots", "%d / %d", currentShot, internalTotalBalls);
+        telemetry.addData("Latches", "B1:%b B2:%b", ball1Latched, ball2Latched);
+        telemetry.addData("Nudge/Cycle", "N:%d C:%d", nudgeCount, cycleCount);
+
+        String[] target = getTargetArray(targetOrder);
+        telemetry.addData("Target Order", "[%s, %s, %s]", target[0], target[1], target[2]);
+    }
+
 
 
 
