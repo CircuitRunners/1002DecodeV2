@@ -210,10 +210,10 @@ public class gateOpenerAuto extends OpMode {
         double headingDeg = Math.toDegrees(pose.getHeading());
 
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,true);
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,true,0);
         }
         else {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,false);
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,false,0);
         }
         //shooter.flywheelVeloReached = false;
 
@@ -319,14 +319,14 @@ public class gateOpenerAuto extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(shooter.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         autonomousPathUpdate();
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
+        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
         telemetry.addData("is up to sped",shooter.flywheelVeloReached);
         telemetry.update();
     }

@@ -33,8 +33,8 @@ public class Intake {
     public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.85;
     public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.33;
     public static final double GATE_OPEN = 0.15;
-    public static final double GATE_CLOSED = 0.77;
-    public static final double TRANSFER_ON = 0.45;
+    public static final double GATE_CLOSED = 0.81;
+    public static final double TRANSFER_ON = 0.38;
     public static final double TRANSFER_OFF = 0.85;
 
     //SORTING STUFF//

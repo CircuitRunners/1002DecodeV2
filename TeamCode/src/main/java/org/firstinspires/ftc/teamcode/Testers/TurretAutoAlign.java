@@ -110,7 +110,7 @@ public class TurretAutoAlign extends OpMode {
         turret.setTurretTarget(
                 targetFieldYaw,
                 Shooter.TurretMode.FIELD_CENTRIC,
-                robotHeading
+                robotHeading,0
         );
 
        // turret.update(sensors.getFlywheelVelo(), shooter);

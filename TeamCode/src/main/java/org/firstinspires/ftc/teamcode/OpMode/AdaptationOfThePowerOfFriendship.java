@@ -44,6 +44,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     private final double GOAL_Y = 132.0;
 
     private boolean doTransfer = false;
+    private boolean goForLaunch = false;
 
     private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,park;
 
@@ -116,13 +117,14 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, true);
+                    handleAutoShooting(currentPose, targetX, 7,0);
                     setPathState();
                 }
                 break;
 
             case 1: // Shoot 3 Preloads
                 if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                    goForLaunch = true;
                 }
                 break;
 
@@ -219,13 +221,16 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         // Updated shooting command as requested
         double headingDeg = Math.toDegrees(pose.getHeading());
 
+
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,true);
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,true,0);
         }
         else {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,false);
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,false,0);
         }
         //shooter.flywheelVeloReached = false;
+
+        trackShotCount(shooter.isBeamBroken());
 
 
         // Once RPM and Hood Angle are locked, engage the transfer
@@ -241,17 +246,18 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 //            lastBeamState = currentBeamState;
         }
 
-        if (doTransfer){
+        if (doTransfer && goForLaunch){
             intake.transfer();
         }
 
 
         // Advance to next state if 3 balls fired OR the safety timer expires
-        if (pathTimer.getElapsedTimeSeconds() > timeout) {
+        if (pathTimer.getElapsedTimeSeconds() > timeout || ballsShotInState >= 3) {
             doTransfer = false;
             shooter.stopFlywheel();
             ballsShotInState = 0;
             intake.intakeMotorIdle();
+            goForLaunch = false;
             setPathState();
         }
     }
@@ -329,14 +335,14 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(shooter.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         autonomousPathUpdate();
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
+        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
         telemetry.addData("is up to sped",shooter.flywheelVeloReached);
         telemetry.update();
     }
@@ -347,4 +353,13 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         intake.resetIndexer();
         Poses.savePose(follower.getPose());
     }
+
+    private void trackShotCount(boolean currentBeamState) {
+        if (lastBeamState && !currentBeamState) {
+            ballsShotInState++;
+        }
+        lastBeamState = currentBeamState;
+    }
+
+
 }

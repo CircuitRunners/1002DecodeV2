@@ -188,7 +188,7 @@ public class FarZoneAuto extends OpMode {
     private void handleAutoShooting(Pose pose, double targetX, double timeout,double mannualHoodAdjust) {
         // Updated shooting command as requested
         double headingDeg = Math.toDegrees(pose.getHeading());
-        shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,mannualHoodAdjust,false);
+        shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,mannualHoodAdjust,false,0);
         //shooter.flywheelVeloReached = false;
 
 
@@ -294,14 +294,14 @@ public class FarZoneAuto extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(shooter.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         autonomousPathUpdate();
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
+        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
         telemetry.update();
     }
 

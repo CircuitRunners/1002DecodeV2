@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Configurable
 public class Shooter {
@@ -68,9 +69,9 @@ public class Shooter {
     private static final double ANGLE_SEARCH_STEP_DEG = 2.5;
 
     // Status flags
-    public static boolean flywheelVeloReached;
-    public static boolean turretReached;
-    public static boolean hoodReached;
+    public static boolean flywheelVeloReached = false;
+    public static boolean turretReached = false;
+    public static boolean hoodReached = false;
 
     public static boolean isShotImpossible = false;
 
@@ -270,7 +271,7 @@ private static final double[][] MUZZLE_K_TABLE = {
     }
 
 
-    public void setTurretTarget(double inputFieldDeg, TurretMode mode, double robotFieldYawDeg) {
+    public void setTurretTarget(double inputFieldDeg, TurretMode mode, double robotFieldYawDeg, double mannualTurretAdjust) {
         double absoluteTarget = 0;
         robotFieldYawDeg = normalizeRobotHeading0_360(robotFieldYawDeg);
 
@@ -298,7 +299,7 @@ private static final double[][] MUZZLE_K_TABLE = {
 
 
         // Set the setpoint (Non-Continuous PID handles the 'long way')
-        setTurretTargetPosition(absoluteTarget);
+        setTurretTargetPosition(absoluteTarget + mannualTurretAdjust);
     }
 
     private void setTurretTargetPosition(double positionDeg) {
@@ -425,7 +426,7 @@ private static final double[][] MUZZLE_K_TABLE = {
         setTargetVelocityTicks(finalAdjustedVeloTicks);
         setHoodTargetAngle(Range.clip(finalAdjustedHoodDeg, 0, 45));
         // Turret uses the yaw calculated for the VIRTUAL goal
-        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading);
+        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading,0);
     }
 
 
@@ -462,7 +463,7 @@ private static final double[][] MUZZLE_K_TABLE = {
 
     public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
 
-        if (currentFlywheelVelo >= targetFlywheelVelocity - 150 || currentFlywheelVelo <= targetFlywheelVelocity + 150) {
+        if (currentFlywheelVelo >= targetFlywheelVelocity - 500 || currentFlywheelVelo <= targetFlywheelVelocity + 500) {
             flywheelVeloReached = true;
         }
         else {
@@ -586,7 +587,7 @@ private static final double[][] MUZZLE_K_TABLE = {
         return false;
     }
 
-    public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign, double hoodMannualAdjustment, boolean isRed) {
+    public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign, double hoodMannualAdjustment, boolean isRed, double turretAdjustment) {
         double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
 
         double hoodPos;
@@ -614,11 +615,11 @@ private static final double[][] MUZZLE_K_TABLE = {
                 requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY,false);
             }
             // B. Pass to the turret setter
-            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotAngle);
+            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotAngle,turretAdjustment);
         }
     }
 
-    public void setTargetsByDistanceAdjustable(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign,double flywheelMannualAdjustment, double hoodMannualAdjustment, boolean isRed) {
+    public void setTargetsByDistanceAdjustable(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign,double flywheelMannualAdjustment, double hoodMannualAdjustment, boolean isRed, double turretManualAdjustment) {
         double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
 
         double hoodPos;
@@ -642,7 +643,7 @@ private static final double[][] MUZZLE_K_TABLE = {
             }
             else { requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, true);}
             // B. Pass to the turret setter
-            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotAngle);
+            setTurretTarget(requiredFieldYaw, TurretMode.AUTO_ALIGN, robotAngle,turretManualAdjustment);
         }
     }
 
@@ -658,7 +659,11 @@ private static final double[][] MUZZLE_K_TABLE = {
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        setTurretTarget(0,TurretMode.ROBOT_CENTRIC,getCurrentTurretPosition());
+        setTurretTarget(0,TurretMode.ROBOT_CENTRIC,getCurrentTurretPosition(),0);
+    }
+
+    public double getFlywheelVelo(){
+        return shooter1.getVelocity();
     }
 
 

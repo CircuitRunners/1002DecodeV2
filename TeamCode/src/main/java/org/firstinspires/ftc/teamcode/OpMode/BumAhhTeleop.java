@@ -115,7 +115,7 @@ public class BumAhhTeleop extends OpMode {
         double r = Math.hypot(forward, strafe);
         drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
 
-        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(shooter.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         telemetry.addData("Step", shootStep);
         telemetry.addData("Align", autoAlignEnabled);

@@ -212,9 +212,9 @@ public class Sensors {
 //    }
 
     // flywheel velo in ticks/sec
-    public double getFlywheelVelo() {
-        return hub.readEncoder(1).velocity;
-    }
+//    public double getFlywheelVelo() {
+//        return hub.readEncoder(1).velocity;
+//    }
 
 
 

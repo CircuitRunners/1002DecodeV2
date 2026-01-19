@@ -58,6 +58,7 @@ public class v2Teleop extends OpMode {
     private boolean noAutoAlign  =false;
 
     private final ElapsedTime timer = new ElapsedTime();
+    double turretMannualAdjust = 0;
 
     @Override
     public void init() {
@@ -140,13 +141,13 @@ public class v2Teleop extends OpMode {
         telemetry.addData("Position", followerData);
         telemetry.addData("Pinpoint (BAD) Position", data);
 
-        double currentFlywheelVelo = sensors.getFlywheelVelo();
+        double currentFlywheelVelo = shooter.getFlywheelVelo();
         double currentTurretAngle = shooter.getCurrentTurretPosition();
         boolean isBeamBroken = shooter.isBeamBroken();
         boolean beamValue = shooter.isBeamBroken();
 
         // --- 3. LOGIC & OVERRIDES ---
-        handleManualTurretOverrides(currentTurretAngle);
+        handleManualTurretOverrides(follower.getPose().getHeading());
         handleAllianceToggles();
         handleInputOverrides();
         handleDriving(currentPose);
@@ -171,26 +172,26 @@ public class v2Teleop extends OpMode {
 
     private void handleManualTurretOverrides(double currentAngle) {
         // Manual control: move turret and stick PID to current position to prevent fighting
-        if (gamepad2.dpad_right) {
-            shooter.setTurretTarget(shooter.getCurrentTurretPosition() + 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
+        if (gamepad1.dpad_right) {
+            turretMannualAdjust +=5;
         }
-        else if (gamepad2.dpad_left) {
+        else if (gamepad1.dpad_left) {
 
-            shooter.setTurretTarget(shooter.getCurrentTurretPosition() - 5, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
+            turretMannualAdjust -=5;
         }
 
         // Hardware re-zero
-        if (player2.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
+        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
             shooter.rezeroTurretPosition();
             gamepad2.rumble(500);
             //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         }
 
         if (player2.wasJustPressed(GamepadKeys.Button.CROSS)){
-            shooter.setTurretTarget(limelight.updateError(), Shooter.TurretMode.ROBOT_CENTRIC,currentAngle);
+            shooter.setTurretTarget(limelight.updateError(), Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
         }
-        if (player2.wasJustPressed(GamepadKeys.Button.CIRCLE)){
-            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
+        if (player2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)){
+            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
         }
 
         //square turns it off
@@ -238,16 +239,16 @@ public class v2Teleop extends OpMode {
        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
         if (isRedAlliance) {
             if (noAutoAlign) {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,true);
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,true,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,true);
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,true,turretMannualAdjust);
             }
         }
         else{
             if (noAutoAlign) {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,false);
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,false,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,false);
+                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,false,turretMannualAdjust);
             }
         }
     }
@@ -279,12 +280,19 @@ public class v2Teleop extends OpMode {
         shooter.stopFlywheel();
         intake.sortManualOverride();
         intake.resetIndexer();
+        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), 0);
         gamepad1.rumble(150);
     }
 
     private void handleAllianceToggles() {
-        if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) { isRedAlliance = true; gamepad1.rumble(100); }
-        if (player1.wasJustPressed(GamepadKeys.Button.SHARE)) { isRedAlliance = false; gamepad1.rumble(100); }
+
+        if (player1.wasJustPressed(GamepadKeys.Button.SHARE)) {
+            if (isRedAlliance){
+            isRedAlliance = false; gamepad1.rumble(100); }
+            else {
+                isRedAlliance = true; gamepad1.rumble(100);
+            }
+        }
     }
 
     private void handleInputOverrides() {
@@ -298,7 +306,7 @@ public class v2Teleop extends OpMode {
             if (opState != 1) { ballsShotInState = 0; opState = 1; } else resetToIntake();
         }
 
-        if (player2.wasJustPressed(GamepadKeys.Button.SQUARE)) {
+        if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) {
             noAutoAlign = true;
         }
         /* not till tuned sry lil bro

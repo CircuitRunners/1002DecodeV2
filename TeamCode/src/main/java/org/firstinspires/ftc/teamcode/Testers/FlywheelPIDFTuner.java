@@ -154,7 +154,7 @@ public class FlywheelPIDFTuner extends OpMode {
 
         sensors.update();
 
-        double rPM = sensors.getFlywheelVelo();
+        double rPM = shooter1.getVelocity();
 
         // --- Update gains and setpoint ---
         pidf.setPIDF(kP, kI, kD, kF);
