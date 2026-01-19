@@ -5,7 +5,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -60,6 +59,8 @@ public class v2Teleop extends OpMode {
     private final ElapsedTime timer = new ElapsedTime();
     double turretMannualAdjust = 0;
 
+    boolean teleopShootApporval = false;
+
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
@@ -109,6 +110,7 @@ public class v2Teleop extends OpMode {
 
     @Override
     public void loop() {
+        timer.reset();
         // --- 1. HARDWARE UPDATES ---
         follower.update();
         pinpoint.update();
@@ -122,6 +124,10 @@ public class v2Teleop extends OpMode {
         double currentHeadingDeg = Math.toDegrees(currentPose.getHeading());
         double robotVelX = pinpoint.getVelX(DistanceUnit.METER);
         double robotVelY = pinpoint.getVelY(DistanceUnit.METER);
+
+        LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
+                ? Intake.targetPatternFromAuto
+                : LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN;
 
         String data = String.format(Locale.US,
                 "{X: %.3f, Y: %.3f, H: %.3f}",
@@ -144,7 +150,7 @@ public class v2Teleop extends OpMode {
         double currentFlywheelVelo = shooter.getFlywheelVelo();
         double currentTurretAngle = shooter.getCurrentTurretPosition();
         boolean isBeamBroken = shooter.isBeamBroken();
-        boolean beamValue = shooter.isBeamBroken();
+
 
         // --- 3. LOGIC & OVERRIDES ---
         handleManualTurretOverrides(follower.getPose().getHeading());
@@ -156,18 +162,22 @@ public class v2Teleop extends OpMode {
         switch (opState) {
             case 0: handleIntakeState(); break;
             case 1: handleScoringStateNoSort(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken); break;
-            case 2: handleScoringState(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken, beamValue); break;
+            case 2: handleScoringState(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken); break;
         }
 
         // --- 5. SUBSYSTEM UPDATES ---
-        intake.setCanShoot(shooter.flywheelVeloReached && shooter.turretReached && shooter.hoodReached);
+        intake.setCanShoot(shooter.flywheelVeloReached && shooter.turretReached && teleopShootApporval );
         shooter.update(currentFlywheelVelo, currentTurretAngle);
+        intake.update(isBeamBroken, activePattern,
+                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
+                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
+                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
 
         // --- 6. TELEMETRY ---
         doTelemetry();
         extraTelemetryForTesting(currentFlywheelVelo, currentTurretAngle, isBeamBroken);
         telemetry.update();
-        timer.reset();
+
     }
 
     private void handleManualTurretOverrides(double currentAngle) {
@@ -190,7 +200,7 @@ public class v2Teleop extends OpMode {
         if (player2.wasJustPressed(GamepadKeys.Button.CROSS)){
             shooter.setTurretTarget(limelight.updateError(), Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
         }
-        if (player2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)){
+        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)){
             shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
         }
 
@@ -211,26 +221,34 @@ public class v2Teleop extends OpMode {
         }
 
         if (initiateTransfer){
-            intake.transfer();
+            teleopShootApporval = true;
+            intake.doTransfer();
             trackShotCount(beam);
         }
 
         if (ballsShotInState >= 3) resetToIntake();
     }
 
-    private void handleScoringState(Pose pose, double vx, double vy, double head, boolean beam,  boolean beamVal) {
+    private void handleScoringState(Pose pose, double vx, double vy, double head, boolean beam) {
         applyShooterTargets(pose, vx, vy, head);
 
-        LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
-                ? Intake.targetPatternFromAuto
-                : LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN;
 
-        intake.sort(beamVal, activePattern,
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+        if (shooter.flywheelVeloReached  && !vibratedYet) {
+            gamepad1.rumble(250);
+            vibratedYet = true;
+        }
+        else if (!intake.canShoot){
+            vibratedYet = false;
+        }
+        if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+            initiateTransfer = true;
+        }
 
-        trackShotCount(beam);
+        if (initiateTransfer){
+            teleopShootApporval = true;
+            trackShotCount(beam);
+        }
+
         if (ballsShotInState >= 3) resetToIntake();
     }
 
@@ -275,11 +293,12 @@ public class v2Teleop extends OpMode {
     private void resetToIntake() {
         opState = 0;
         ballsShotInState = 0;
+        teleopShootApporval = false;
         initiateTransfer = false;
         vibratedYet = false;
         shooter.stopFlywheel();
-        intake.sortManualOverride();
-        intake.resetIndexer();
+        //intake.sortManualOverride();
+        intake.resetState();
         shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), 0);
         gamepad1.rumble(150);
     }
@@ -303,7 +322,7 @@ public class v2Teleop extends OpMode {
             if (seen != null) { Intake.targetPatternFromAuto = seen; gamepad1.rumble(500); }
         }
         if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
-            if (opState != 1) { ballsShotInState = 0; opState = 1; } else resetToIntake();
+            if (opState ==0) { ballsShotInState = 0; opState = 1; } else resetToIntake();
         }
 
         if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) {
@@ -311,7 +330,12 @@ public class v2Teleop extends OpMode {
         }
         /* not till tuned sry lil bro
         if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-            if (opState != 2) { ballsShotInState = 0; opState = 2; } else resetToIntake();
+            if (opState == 0) { ballsShotInState = 0; opState = 2;
+             intake.prepareAndStartSort();
+             }
+             else {
+             resetToIntake();
+             }
         }
         */
 
@@ -320,9 +344,9 @@ public class v2Teleop extends OpMode {
     private void handleIntakeState() {
 
         //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
-        if (gamepad1.right_trigger > 0.2) intake.intake();
-        else if (gamepad1.left_trigger > 0.2) intake.outtake();
-        else intake.intakeMotorIdle();
+        if (gamepad1.right_trigger > 0.2) intake.doIntake();
+        else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
+        else intake.doIntakeHalt();
     }
 
     private void configurePinpoint() {

@@ -119,7 +119,7 @@ public class gateOpenerAuto extends OpMode {
                 break;
 
             case 2: // Drive to Intake 1
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake2, true);
                     setPathState();
@@ -127,7 +127,7 @@ public class gateOpenerAuto extends OpMode {
                 break;
 
             case 3: // Gate logic
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
@@ -150,7 +150,7 @@ public class gateOpenerAuto extends OpMode {
 
             case 10:
             case 6: // WAIT at Gate (2.5s)
-                intake.intake(); // keep intaking while stalled
+                intake.doIntake(); // keep intaking while stalled
 
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
                     setPathState();
@@ -173,7 +173,7 @@ public class gateOpenerAuto extends OpMode {
                 break;
 
             case 13:
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake1, true);
                     setPathState();
@@ -195,7 +195,7 @@ public class gateOpenerAuto extends OpMode {
 
             default:
                 shooter.stopFlywheel();
-                intake.resetIndexer();
+                intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
                 break;
         }
@@ -232,7 +232,7 @@ public class gateOpenerAuto extends OpMode {
         }
 
         if (doTransfer){
-            intake.transfer();
+            intake.doTransfer();
         }
 
 
@@ -241,7 +241,7 @@ public class gateOpenerAuto extends OpMode {
             doTransfer = false;
             shooter.stopFlywheel();
             ballsShotInState = 0;
-            intake.intakeMotorIdle();
+            intake.doIntakeHalt();
             setPathState();
         }
     }
@@ -334,7 +334,7 @@ public class gateOpenerAuto extends OpMode {
     @Override
     public void stop() {
         shooter.stopFlywheel();
-        intake.resetIndexer();
+        intake.resetState();
         Poses.savePose(follower.getPose());
     }
 }

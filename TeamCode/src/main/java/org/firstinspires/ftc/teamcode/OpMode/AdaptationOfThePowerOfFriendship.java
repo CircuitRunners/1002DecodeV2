@@ -129,7 +129,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 break;
 
             case 2: // Drive to Intake 1
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake1, true);
                     setPathState();
@@ -137,7 +137,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 break;
 
             case 3: // Gate logic
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(openGate, true);
                     setPathState();
@@ -158,7 +158,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 break;
 
             case 6: // Drive to Intake 2
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake2, false);
                     setPathState();
@@ -179,7 +179,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 break;
 
             case 9: // Drive to Intake 3
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake3, false);
                     setPathState();
@@ -207,7 +207,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
             default:
                 shooter.stopFlywheel();
-                intake.resetIndexer();
+                intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
                 break;
         }
@@ -247,7 +247,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         }
 
         if (doTransfer && goForLaunch){
-            intake.transfer();
+            intake.doTransfer();
         }
 
 
@@ -256,7 +256,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             doTransfer = false;
             shooter.stopFlywheel();
             ballsShotInState = 0;
-            intake.intakeMotorIdle();
+            intake.doIntakeHalt();
             goForLaunch = false;
             setPathState();
         }
@@ -350,7 +350,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     @Override
     public void stop() {
         shooter.stopFlywheel();
-        intake.resetIndexer();
+        intake.resetState();
         Poses.savePose(follower.getPose());
     }
 

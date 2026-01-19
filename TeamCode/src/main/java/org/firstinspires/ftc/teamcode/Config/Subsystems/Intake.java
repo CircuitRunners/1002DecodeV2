@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -27,6 +25,8 @@ public class Intake {
 
     public static double motorPower = 0;
 
+    private boolean lastBeamState = false;
+
     // Configurable constants
     public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
     public static double targetRPM = 0;  // default target speed
@@ -38,10 +38,39 @@ public class Intake {
     public static final double TRANSFER_OFF = 0.85;
 
     //SORTING STUFF//
-    private int currentShot = 0;
+    public enum IntakeState {
+        IDLE,
+        COASTING_TO_SLOT,  // Moving ball toward sensors
+        POSITION_NUDGE,    // Backwards pulse for "Ball Hole" fix
+        VERIFYING_ORDER,   // Checking if S1/S2 match target pattern
+        FLUSHING,          // Clearing top ball if order is wrong
+        READY_TO_FIRE,     // Pattern locked, waiting for canShoot
+        TRANSFERRING,       // Moving ball to shooter
+        INTAKING,
+        OUTTAKING,
+        HALT,
+        PRE_NUDGE,
+        RESET,
+        CYCLE,
+        TEST_SHOOTING
+    }
+
+    private IntakeState currentState = IntakeState.IDLE;
+    private ElapsedTime stateTimer = new ElapsedTime();
+
+    // Logic Latches (The "Memory" of the ball positions)
+    private boolean ball1Latched = false;
+    private boolean ball2Latched = false;
+
+    // Counters & Inventory
+    private int stabilityCounter = 0; // For "No-Bounce" confirmation
+    private int nudgeCount = 0;       // Safety to prevent infinite nudging
+    private int cycleCount = 0;       // Tracks if we've seen all balls
     private int greenInventory = 0;
     private int purpleInventory = 0;
-    private boolean ballInTransfer = false;
+    private int internalTotalBalls = 0;
+    private int currentShot = 0;
+    //private boolean ballInTransfer = false;
 
 
     public static boolean canShoot = false;
@@ -74,8 +103,31 @@ public class Intake {
     }
 
 
+    public void doIntake(){
+        newState(IntakeState.INTAKING);
+    }
 
-    public void intake(){
+    public void doOuttake(){
+        newState(IntakeState.OUTTAKING);
+    }
+    public void doIntakeHalt(){
+        newState(IntakeState.IDLE);
+    }
+    public void doCycle(){
+        newState(IntakeState.CYCLE);
+    }
+    public void doTransfer(){
+        internalTotalBalls = 3;
+        newState(IntakeState.TRANSFERRING);
+    }
+    public void doTestShooter(){
+        newState(IntakeState.TEST_SHOOTING);
+    }
+    public void resetState(){
+        newState(IntakeState.RESET);
+    }
+
+    private void intake(){
         gateClose();
         transferOff();
         setDirectionCycle();
@@ -83,7 +135,7 @@ public class Intake {
         motorPower = 1;
     }
 
-    public void outtake(){
+    private void outtake(){
         gateClose();
         transferOn();
         setDirectionCycle();
@@ -91,14 +143,14 @@ public class Intake {
         motorPower = -1;
     }
 
-    public void retainBalls(){
+    private void retainBalls(){
         gateClose();
         transferOff();
         intake.setPower(0.5);
         motorPower = 0.5;
     }
 
-    public void intakeMotorIdle(){
+    private void intakeMotorHalt(){
         intake.setPower(0);
         motorPower = 0;
     }
@@ -144,39 +196,41 @@ public class Intake {
     }
 
 
-    public void cycle(){
+    private void cycle(){
         gateOpen();
         transferOn();
         setDirectionCycle();
         intake.setPower(0.85);
     }
 
-    public void transfer(){
+    private void transfer(){
         transferOn();
         setDirectionTransfer();
         gateClose();
         intake.setPower(1);
     }
 
-    public void resetIndexer(){
+    private void resetIndexer(){
         transferOff();
         setDirectionCycle();
-        intakeMotorIdle();
+        intakeMotorHalt();
     }
 
-    public void sortManualOverride() {
-        ballInTransfer = false;
-        patternIsLocked = false;
 
-        currentShot = 0;
 
-        greenInventory = 0;
-        purpleInventory = 0;
-
-        resetIndexer();
-
-        telemetry.addLine("Sorter manual override triggered: sorting stopped.");
-    }
+//    public void sortManualOverride() {
+//        ballInTransfer = false;
+//        patternIsLocked = false;
+//
+//        currentShot = 0;
+//
+//        greenInventory = 0;
+//        purpleInventory = 0;
+//
+//        resetIndexer();
+//
+//        telemetry.addLine("Sorter manual override triggered: sorting stopped.");
+//    }
 
 
 
@@ -294,8 +348,8 @@ public class Intake {
 //        }
 //    }
 
-    private boolean lastSlot1WasNull = false;
-    private boolean patternIsLocked = false; // New flag to stop checking sensors during firing
+//    private boolean lastSlot1WasNull = false;
+//    private boolean patternIsLocked = false; // New flag to stop checking sensors during firing
 
 //    public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
 //                     DetectedColor colorSensor1Value,
@@ -412,148 +466,341 @@ public class Intake {
 //    }
 //
 
-    private boolean isSorting = false;
-    private int internalTotalBalls = 0;
+
+
+    // Resets the latches so we can look for the "next" set of balls
+    private void resetLatches() {
+        ball1Latched = false;
+        ball2Latched = false;
+        stabilityCounter = 0;
+    }
+
+    // Switches state and resets the timer for state-based transitions
+    private void newState(IntakeState next) {
+        currentState = next;
+        stateTimer.reset(); // Built-in ElapsedTime method
+        stabilityCounter = 0;
+    }
+
+    // Checks if the target pattern is even possible with what we have inside
+    private boolean isPatternPossible(LimelightCamera.BallOrder order) {
+        int reqG = 1;
+        int reqP = 2;
+        return (greenInventory >= reqG && purpleInventory >= reqP);
+    }
+
+    public void prepareAndStartSort() {
+       newState(IntakeState.PRE_NUDGE);
+    }
+
+
+
+    public void update(boolean beamBreak, LimelightCamera.BallOrder targetOrder,
+                       DetectedColor s1, DetectedColor s2,DetectedColor s3) {
+
+        switch (currentState) {
+            case PRE_NUDGE:
+
+                gateClose();
+                intake.setPower(-0.4);
+
+                if (stateTimer.milliseconds() > 400) {
+
+                    intakeMotorHalt();
+
+                    greenInventory = 0;
+                    purpleInventory = 0;
+                    DetectedColor[] sensors = {s1, s2, s3};
+                    for (DetectedColor color : sensors) {
+                        if (color == DetectedColor.GREEN) greenInventory++;
+                        else if (color == DetectedColor.PURPLE) purpleInventory++;
+                    }
+
+                    internalTotalBalls = greenInventory + purpleInventory;
+                    currentShot = 0;
+                    cycleCount = 0;
+
+                    if (internalTotalBalls > 0) {
+                        resetLatches();
+                        newState(IntakeState.COASTING_TO_SLOT);
+                    }
+                }
+                break;
+            case IDLE:
+                break;
+            case COASTING_TO_SLOT:
+                // LATCH: Once a sensor sees anything, remember it's there
+                if (s1 != null) ball1Latched = true;
+                if (s2 != null) ball2Latched = true;
+
+                if (!ball1Latched) {
+                    cycle(); // Gate OPEN, Motor ON
+                } else if (!ball2Latched && internalTotalBalls > 1) {
+                    gateClose();
+                    intake.setPower(0.4); // Seat the 2nd ball
+                } else {
+                    intakeMotorHalt();
+                    newState(IntakeState.VERIFYING_ORDER);
+                }
+                break;
+
+            case POSITION_NUDGE:
+                gateClose();
+                intake.setPower(-0.35);
+                if (stateTimer.milliseconds() > 120) { // Replaces long-based math
+                    intakeMotorHalt();
+                    nudgeCount++;
+                    newState(IntakeState.VERIFYING_ORDER);
+                }
+                break;
+
+            case VERIFYING_ORDER:
+                // HOLE CHECK: If latched but currently seeing NULL, nudge it
+                if (s1 == null || (internalTotalBalls > 1 && s2 == null)) {
+                    if (nudgeCount < 3) newState(IntakeState.POSITION_NUDGE);
+                    else newState(IntakeState.FLUSHING);
+                    break;
+                }
+
+                stabilityCounter++;
+                if (stabilityCounter >= 3) { // Consistent reading for 3 loops
+                    boolean possible = isPatternPossible(targetOrder);
+                    String[] target = getTargetArray(targetOrder);
+
+                    boolean s1Match = isColorMatch(s1, target[0]);
+                    boolean s2Match = (internalTotalBalls < 2) || isColorMatch(s2, target[1]);
+
+                    // CHILL LOGIC: Fire if pattern is right OR if pattern is impossible
+                    if ((possible && s1Match && s2Match) || !possible) {
+                        newState(IntakeState.READY_TO_FIRE);
+                    } else {
+                        newState(IntakeState.FLUSHING);
+                    }
+                }
+                break;
+
+            case FLUSHING:
+                cycle();
+                if (stateTimer.milliseconds() > 350) { // Replaces long-based math
+                    cycleCount++;
+                    resetLatches();
+                    nudgeCount = 0;
+                    newState(IntakeState.COASTING_TO_SLOT);
+                }
+                break;
+
+            case READY_TO_FIRE:
+                gateClose();
+                if (canShoot) newState(IntakeState.TRANSFERRING);
+                break;
+
+            case TRANSFERRING:
+
+                if (canShoot){
+                    transfer();
+                }
+                else {
+                    intakeMotorHalt();
+                }
+                trackShotCount(beamBreak);
+
+                if (currentShot >= internalTotalBalls) {
+                    nudgeCount = 0;
+                    cycleCount = 0;
+                    currentShot = 0;
+                    resetLatches();
+
+                    newState(IntakeState.HALT);
+                }
+
+                break;
+
+            case INTAKING:
+                intake();
+                break;
+
+            case OUTTAKING:
+                outtake();
+                break;
+
+            case HALT:
+                intakeMotorHalt();
+                newState(IntakeState.RESET);
+                break;
+
+            case RESET:
+                internalTotalBalls = 0;
+                greenInventory = 0;
+                purpleInventory = 0;
+                currentShot = 0;
+                cycleCount = 0;
+                nudgeCount = 0;
+                stabilityCounter = 0;
+
+                // Reset Latches & Sensors
+                ball1Latched = false;
+                ball2Latched = false;
+
+                newState(IntakeState.IDLE);
+                break;
+
+            case CYCLE:
+                cycle();
+                break;
+
+            case TEST_SHOOTING:
+                transfer();
+                break;
+
+        }
+
+        telemetry.update();
+    }
+
+    public void initiateTransferNoSort(){
+        newState(IntakeState.TRANSFERRING);
+    }
+
 
     //BEFORE CALLING: RUN INTAKE BACKWARDS TO ENSURE ALL COLOR SENSORS GET A ACCURATE READING
 
-    public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
-                     DetectedColor colorSensor1Value,
-                     DetectedColor colorSensor2Value,
-                     DetectedColor colorSensor3Value) {
-
-        // 1. INITIALIZATION: Only happens the moment sorting starts
-        if (!isSorting) {
-            internalTotalBalls = getTotalInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
-
-            if (internalTotalBalls > 0) {
-                isSorting = true;
-                patternIsLocked = false;
-                currentShot = 0;
-                telemetry.addLine("--- SORT STARTED: Inventory Locked ---");
-            } else {
-                resetIndexer();
-                return; // Nothing to do
-            }
-        }
-
-        // 2. DATA SNAPSHOT (For logic/telemetry)
-        String[] pattern = getTargetArray(targetOrder);
-        boolean isBeamBroken = shooterBeamBrake;
-
-        // --- TELEMETRY ---
-        telemetry.addData("Status", patternIsLocked ? "PHASE 2: FIRING" : "PHASE 1: SORTING");
-        telemetry.addData("Inventory (Locked)", internalTotalBalls);
-        telemetry.addData("Shots Taken", currentShot);
-        telemetry.addData("Target", "%s, %s, %s", pattern[0], pattern[1], pattern[2]);
-        telemetry.addData("Real-time Sensors", "[%s] [%s] [%s]",
-                colorSensor1Value != null ? colorSensor1Value : "-",
-                colorSensor2Value != null ? colorSensor2Value : "-",
-                colorSensor3Value != null ? colorSensor3Value : "-");
-
-        // 3. COMPLETION CHECK
-        if (currentShot >= internalTotalBalls || internalTotalBalls == 0) {
-            telemetry.addLine("--- SORT COMPLETE: Resetting ---");
-            isSorting = false;
-            internalTotalBalls = 0;
-            currentShot = 0;
-            patternIsLocked = false;
-            resetIndexer();
-            return;
-        }
-
-        // 4. PHASE 1: SORTING (Ordering the balls)
-        if (!patternIsLocked) {
-            // If only 1 ball, no sorting needed
-            if (internalTotalBalls == 1) {
-                patternIsLocked = true;
-            }
-            // If sensors currently see the top two balls
-            else if (colorSensor1Value != null && colorSensor2Value != null) {
-                boolean s1Match = isColorMatch(colorSensor1Value, pattern[0]);
-                boolean s2Match = isColorMatch(colorSensor2Value, pattern[1]);
-
-                if (s1Match && s2Match) {
-                    gateClose();
-                    intakeMotorIdle();
-                    patternIsLocked = true;
-                } else {
-                    performSortingCycle(colorSensor1Value);
-                }
-            }
-            else {
-                // Balls are moving between sensors; keep cycling until they land in slots
-                performSortingCycle(colorSensor1Value);
-            }
-        }
-
-        // 5. PHASE 2: FIRING
-        if (patternIsLocked) {
-            if (!ballInTransfer) {
-                if (canShoot) {
-                    transfer();
-                    ballInTransfer = true;
-                } else {
-                    gateClose();
-                    intakeMotorIdle();
-                }
-            }
-        }
-
-        // 6. SHOT TRACKER (The only place we decrement/advance)
-        if (ballInTransfer && isBeamBroken) {
-            currentShot++;
-            ballInTransfer = false;
-            // The loop will now check if currentShot >= internalTotalBalls to finish
-        }
-    }
-
-    private void performSortingCycle(DetectedColor currentSlot1) {
-        boolean isSlot1Null = (currentSlot1 == null);
-
-        // If a ball just hit Slot 1, stop the motor to "catch" it and check color
-        if (lastSlot1WasNull && !isSlot1Null) {
-            gateClose();
-            intakeMotorIdle();
-        } else if (isSlot1Null) {
-            // Motor only runs when Slot 1 is empty to bring the next ball up
-            cycle();
-        }
-
-        lastSlot1WasNull = isSlot1Null;
-    }
-    public int getGreenInventory(DetectedColor colorSensor1Value,
-                                 DetectedColor colorSensor2Value,
-                                 DetectedColor colorSensor3Value) {
-        greenInventory = 0;
-        DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
-        for (DetectedColor color : sensors) {
-            if (color == DetectedColor.GREEN) greenInventory++;
-        }
-
-        return greenInventory;
-
-    }
-
-    public int getPurpleInventory(DetectedColor colorSensor1Value,
-                                 DetectedColor colorSensor2Value,
-                                 DetectedColor colorSensor3Value) {
-        purpleInventory = 0;
-        DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
-        for (DetectedColor color : sensors) {
-            if (color == DetectedColor.PURPLE) purpleInventory++;
-        }
-
-        return purpleInventory;
-
-    }
-
-    public int getTotalInventory(DetectedColor colorSensor1Value,
-                                 DetectedColor colorSensor2Value,
-                                 DetectedColor colorSensor3Value) {
-        return getGreenInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value) +
-                getPurpleInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
-    }
+//    public void sort(boolean shooterBeamBrake, LimelightCamera.BallOrder targetOrder,
+//                     DetectedColor colorSensor1Value,
+//                     DetectedColor colorSensor2Value,
+//                     DetectedColor colorSensor3Value) {
+//
+//        // 1. INITIALIZATION: Only happens the moment sorting starts
+//        if (!isSorting) {
+//            internalTotalBalls = getTotalInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+//
+//            if (internalTotalBalls > 0) {
+//                isSorting = true;
+//                patternIsLocked = false;
+//                currentShot = 0;
+//                telemetry.addLine("--- SORT STARTED: Inventory Locked ---");
+//            } else {
+//                resetIndexer();
+//                return; // Nothing to do
+//            }
+//        }
+//
+//        // 2. DATA SNAPSHOT (For logic/telemetry)
+//        String[] pattern = getTargetArray(targetOrder);
+//        boolean isBeamBroken = shooterBeamBrake;
+//
+//        // --- TELEMETRY ---
+//        telemetry.addData("Status", patternIsLocked ? "PHASE 2: FIRING" : "PHASE 1: SORTING");
+//        telemetry.addData("Inventory (Locked)", internalTotalBalls);
+//        telemetry.addData("Shots Taken", currentShot);
+//        telemetry.addData("Target", "%s, %s, %s", pattern[0], pattern[1], pattern[2]);
+//        telemetry.addData("Real-time Sensors", "[%s] [%s] [%s]",
+//                colorSensor1Value != null ? colorSensor1Value : "-",
+//                colorSensor2Value != null ? colorSensor2Value : "-",
+//                colorSensor3Value != null ? colorSensor3Value : "-");
+//
+//        // 3. COMPLETION CHECK
+//        if (currentShot >= internalTotalBalls || internalTotalBalls == 0) {
+//            telemetry.addLine("--- SORT COMPLETE: Resetting ---");
+//            isSorting = false;
+//            internalTotalBalls = 0;
+//            currentShot = 0;
+//            patternIsLocked = false;
+//            resetIndexer();
+//            return;
+//        }
+//
+//        // 4. PHASE 1: SORTING (Ordering the balls)
+//        if (!patternIsLocked) {
+//            // If only 1 ball, no sorting needed
+//            if (internalTotalBalls == 1) {
+//                patternIsLocked = true;
+//            }
+//            // If sensors currently see the top two balls
+//            else if (colorSensor1Value != null && colorSensor2Value != null) {
+//                boolean s1Match = isColorMatch(colorSensor1Value, pattern[0]);
+//                boolean s2Match = isColorMatch(colorSensor2Value, pattern[1]);
+//
+//                if (s1Match && s2Match) {
+//                    gateClose();
+//                    intakeMotorIdle();
+//                    patternIsLocked = true;
+//                } else {
+//                    performSortingCycle(colorSensor1Value);
+//                }
+//            }
+//            else {
+//                // Balls are moving between sensors; keep cycling until they land in slots
+//                performSortingCycle(colorSensor1Value);
+//            }
+//        }
+//
+//        // 5. PHASE 2: FIRING
+//        if (patternIsLocked) {
+//            if (!ballInTransfer) {
+//                if (canShoot) {
+//                    transfer();
+//                    ballInTransfer = true;
+//                } else {
+//                    gateClose();
+//                    intakeMotorIdle();
+//                }
+//            }
+//        }
+//
+//        // 6. SHOT TRACKER (The only place we decrement/advance)
+//        if (ballInTransfer && isBeamBroken) {
+//            currentShot++;
+//            ballInTransfer = false;
+//            // The loop will now check if currentShot >= internalTotalBalls to finish
+//        }
+//    }
+//
+//    private void performSortingCycle(DetectedColor currentSlot1) {
+//        boolean isSlot1Null = (currentSlot1 == null);
+//
+//        // If a ball just hit Slot 1, stop the motor to "catch" it and check color
+//        if (lastSlot1WasNull && !isSlot1Null) {
+//            gateClose();
+//            intakeMotorIdle();
+//        } else if (isSlot1Null) {
+//            // Motor only runs when Slot 1 is empty to bring the next ball up
+//            cycle();
+//        }
+//
+//        lastSlot1WasNull = isSlot1Null;
+//    }
+//    public int getGreenInventory(DetectedColor colorSensor1Value,
+//                                 DetectedColor colorSensor2Value,
+//                                 DetectedColor colorSensor3Value) {
+//        greenInventory = 0;
+//        DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
+//        for (DetectedColor color : sensors) {
+//            if (color == DetectedColor.GREEN) greenInventory++;
+//        }
+//
+//        return greenInventory;
+//
+//    }
+//
+//    public int getPurpleInventory(DetectedColor colorSensor1Value,
+//                                 DetectedColor colorSensor2Value,
+//                                 DetectedColor colorSensor3Value) {
+//        purpleInventory = 0;
+//        DetectedColor[] sensors = {colorSensor1Value, colorSensor2Value, colorSensor3Value};
+//        for (DetectedColor color : sensors) {
+//            if (color == DetectedColor.PURPLE) purpleInventory++;
+//        }
+//
+//        return purpleInventory;
+//
+//    }
+//
+//    public int getTotalInventory(DetectedColor colorSensor1Value,
+//                                 DetectedColor colorSensor2Value,
+//                                 DetectedColor colorSensor3Value) {
+//        return getGreenInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value) +
+//                getPurpleInventory(colorSensor1Value, colorSensor2Value, colorSensor3Value);
+//    }
 
 
 
@@ -583,12 +830,12 @@ public class Intake {
         return false;
     }
     // --- Periodic update (optional) ---
-    public void update() {
-//        telemetry.addData("Target RPM", targetRPM);
-//        telemetry.addData("Current RPM", getCurrentRPM());
-        telemetry.addData("Servo Pos", transferDirectionSwitcher.getPosition());
-        telemetry.update();
-    }
+//    public void update() {
+////        telemetry.addData("Target RPM", targetRPM);
+////        telemetry.addData("Current RPM", getCurrentRPM());
+//        telemetry.addData("Servo Pos", transferDirectionSwitcher.getPosition());
+//        telemetry.update();
+//    }
 
     // --- Utility methods ---
 
@@ -617,6 +864,13 @@ public class Intake {
     }
     public double getPower(){
         return motorPower;
+    }
+
+    private void trackShotCount(boolean currentBeamState) {
+        if (lastBeamState && !currentBeamState) {
+            currentShot++;
+        }
+        lastBeamState = currentBeamState;
     }
 
 

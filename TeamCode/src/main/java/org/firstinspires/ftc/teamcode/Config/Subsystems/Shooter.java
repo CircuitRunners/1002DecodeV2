@@ -463,7 +463,7 @@ private static final double[][] MUZZLE_K_TABLE = {
 
     public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
 
-        if (currentFlywheelVelo >= targetFlywheelVelocity - 500 || currentFlywheelVelo <= targetFlywheelVelocity + 500) {
+        if (currentFlywheelVelo >= targetFlywheelVelocity - 300 || currentFlywheelVelo <= targetFlywheelVelocity + 500) {
             flywheelVeloReached = true;
         }
         else {

@@ -52,8 +52,9 @@ public class SigmaIntakeTest extends OpMode {
         DetectedColor ball3 = sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green());
         // Hold Cross (A) to Intake
 
-        if (gamepad1.square){
-            intake.sort(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
+        intake.update(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
+        if (gamepad1.square) {
+            intake.prepareAndStartSort();
         }
         else if (gamepad1.dpad_up){
             ballOrder = LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE;
@@ -72,17 +73,17 @@ public class SigmaIntakeTest extends OpMode {
             intake.setCanShoot(false);
         }
         else if (player1.isDown(GamepadKeys.Button.CROSS)) {
-            intake.intake();
+            intake.doIntake();
             telemetry.addData("Status", "Intaking...");
         }
         // Hold Circle (B) to Cycle
         else if (player1.isDown(GamepadKeys.Button.CIRCLE)) {
-            intake.cycle();
+            intake.doCycle();
             telemetry.addData("Status", "Cycling...");
         }
         // Otherwise, stop
         else {
-            intake.intakeMotorIdle();
+            intake.doIntakeHalt();
             telemetry.addData("Status", "Idle");
         }
 

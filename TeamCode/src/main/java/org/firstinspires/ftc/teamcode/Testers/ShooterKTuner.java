@@ -91,10 +91,10 @@ public class ShooterKTuner extends OpMode {
         }
 
         if (gamepad1.right_trigger > 0.2){
-            intake.transfer();
+            intake.doTestShooter();
         }
         else{
-            intake.intakeMotorIdle();
+            intake.doIntakeHalt();
         }
 
 

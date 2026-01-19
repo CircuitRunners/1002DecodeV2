@@ -109,10 +109,10 @@ public class ShootingWhileMovingTester extends OpMode{
 //            }
 
             if (gamepad1.right_trigger > 0.2){
-                intake.transfer();
+                intake.doTestShooter();
             }
             else{
-                intake.intakeMotorIdle();
+                intake.doIntakeHalt();
             }
 
             if (gamepad1.left_stick_button) pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 72,72,AngleUnit.RADIANS,Math.toRadians(90)));

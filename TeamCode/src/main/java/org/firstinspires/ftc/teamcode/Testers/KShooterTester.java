@@ -137,7 +137,7 @@ public class KShooterTester extends OpMode {
             telemetry.update();
 
             // --- 6. INTAKE / TRANSFER CONTROL ---
-            if (gamepad1.right_trigger > 0.2) intake.transfer();
-            else intake.intakeMotorIdle();
+            if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
+            else intake.doIntakeHalt();
         }
     }

@@ -103,7 +103,7 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 2: // Drive to Intake 1
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(humanPlayerIntake, true);
                     setPathState(4);
@@ -132,7 +132,7 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 6: // Drive to Intake 2
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intakeLine, false);
                     setPathState();
@@ -153,7 +153,7 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 9: // Drive to Intake 3
-                intake.intake();
+                intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(humanPlayerIntake, false);
                     setPathState();
@@ -175,7 +175,7 @@ public class FarZoneAuto extends OpMode {
 
             default:
                 shooter.stopFlywheel();
-                intake.resetIndexer();
+                intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
                 break;
         }
@@ -206,7 +206,7 @@ public class FarZoneAuto extends OpMode {
         }
 
         if (doTransfer){
-            intake.transfer();
+            intake.doTransfer();
         }
 
 
@@ -215,7 +215,7 @@ public class FarZoneAuto extends OpMode {
             doTransfer = false;
             shooter.stopFlywheel();
             ballsShotInState = 0;
-            intake.intakeMotorIdle();
+            intake.doIntakeHalt();
             setPathState();
         }
 
@@ -308,7 +308,7 @@ public class FarZoneAuto extends OpMode {
     @Override
     public void stop() {
         shooter.stopFlywheel();
-        intake.resetIndexer();
+        intake.resetState();
         Poses.savePose(follower.getPose());
     }
 }
