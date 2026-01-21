@@ -198,6 +198,10 @@ public class Poses {
             new Pose(7, 8, Math.toRadians(180)),
             new Pose(137, 8, Math.toRadians(0))
     );
+    public static final AlliancePose backUpPoint = new AlliancePose(
+            new Pose(15, 8, Math.toRadians(180)),
+            new Pose(129, 8, Math.toRadians(0))
+    );
     public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
             new Pose(96.3, 7.2),
             new Pose(47.7, 7.2)
