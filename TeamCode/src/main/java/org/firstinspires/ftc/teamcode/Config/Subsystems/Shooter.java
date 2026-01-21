@@ -392,7 +392,7 @@ private static final double[][] MUZZLE_K_TABLE = {
         double virtualGoalY = goalY;
 
         // Run 5 iterations to converge on the moving target
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 2; i++) {
             // 1. Calculate distance to our "Virtual Goal"
             double dist = Math.hypot(virtualGoalX - robotX, virtualGoalY - robotY);
 

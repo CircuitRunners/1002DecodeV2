@@ -44,11 +44,11 @@ public class ServoTester extends OpMode {
         player1.readButtons();
 
         if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)){
-            servoPosition -= 0.05;
+            servoPosition -= 0.01;
             servoPosition = Range.clip(servoPosition,0,1);
         }
         if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)){
-            servoPosition += 0.05;
+            servoPosition += 0.01;
             servoPosition = Range.clip(servoPosition,0,1);
         }
 

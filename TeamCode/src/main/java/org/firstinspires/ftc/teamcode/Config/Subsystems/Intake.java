@@ -30,12 +30,12 @@ public class Intake {
     // Configurable constants
     public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
     public static double targetRPM = 0;  // default target speed
-    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.85;
-    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.33;
+    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.74;
+    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.65;
     public static final double GATE_OPEN = 0.15;
     public static final double GATE_CLOSED = 0.81;
-    public static final double TRANSFER_ON = 0.38;
-    public static final double TRANSFER_OFF = 0.85;
+    public static final double TRANSFER_ON = 0.6;
+    public static final double TRANSFER_OFF = 0.69;
 
     //SORTING STUFF//
     public enum IntakeState {
@@ -111,7 +111,7 @@ public class Intake {
         newState(IntakeState.OUTTAKING);
     }
     public void doIntakeHalt(){
-        newState(IntakeState.IDLE);
+        newState(IntakeState.HALT);
     }
     public void doCycle(){
         newState(IntakeState.CYCLE);
@@ -146,7 +146,7 @@ public class Intake {
     private void retainBalls(){
         gateClose();
         transferOff();
-        intake.setPower(0.5);
+        intake.setPower(0.75);
         motorPower = 0.5;
     }
 
@@ -200,7 +200,7 @@ public class Intake {
         gateOpen();
         transferOn();
         setDirectionCycle();
-        intake.setPower(0.85);
+        intake.setPower(0.75);
     }
 
     private void transfer(){
@@ -502,7 +502,7 @@ public class Intake {
             case PRE_NUDGE:
 
                 gateClose();
-                intake.setPower(-0.4);
+                intake.setPower(-0.9);
 
                 if (stateTimer.milliseconds() > 400) {
 
@@ -537,7 +537,7 @@ public class Intake {
                     cycle(); // Gate OPEN, Motor ON
                 } else if (!ball2Latched && internalTotalBalls > 1) {
                     gateClose();
-                    intake.setPower(0.4); // Seat the 2nd ball
+                    intake.setPower(0.9); // Seat the 2nd ball
                 } else {
                     intakeMotorHalt();
                     newState(IntakeState.VERIFYING_ORDER);
@@ -546,7 +546,7 @@ public class Intake {
 
             case POSITION_NUDGE:
                 gateClose();
-                intake.setPower(-0.35);
+                intake.setPower(-0.85);
                 if (stateTimer.milliseconds() > 120) { // Replaces long-based math
                     intakeMotorHalt();
                     nudgeCount++;
