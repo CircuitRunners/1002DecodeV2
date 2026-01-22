@@ -288,7 +288,13 @@ public class FarZoneAutoWAdjustablePaths extends OpMode {
         telemetry.addLine("");
         telemetry.addData("Alliance Set", Poses.getAlliance());
         telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
-        telemetry.addData("Path Case", currentPathCase);
+        if (currentPathCase == pathCase.NOLINE3){
+            telemetry.addData("Path Case","NO LINE 3");
+        }
+        else if (currentPathCase == pathCase.LINE3){
+            telemetry.addData("Path Case","LINE 3");
+        }
+
 
         telemetry.addData("X Pos", follower.getPose().getX());
         telemetry.addData("Y Pos", follower.getPose().getY());
