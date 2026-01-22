@@ -30,8 +30,8 @@ public class Intake {
     // Configurable constants
     public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
     public static double targetRPM = 0;  // default target speed
-    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.74;
-    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.65;
+    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.76;
+    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.67;
     public static final double GATE_OPEN = 0.15;
     public static final double GATE_CLOSED = 0.81;
     public static final double TRANSFER_ON = 0.6;
@@ -502,6 +502,7 @@ public class Intake {
             case PRE_NUDGE:
 
                 gateClose();
+                transferOff();
                 intake.setPower(-0.9);
 
                 if (stateTimer.milliseconds() > 400) {
@@ -536,6 +537,7 @@ public class Intake {
                 if (!ball1Latched) {
                     cycle(); // Gate OPEN, Motor ON
                 } else if (!ball2Latched && internalTotalBalls > 1) {
+                    setDirectionCycle();
                     gateClose();
                     intake.setPower(0.9); // Seat the 2nd ball
                 } else {
@@ -546,6 +548,7 @@ public class Intake {
 
             case POSITION_NUDGE:
                 gateClose();
+                transferOff();
                 intake.setPower(-0.85);
                 if (stateTimer.milliseconds() > 120) { // Replaces long-based math
                     intakeMotorHalt();
