@@ -10,6 +10,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -21,7 +22,7 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-
+@Disabled
 @Configurable
 @Autonomous(name = "Test Shoot While Moving", group = "A", preselectTeleOp = "v2Teleop")
 public class testShootWhileMovingAuto extends OpMode {
@@ -43,7 +44,7 @@ public class testShootWhileMovingAuto extends OpMode {
     // Field Constants
     private final double RED_GOAL_X = 127.0;
     private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 132.0;
+    private final double GOAL_Y = 136.0;
 
     private boolean doTransfer = false;
 

@@ -41,7 +41,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     // Field Constants
     private final double RED_GOAL_X = 127.0;
     private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 132.0;
+    private final double GOAL_Y = 136.0;
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
@@ -344,6 +344,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
         telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
         telemetry.addData("is up to sped",shooter.flywheelVeloReached);
+        telemetry.addData("Balls shot in state:",ballsShotInState);
         telemetry.update();
     }
 

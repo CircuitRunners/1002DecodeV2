@@ -41,9 +41,9 @@ public class FarZoneAutoWAdjustablePaths extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 132.0;
-    private final double BLUE_GOAL_X = 12.0;
-    private final double GOAL_Y = 137.0;
+    private final double RED_GOAL_X = 127.0;
+    private final double BLUE_GOAL_X = 17.0;
+    private final double GOAL_Y = 136.0;
     private boolean doTransfer = false;
     private enum pathCase {LINE3, NOLINE3};
     private pathCase currentPathCase = pathCase.NOLINE3;
@@ -191,9 +191,7 @@ public class FarZoneAutoWAdjustablePaths extends OpMode {
      */
     private void handleAutoShooting(Pose pose, double targetX, double timeout,double mannualHoodAdjust) {
         // Updated shooting command as requested
-        if (currentPathCase == pathCase.NOLINE3 && pathState == 5) {
-            setPathState(9);
-        }
+
         double headingDeg = Math.toDegrees(pose.getHeading());
         shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,mannualHoodAdjust,false,0);
         //shooter.flywheelVeloReached = false;
@@ -218,12 +216,18 @@ public class FarZoneAutoWAdjustablePaths extends OpMode {
 
 
         // Advance to next state if 3 balls fired OR the safety timer expires
-        if (pathTimer.getElapsedTimeSeconds() > timeout) {
+        if (pathTimer.getElapsedTimeSeconds() > timeout || ballsShotInState >= 3) {
+
             doTransfer = false;
             shooter.stopFlywheel();
             ballsShotInState = 0;
             intake.doIntakeHalt();
-            setPathState();
+            if (currentPathCase == pathCase.NOLINE3 && pathState == 5) {
+                setPathState(9);
+            }
+            else {
+                setPathState();
+            }
         }
 
     }
@@ -324,6 +328,8 @@ public class FarZoneAutoWAdjustablePaths extends OpMode {
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
         telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
+        telemetry.addData("is up to sped",shooter.flywheelVeloReached);
+        telemetry.addData("Balls shot in state:",ballsShotInState);
         telemetry.update();
     }
 
@@ -332,5 +338,12 @@ public class FarZoneAutoWAdjustablePaths extends OpMode {
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());
+    }
+
+    private void trackShotCount(boolean currentBeamState) {
+        if (lastBeamState && !currentBeamState) {
+            ballsShotInState++;
+        }
+        lastBeamState = currentBeamState;
     }
 }

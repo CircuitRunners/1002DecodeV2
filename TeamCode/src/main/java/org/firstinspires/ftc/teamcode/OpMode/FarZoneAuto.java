@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-@Disabled
+//@Disabled
 @Configurable
 @Autonomous(name = "FarZoneAuto", group = "A", preselectTeleOp = "v2Teleop")
 public class FarZoneAuto extends OpMode {
@@ -41,9 +41,9 @@ public class FarZoneAuto extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 132.0;
-    private final double BLUE_GOAL_X = 12.0;
-    private final double GOAL_Y = 137.0;
+    private final double RED_GOAL_X = 127.0;
+    private final double BLUE_GOAL_X = 17.0;
+    private final double GOAL_Y = 136.0;
     private boolean doTransfer = false;
 
 
