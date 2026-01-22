@@ -41,7 +41,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     // Field Constants
     private final double RED_GOAL_X = 127.0;
     private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 136.0;
+    private final double GOAL_Y = 125.0;
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
@@ -245,6 +245,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 //            }
 //            lastBeamState = currentBeamState;
         }
+
 
         if (doTransfer && goForLaunch){
             intake.doTransfer();
