@@ -116,7 +116,7 @@ public class FarZoneAuto extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(humanPlayerIntake, true);
-                    setPathState(4);
+                    setPathState();
                 }
                 break;
 
@@ -124,7 +124,7 @@ public class FarZoneAuto extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(backUp, true);
-                    setPathState(4);
+                    setPathState();
                 }
                 break;
 
