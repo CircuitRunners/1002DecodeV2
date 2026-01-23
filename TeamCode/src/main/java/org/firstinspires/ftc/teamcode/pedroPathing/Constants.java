@@ -19,14 +19,14 @@ public class Constants {
             .mass(11.567) //25 lbs no intake or climb
             .forwardZeroPowerAcceleration(-71.3271)
             .lateralZeroPowerAcceleration(-86.2155)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.25,0,0,0.01))
-            .headingPIDFCoefficients(new PIDFCoefficients(1.7, 0, 0.011, 0.01))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.018, 0, 0.00001, 0.6, 0.01))
-            .centripetalScaling(0.00077)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.8,0,0.053,0.00))
+            .headingPIDFCoefficients(new PIDFCoefficients(1.1, 0, 0.0052, 0.001))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.0195, 0, 0.001, 0.6, 0.01))
+            .centripetalScaling(0.00098)
 
             ;
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.79, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
@@ -49,8 +49,8 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(77.1466)
-            .yVelocity(60.6173)
+//            .xVelocity(77.1466)
+//            .yVelocity(60.6173)
             .useBrakeModeInTeleOp(true)
             ;
 
