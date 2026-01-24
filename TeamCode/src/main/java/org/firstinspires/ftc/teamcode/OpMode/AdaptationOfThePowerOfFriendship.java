@@ -27,12 +27,15 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
     private Timer pathTimer;
+    private Timer loopTimer;
     private Shooter shooter;
     private Intake intake;
     private Sensors sensors;
 
     private int pathState;
     private Poses.Alliance lastKnownAlliance = null;
+
+
 
     // Shot Counting Variables
     private int ballsShotInState = 0;
@@ -117,14 +120,15 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, true);
-                    handleAutoShooting(currentPose, targetX, 7,0);
+
                     setPathState();
                 }
                 break;
 
             case 1: // Shoot 3 Preloads
-                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
-                    goForLaunch = true;
+                if (!follower.isBusy() ) {
+                    handleAutoShooting(currentPose, targetX, 7,0);
+//                    goForLaunch = true;
                 }
                 break;
 
@@ -247,7 +251,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         }
 
 
-        if (doTransfer && goForLaunch){
+        if (doTransfer){
             intake.doTransfer();
         }
 
@@ -280,6 +284,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
         pathTimer = new Timer();
+        loopTimer = new Timer();
         follower = Constants.createFollower(hardwareMap);
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
@@ -333,19 +338,21 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     @Override
     public void loop() {
         // Must update all hardware/sensors every loop
+        loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(shooter.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         autonomousPathUpdate();
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
+        telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
         telemetry.addData("is up to sped",shooter.flywheelVeloReached);
         telemetry.addData("Balls shot in state:",ballsShotInState);
+        telemetry.addData("Loop Time",loopTimer.getElapsedTime());
         telemetry.update();
     }
 

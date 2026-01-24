@@ -328,14 +328,14 @@ public class FarZoneAuto extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(shooter.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
 
         autonomousPathUpdate();
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
+        telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
         telemetry.update();
     }
 

@@ -86,7 +86,7 @@ public class SigmaIntakeTest extends OpMode {
             intake.doTestShooter();
         }
         // Otherwise, stop
-        else {
+        else if (player1.isDown(GamepadKeys.Button.DPAD_UP)){
             intake.doIntakeHalt();
             telemetry.addData("Status", "Idle");
         }

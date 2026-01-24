@@ -248,7 +248,7 @@ private static final double[][] MUZZLE_K_TABLE = {
         // Standard atan2(y, x) for East = 0, North = 90
         double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
         double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
-        //double targetFieldYawRadBlue = Math.atan2(slotOneBLueAtan, slotTwoBLueAtan);
+
         double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
         if (targetFieldYawDeg < 0) {
             targetFieldYawDeg += 360;
@@ -662,9 +662,9 @@ private static final double[][] MUZZLE_K_TABLE = {
         setTurretTarget(0,TurretMode.ROBOT_CENTRIC,getCurrentTurretPosition(),0);
     }
 
-    public double getFlywheelVelo(){
-        return shooter1.getVelocity();
-    }
+//    public double getFlywheelVelo(){
+//        return shooter1.getVelocity();
+//    }
 
 
 

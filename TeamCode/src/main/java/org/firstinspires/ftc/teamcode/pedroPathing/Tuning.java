@@ -744,8 +744,10 @@ class TranslationalTuner extends OpMode {
     public static double DISTANCE = 40;
     private boolean forward = true;
 
+    private Timer loopTime;
     private Path forwards;
     private Path backwards;
+    public static double cookedLoopTargetMS = 40;
 
     @Override
     public void init() {
@@ -759,6 +761,7 @@ class TranslationalTuner extends OpMode {
         telemetryM.debug("The robot will try to stay in place while you push it laterally.");
         telemetryM.debug("You can adjust the PIDF values to tune the robot's translational PIDF(s).");
         telemetryM.update(telemetry);
+        loopTime = new Timer();
         follower.update();
         drawOnlyCurrent();
     }
@@ -777,6 +780,7 @@ class TranslationalTuner extends OpMode {
     /** This runs the OpMode, updating the Follower as well as printing out the debug statements to the Telemetry */
     @Override
     public void loop() {
+
         follower.update();
         draw();
 
@@ -789,11 +793,20 @@ class TranslationalTuner extends OpMode {
                 follower.followPath(forwards);
             }
         }
+        double remaining = cookedLoopTargetMS - loopTime.getElapsedTime();
+        if (remaining > 0) {
+            try {
+                Thread.sleep((long) remaining);
+            } catch (InterruptedException ignored) {}
+        }
+
+        loopTime.resetTimer();
 
         telemetryM.debug("Push the robot laterally to test the Translational PIDF(s).");
         telemetryM.addData("Zero Line", 0);
         telemetryM.addData("Error X", follower.errorCalculator.getTranslationalError().getXComponent());
         telemetryM.addData("Error Y", follower.errorCalculator.getTranslationalError().getYComponent());
+        telemetryM.addData("Loop time",loopTime);
         telemetryM.update(telemetry);
     }
 }
@@ -816,6 +829,10 @@ class HeadingTuner extends OpMode {
     private Path forwards;
     private Path backwards;
 
+    public static double cookedLoopTargetMS = 40;
+
+    private Timer loopTime;
+
     @Override
     public void init() {
         follower.setStartingPose(new Pose(72, 72));
@@ -831,6 +848,7 @@ class HeadingTuner extends OpMode {
         telemetryM.debug("The robot will try to stay at a constant heading while you try to turn it.");
         telemetryM.debug("You can adjust the PIDF values to tune the robot's heading PIDF(s).");
         telemetryM.update(telemetry);
+        loopTime = new Timer();
         follower.update();
         drawOnlyCurrent();
     }
@@ -865,6 +883,15 @@ class HeadingTuner extends OpMode {
             }
         }
 
+        double remaining = cookedLoopTargetMS - loopTime.getElapsedTime();
+        if (remaining > 0) {
+            try {
+                Thread.sleep((long) remaining);
+            } catch (InterruptedException ignored) {}
+        }
+
+        loopTime.resetTimer();
+
         telemetryM.debug("Turn the robot manually to test the Heading PIDF(s).");
         telemetryM.addData("Zero Line", 0);
         telemetryM.addData("Error", follower.errorCalculator.getHeadingError());
@@ -885,8 +912,12 @@ class DriveTuner extends OpMode {
     public static double DISTANCE = 40;
     private boolean forward = true;
 
+    public static double cookedLoopTargetMS = 40;
+
     private PathChain forwards;
     private PathChain backwards;
+
+    private Timer loopTime;
 
     @Override
     public void init() {
@@ -903,6 +934,7 @@ class DriveTuner extends OpMode {
         telemetryM.debug("The robot will go forward and backward continuously along the path.");
         telemetryM.debug("Make sure you have enough room.");
         telemetryM.update(telemetry);
+        loopTime = new Timer();
         follower.update();
         drawOnlyCurrent();
     }
@@ -945,6 +977,15 @@ class DriveTuner extends OpMode {
                 follower.followPath(forwards);
             }
         }
+
+        double remaining = cookedLoopTargetMS - loopTime.getElapsedTime();
+        if (remaining > 0) {
+            try {
+                Thread.sleep((long) remaining);
+            } catch (InterruptedException ignored) {}
+        }
+
+        loopTime.resetTimer();
 
         telemetryM.debug("Driving forward?: " + forward);
         telemetryM.addData("Zero Line", 0);
@@ -1034,6 +1075,10 @@ class CentripetalTuner extends OpMode {
     public static double DISTANCE = 20;
     private boolean forward = true;
 
+    private Timer loopTime;
+
+    public static double cookedLoopTargetMS = 40;
+
     private Path forwards;
     private Path backwards;
 
@@ -1052,6 +1097,7 @@ class CentripetalTuner extends OpMode {
         telemetryM.debug("The robot will go continuously along the path.");
         telemetryM.debug("Make sure you have enough room.");
         telemetryM.update(telemetry);
+        loopTime = new Timer();
         follower.update();
         drawOnlyCurrent();
     }
@@ -1085,6 +1131,16 @@ class CentripetalTuner extends OpMode {
                 follower.followPath(forwards);
             }
         }
+
+        double remaining = cookedLoopTargetMS - loopTime.getElapsedTime();
+        if (remaining > 0) {
+            try {
+                Thread.sleep((long) remaining);
+            } catch (InterruptedException ignored) {}
+        }
+
+        loopTime.resetTimer();
+
 
         telemetryM.debug("Driving away from the origin along the curve?: " + forward);
         telemetryM.update(telemetry);

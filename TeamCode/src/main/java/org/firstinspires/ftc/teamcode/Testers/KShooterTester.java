@@ -78,7 +78,7 @@ public class KShooterTester extends OpMode {
             if (gamepad1.left_bumper) desiredHoodAngle -= 0.5;
 
             // --- 2. SUBSYSTEM UPDATE ---
-            double currentVelo = shooter.getFlywheelVelo();
+            double currentVelo = sensors.getFlywheelVelo();
             double currentTurret = shooter.getCurrentTurretPosition();
 
             shooter.setHoodTargetAngle(desiredHoodAngle);

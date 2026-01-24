@@ -19,14 +19,14 @@ public class Constants {
             .mass(11.567) //25 lbs no intake or climb
             .forwardZeroPowerAcceleration(-71.3271)
             .lateralZeroPowerAcceleration(-86.2155)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.8,0,0.053,0.00))
-            .headingPIDFCoefficients(new PIDFCoefficients(1.1, 0, 0.0052, 0.001))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.0195, 0, 0.001, 0.6, 0.01))
-            .centripetalScaling(0.00098)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.325,0,0.02,0.052))
+            .headingPIDFCoefficients(new PIDFCoefficients(1.4, 0, 0.06, 0.03))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.008, 0, 0.003, 0.6, 0.01))
+            .centripetalScaling(0.00097)
 
             ;
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.79, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.9, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)

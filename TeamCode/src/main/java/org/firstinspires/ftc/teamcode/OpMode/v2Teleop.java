@@ -48,7 +48,7 @@ public class v2Teleop extends OpMode {
 
     private final double RED_GOAL_X = 127.0;
     private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 127.5;
+    private final double GOAL_Y = 128.5;
     private static final double METERS_TO_INCH = 39.37;
 
     private boolean vibratedYet = false;
@@ -147,7 +147,7 @@ public class v2Teleop extends OpMode {
         telemetry.addData("Position", followerData);
         telemetry.addData("Pinpoint (BAD) Position", data);
 
-        double currentFlywheelVelo = shooter.getFlywheelVelo();
+        double currentFlywheelVelo = sensors.getFlywheelVelo();
         double currentTurretAngle = shooter.getCurrentTurretPosition();
         boolean isBeamBroken = shooter.isBeamBroken();
 
@@ -213,17 +213,17 @@ public class v2Teleop extends OpMode {
             gamepad1.rumble(250);
             vibratedYet = true;
         }
-        else if (!shooter.flywheelVeloReached ){
-            vibratedYet = false;
-        }
-        if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+        else if (vibratedYet && (gamepad1.right_trigger > 0.2)){
             initiateTransfer = true;
         }
 
-        if (initiateTransfer){
+        if (initiateTransfer && shooter.flywheelVeloReached){
             teleopShootApporval = true;
-            intake.doTransfer();
+            intake.doTestShooter();
             trackShotCount(beam);
+        }
+        else if (initiateTransfer && !shooter.flywheelVeloReached){
+            intake.doIntakeHalt();
         }
 
         if (ballsShotInState >= 3) resetToIntake();
@@ -257,16 +257,16 @@ public class v2Teleop extends OpMode {
        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
         if (isRedAlliance) {
             if (noAutoAlign) {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,true,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,250, 0,true,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,true,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 250,0,true,turretMannualAdjust);
             }
         }
         else{
             if (noAutoAlign) {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0,false,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 250,0,false,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 0,false,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 250,0,false,turretMannualAdjust);
             }
         }
     }
@@ -363,6 +363,7 @@ public class v2Teleop extends OpMode {
         telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
         telemetry.addData("Flywheel Reached",shooter.flywheelVeloReached ? "YEA": "NAH");
         telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
+        telemetry.update();
     }
 
     private void extraTelemetryForTesting(double fVelo, double tAng, boolean beam) {
@@ -371,6 +372,7 @@ public class v2Teleop extends OpMode {
         telemetry.addData("Flywheel Velo", fVelo);
         telemetry.addData("Beam Broken", beam);
         telemetry.addData("Shot Possible", !shooter.isShotImpossible);
+        telemetry.update();
     }
 
     public void updateCoordinatesWithAprilTag() {

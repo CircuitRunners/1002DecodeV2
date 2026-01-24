@@ -30,12 +30,12 @@ public class Intake {
     // Configurable constants
     public static final int TICKS_PER_REV = 537; // goBILDA 312 RPM Yellow Jacket
     public static double targetRPM = 0;  // default target speed
-    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.76;
-    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.67;
+    public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.35;
+    public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.43;
     public static final double GATE_OPEN = 0.15;
     public static final double GATE_CLOSED = 0.81;
-    public static final double TRANSFER_ON = 0.6;
-    public static final double TRANSFER_OFF = 0.69;
+    public static final double TRANSFER_ON = 0.59;
+    public static final double TRANSFER_OFF = 0.67;
 
     //SORTING STUFF//
     public enum IntakeState {
@@ -200,7 +200,7 @@ public class Intake {
         gateOpen();
         transferOn();
         setDirectionCycle();
-        intake.setPower(0.75);
+        intake.setPower(0.9);
     }
 
     private void transfer(){
@@ -496,17 +496,18 @@ public class Intake {
 
 
     public void update(boolean beamBreak, LimelightCamera.BallOrder targetOrder,
-                       DetectedColor s1, DetectedColor s2,DetectedColor s3) {
+                       DetectedColor s1, DetectedColor s2, DetectedColor s3) {
+
+        boolean anySensorSeeingBall = (s1 != null || s2 != null || s3 != null);
 
         switch (currentState) {
-            case PRE_NUDGE:
 
+            case PRE_NUDGE:
                 gateClose();
                 transferOff();
-                intake.setPower(-0.9);
+                intake.setPower(0.9);
 
-                if (stateTimer.milliseconds() > 400) {
-
+                if (stateTimer.milliseconds() > 700) {
                     intakeMotorHalt();
 
                     greenInventory = 0;
@@ -527,20 +528,23 @@ public class Intake {
                     }
                 }
                 break;
+
             case IDLE:
                 break;
+
             case COASTING_TO_SLOT:
-                // LATCH: Once a sensor sees anything, remember it's there
                 if (s1 != null) ball1Latched = true;
                 if (s2 != null) ball2Latched = true;
 
                 if (!ball1Latched) {
-                    cycle(); // Gate OPEN, Motor ON
-                } else if (!ball2Latched && internalTotalBalls > 1) {
+                    cycle();
+                }
+                else if (!ball2Latched && internalTotalBalls > 1) {
                     setDirectionCycle();
                     gateClose();
-                    intake.setPower(0.9); // Seat the 2nd ball
-                } else {
+                    intake.setPower(0.9);
+                }
+                else {
                     intakeMotorHalt();
                     newState(IntakeState.VERIFYING_ORDER);
                 }
@@ -549,8 +553,9 @@ public class Intake {
             case POSITION_NUDGE:
                 gateClose();
                 transferOff();
-                intake.setPower(-0.85);
-                if (stateTimer.milliseconds() > 120) { // Replaces long-based math
+                intake.setPower(0.9);
+
+                if (stateTimer.milliseconds() > 170) {
                     intakeMotorHalt();
                     nudgeCount++;
                     newState(IntakeState.VERIFYING_ORDER);
@@ -558,34 +563,60 @@ public class Intake {
                 break;
 
             case VERIFYING_ORDER:
-                // HOLE CHECK: If latched but currently seeing NULL, nudge it
-                if (s1 == null || (internalTotalBalls > 1 && s2 == null)) {
+
+                // debounce nulls (allow slow motion)
+                if ((s1 == null || (internalTotalBalls > 1 && s2 == null))
+                        && stateTimer.milliseconds() > 150) {
+
                     if (nudgeCount < 3) newState(IntakeState.POSITION_NUDGE);
                     else newState(IntakeState.FLUSHING);
                     break;
                 }
 
                 stabilityCounter++;
-                if (stabilityCounter >= 3) { // Consistent reading for 3 loops
+                if (stabilityCounter >= 3) {
+
                     boolean possible = isPatternPossible(targetOrder);
                     String[] target = getTargetArray(targetOrder);
 
                     boolean s1Match = isColorMatch(s1, target[0]);
                     boolean s2Match = (internalTotalBalls < 2) || isColorMatch(s2, target[1]);
 
-                    // CHILL LOGIC: Fire if pattern is right OR if pattern is impossible
-                    if ((possible && s1Match && s2Match) || !possible) {
+                    if (!possible || (s1Match && s2Match)) {
                         newState(IntakeState.READY_TO_FIRE);
-                    } else {
+                    }
+                    else if (cycleCount < 4) {
                         newState(IntakeState.FLUSHING);
+                    }
+                    else {
+                        newState(IntakeState.READY_TO_FIRE);
                     }
                 }
                 break;
 
             case FLUSHING:
                 cycle();
-                if (stateTimer.milliseconds() > 350) { // Replaces long-based math
-                    cycleCount++;
+
+                // early exit if a ball arrives
+                if (s1 != null && stateTimer.milliseconds() > 200) {
+                    resetLatches();
+                    newState(IntakeState.COASTING_TO_SLOT);
+                    break;
+                }
+
+                // longer dwell for friction systems
+                if (stateTimer.milliseconds() > 900) {
+
+                    // only count flushes if balls exist
+                    if (anySensorSeeingBall) {
+                        cycleCount++;
+                    }
+
+                    if (cycleCount >= 4) {
+                        newState(IntakeState.READY_TO_FIRE);
+                        break;
+                    }
+
                     resetLatches();
                     nudgeCount = 0;
                     newState(IntakeState.COASTING_TO_SLOT);
@@ -599,12 +630,12 @@ public class Intake {
 
             case TRANSFERRING:
 
-                if (canShoot){
+                if (canShoot) {
                     transfer();
-                }
-                else {
+                } else {
                     intakeMotorHalt();
                 }
+
                 trackShotCount(beamBreak);
 
                 if (currentShot >= internalTotalBalls) {
@@ -612,10 +643,8 @@ public class Intake {
                     cycleCount = 0;
                     currentShot = 0;
                     resetLatches();
-
                     newState(IntakeState.HALT);
                 }
-
                 break;
 
             case INTAKING:
@@ -639,11 +668,8 @@ public class Intake {
                 cycleCount = 0;
                 nudgeCount = 0;
                 stabilityCounter = 0;
-
-                // Reset Latches & Sensors
                 ball1Latched = false;
                 ball2Latched = false;
-
                 newState(IntakeState.IDLE);
                 break;
 
@@ -654,7 +680,6 @@ public class Intake {
             case TEST_SHOOTING:
                 transfer();
                 break;
-
         }
 
         telemetry.update();
