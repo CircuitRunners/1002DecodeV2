@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.OpMode;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -48,7 +49,7 @@ public class v2Teleop extends OpMode {
 
     private final double RED_GOAL_X = 127.0;
     private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 128.5;
+    private final double GOAL_Y = 129;
     private static final double METERS_TO_INCH = 39.37;
 
     private boolean vibratedYet = false;
@@ -57,7 +58,7 @@ public class v2Teleop extends OpMode {
     private boolean noAutoAlign  =false;
 
     private final ElapsedTime timer = new ElapsedTime();
-    double turretMannualAdjust = 0;
+    private double turretMannualAdjust = 0;
 
     boolean teleopShootApporval = false;
 
@@ -118,6 +119,8 @@ public class v2Teleop extends OpMode {
         player1.readButtons();
         player2.readButtons();
 
+        follower.getVelocity();
+
         // --- 2. DATA SNAPSHOTS (Call once, reference variables) ---
         Pose currentPose = follower.getPose();
         Pose2D currentPinpointPose = pinpoint.getPosition();
@@ -128,6 +131,11 @@ public class v2Teleop extends OpMode {
         LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
                 ? Intake.targetPatternFromAuto
                 : LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN;
+
+        double currentFlywheelVelo = sensors.getFlywheelVelo();
+        double currentTurretAngle = shooter.getCurrentTurretPosition();
+        boolean isBeamBroken = shooter.isBeamBroken();
+
 
         String data = String.format(Locale.US,
                 "{X: %.3f, Y: %.3f, H: %.3f}",
@@ -146,10 +154,20 @@ public class v2Teleop extends OpMode {
 
         telemetry.addData("Position", followerData);
         telemetry.addData("Pinpoint (BAD) Position", data);
+        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
+        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
+        telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
+        telemetry.addData("Flywheel Reached",shooter.flywheelVeloReached ? "YEA": "NAH");
+        telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
 
-        double currentFlywheelVelo = sensors.getFlywheelVelo();
-        double currentTurretAngle = shooter.getCurrentTurretPosition();
-        boolean isBeamBroken = shooter.isBeamBroken();
+        telemetry.addLine("--- DIAGNOSTICS ---");
+        telemetry.addData("Turret Ang", "%.2f", currentTurretAngle);
+        telemetry.addData("DESIRED VELO:",shooter.getTargetFLywheelVelo());
+        telemetry.addData("Flywheel Velo", currentFlywheelVelo);
+        telemetry.addData("Beam Broken", isBeamBroken);
+        telemetry.addData("Beam Broken", isBeamBroken);
+       // telemetry.addData("Shot Possible", !shooter.isShotImpossible);
+
 
 
         // --- 3. LOGIC & OVERRIDES ---
@@ -174,8 +192,7 @@ public class v2Teleop extends OpMode {
                 sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
 
         // --- 6. TELEMETRY ---
-        doTelemetry();
-        extraTelemetryForTesting(currentFlywheelVelo, currentTurretAngle, isBeamBroken);
+
         telemetry.update();
 
     }
@@ -257,16 +274,16 @@ public class v2Teleop extends OpMode {
        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
         if (isRedAlliance) {
             if (noAutoAlign) {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,250, 0,true,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,450, 0,true,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 250,0,true,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 450,0,true,turretMannualAdjust);
             }
         }
         else{
             if (noAutoAlign) {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 250,0,false,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 450,0,false,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 250,0,false,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 450,0,false,turretMannualAdjust);
             }
         }
     }
@@ -299,8 +316,7 @@ public class v2Teleop extends OpMode {
         shooter.stopFlywheel();
         //intake.sortManualOverride();
         intake.resetState();
-        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), 0);
-        gamepad1.rumble(150);
+       gamepad1.rumble(150);
     }
 
     private void handleAllianceToggles() {
@@ -344,7 +360,11 @@ public class v2Teleop extends OpMode {
     private void handleIntakeState() {
 
         //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
-        if (gamepad1.right_trigger > 0.2) intake.doIntake();
+        if (gamepad1.right_trigger > 0.2){
+            intake.doIntake();
+            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), 0);
+
+        }
         else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
         else intake.doIntakeHalt();
     }
@@ -356,22 +376,22 @@ public class v2Teleop extends OpMode {
         pinpoint.resetPosAndIMU();
     }
 
-    private void doTelemetry() {
-
-        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
-        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
-        telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
-        telemetry.addData("Flywheel Reached",shooter.flywheelVeloReached ? "YEA": "NAH");
-        telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
-        telemetry.update();
-    }
+//    private void doTelemetry() {
+//
+//        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
+//        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
+//        telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
+//        telemetry.addData("Flywheel Reached",shooter.flywheelVeloReached ? "YEA": "NAH");
+//        telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
+//        telemetry.update();
+//    }
 
     private void extraTelemetryForTesting(double fVelo, double tAng, boolean beam) {
         telemetry.addLine("--- DIAGNOSTICS ---");
         telemetry.addData("Turret Ang", "%.2f", tAng);
         telemetry.addData("Flywheel Velo", fVelo);
         telemetry.addData("Beam Broken", beam);
-        telemetry.addData("Shot Possible", !shooter.isShotImpossible);
+        //telemetry.addData("Shot Possible", !shooter.isShotImpossible);
         telemetry.update();
     }
 
@@ -391,4 +411,28 @@ public class v2Teleop extends OpMode {
     }
 
     @Override public void stop() { limelight.limelightCamera.stop(); }
+
+//    public void calculateIterativeShot(){
+//        double x = Math.hypot(isRedAlliance?RED_GOAL_X:BLUE_GOAL_X - follower.getPose().getX(), GOAL_Y - follower.getPose().getY());
+//        Vector robotVelocity = new Vector(follower.getPose());
+//        Vector robotToGoalVector = new Vector(isRedAlliance ? RED_GOAL_X: BLUE_GOAL_X, GOAL_Y);
+//
+//        double coordinateTheta =
+//                robotVelocity.getTheta() - robotToGoalVector.getTheta();
+//
+//        double parallelComponent =
+//                -Math.cos(coordinateTheta) * robotVelocity.getMagnitude();
+//
+//        double perpendicularComponent =
+//                -Math.sin(coordinateTheta) * robotVelocity.getMagnitude();
+//
+//// velocity compensation variables
+//        double vz = shooter.calcFlywheelSpeedInches(shooter.getCurrentRequiredFlywheelTicks()) * Math.sin(shooter.getCurrentRequiredHoodAngle());
+//        double time = x / (shooter.calcFlywheelSpeedInches(shooter.getCurrentRequiredFlywheelTicks())) * Math.cos(shooter.getCurrentRequiredHoodAngle());
+//        double ivr = x / time + parallelComponent;
+//        double nvr = Math.sqrt(
+//                ivr * ivr + perpendicularComponent * perpendicularComponent
+//        );
+//        double ndr = nvr * time;
+//    }
 }

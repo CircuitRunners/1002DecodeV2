@@ -199,10 +199,10 @@ public class testShootWhileMovingAuto extends OpMode {
         //double headingDeg = Math.toDegrees(pose.getHeading());
 
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.calculateIterativeShot(pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH), RED_GOAL_X,GOAL_Y,pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH),pinpoint.getHeading(AngleUnit.DEGREES),true);
+            shooter.calculateIterativeShot(pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH), RED_GOAL_X,GOAL_Y,pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH),pinpoint.getHeading(AngleUnit.DEGREES),true,450,0,0);
         }
         else {
-            shooter.calculateIterativeShot(pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH), RED_GOAL_X,GOAL_Y,pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH),pinpoint.getHeading(AngleUnit.DEGREES),false);
+            shooter.calculateIterativeShot(pinpoint.getPosX(DistanceUnit.INCH), pinpoint.getPosY(DistanceUnit.INCH), RED_GOAL_X,GOAL_Y,pinpoint.getVelX(DistanceUnit.INCH),pinpoint.getVelY(DistanceUnit.INCH),pinpoint.getHeading(AngleUnit.DEGREES),false,450,0,0);
         }
         //shooter.flywheelVeloReached = false;
 

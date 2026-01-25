@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -19,9 +20,7 @@ public class Shooter {
     //NOTE FOR ALL - DEGREES INCREASE COUNTERCLOCKWISE LIKE UNIT CIRCLE
     private Telemetry telemetry;
 
-    private static double currentRequiredFlywheelTicks = 0;
-    private static double currentRequiredHoodAngle = 0;
-    //private static double currentRequiredInAirTOF = 0;
+
 
     private static final double transferTimeSec = 0.0; //TUNE
 
@@ -73,7 +72,7 @@ public class Shooter {
     public static boolean turretReached = false;
     public static boolean hoodReached = false;
 
-    public static boolean isShotImpossible = false;
+    //public static boolean isShotImpossible = false;
 
 
     public boolean hoodCalibrationRequired = false;
@@ -385,14 +384,14 @@ private static final double[][] MUZZLE_K_TABLE = {
     //pass in everything in inches and degrees (inch/sec for velo too)
     public void calculateIterativeShot(
             double robotX, double robotY, double goalX, double goalY,
-            double robotVeloX, double robotVeloY,double robotHeading, boolean isRed) {
+            double robotVeloX, double robotVeloY,double robotHeading, boolean isRed, double flywheelMannualOffset, double hoodMannualOffset, double turretManualOffset) {
 
         // Start with the real goal position
         double virtualGoalX = goalX;
         double virtualGoalY = goalY;
 
         // Run 5 iterations to converge on the moving target
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             // 1. Calculate distance to our "Virtual Goal"
             double dist = Math.hypot(virtualGoalX - robotX, virtualGoalY - robotY);
 
@@ -406,7 +405,7 @@ private static final double[][] MUZZLE_K_TABLE = {
             // 3. Convert Ticks to Inches/Sec to find Time of Flight
             // Formula: Ticks -> Inches/Sec -> calculateTimeToGoalSeconds
             double ticksToInches =
-                    (1.0 / TICKS_PER_REV_ENCODER) * (2 * Math.PI) * WHEEL_RADIUS_IN * (GEAR_RATIO); // 36mm = 1.417 in
+                    calcFlywheelSpeedInches(baseTicks);
             double muzzleVeloInches = baseTicks * ticksToInches;
 
             persistentShotTime = calculateTimeToGoalSeconds(muzzleVeloInches, baseHood,dist);
@@ -423,11 +422,14 @@ private static final double[][] MUZZLE_K_TABLE = {
         }
 
         // After the loop, apply the results to the hardware
-        setTargetVelocityTicks(finalAdjustedVeloTicks);
-        setHoodTargetAngle(Range.clip(finalAdjustedHoodDeg, 0, 45));
+        setTargetVelocityTicks(finalAdjustedVeloTicks + flywheelMannualOffset);
+        setHoodTargetAngle(Range.clip(finalAdjustedHoodDeg + hoodMannualOffset, 0, 45));
         // Turret uses the yaw calculated for the VIRTUAL goal
-        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading,0);
+        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading,turretManualOffset);
     }
+
+
+
 
 
     private static double calculateTimeToGoalSeconds(
@@ -463,7 +465,7 @@ private static final double[][] MUZZLE_K_TABLE = {
 
     public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
 
-        if (currentFlywheelVelo >= targetFlywheelVelocity - 300 || currentFlywheelVelo <= targetFlywheelVelocity + 500) {
+        if (currentFlywheelVelo >= targetFlywheelVelocity - 300 || currentFlywheelVelo <= targetFlywheelVelocity + 300) {
             flywheelVeloReached = true;
         }
         else {
@@ -571,11 +573,11 @@ private static final double[][] MUZZLE_K_TABLE = {
     }
 
     public double getCurrentRequiredFlywheelTicks() {
-        return currentRequiredFlywheelTicks;
+        return targetFlywheelVelocity;
     }
 
     public double getCurrentRequiredHoodAngle() {
-        return currentRequiredHoodAngle;
+        return targetHoodAngle;
     }
 
 
@@ -660,6 +662,17 @@ private static final double[][] MUZZLE_K_TABLE = {
         turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         setTurretTarget(0,TurretMode.ROBOT_CENTRIC,getCurrentTurretPosition(),0);
+    }
+
+    public double getTargetFLywheelVelo(){
+        return targetFlywheelVelocity;
+    }
+
+    public double calcFlywheelSpeedInches(double flywheelSpeedTicks){
+        return flywheelSpeedTicks * ((72 * Math.PI)/(4096 * 25.4));
+    }
+    public double calcFlywheelSpeedTicks(double flywheelSpeedInches){
+        return flywheelSpeedInches / ((72 * Math.PI)/(4096 * 25.4));
     }
 
 //    public double getFlywheelVelo(){

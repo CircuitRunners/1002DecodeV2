@@ -504,7 +504,8 @@ public class Intake {
 
             case PRE_NUDGE:
                 gateClose();
-                transferOff();
+                transferOn();
+                setDirectionCycle();
                 intake.setPower(0.9);
 
                 if (stateTimer.milliseconds() > 700) {
@@ -541,6 +542,7 @@ public class Intake {
                 }
                 else if (!ball2Latched && internalTotalBalls > 1) {
                     setDirectionCycle();
+                    transferOn();
                     gateClose();
                     intake.setPower(0.9);
                 }
@@ -552,7 +554,8 @@ public class Intake {
 
             case POSITION_NUDGE:
                 gateClose();
-                transferOff();
+                transferOn();
+                setDirectionCycle();
                 intake.setPower(0.9);
 
                 if (stateTimer.milliseconds() > 170) {
