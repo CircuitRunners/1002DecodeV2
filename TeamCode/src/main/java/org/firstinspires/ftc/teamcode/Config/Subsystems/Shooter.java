@@ -262,6 +262,9 @@ private static final double[][] MUZZLE_K_TABLE = {
         return targetFieldYawDegBlue; // Returns (-180 to 180)
     }
 
+
+
+
     // ------------------------------------
     // ##  Turret Control
     // ------------------------------------
@@ -301,7 +304,7 @@ private static final double[][] MUZZLE_K_TABLE = {
         setTurretTargetPosition(absoluteTarget + mannualTurretAdjust);
     }
 
-    private void setTurretTargetPosition(double positionDeg) {
+    public void setTurretTargetPosition(double positionDeg) {
 //        if (positionDeg > 360){
 //            positionDeg -= 360;
 //        }
@@ -654,8 +657,14 @@ private static final double[][] MUZZLE_K_TABLE = {
                 turret.getCurrentPosition(),
                 -720, 720,              // Input Range
                 -180, 180
-        );// Output Range (CORRECTED)
+        );// Outp// ut Range (CORRECTED)
     }
+
+
+
+
+
+
 
     public void rezeroTurretPosition(){
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
