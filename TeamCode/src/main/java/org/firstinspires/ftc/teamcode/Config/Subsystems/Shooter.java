@@ -293,20 +293,24 @@ private static final double[][] MUZZLE_K_TABLE = {
 
     public void setTurretTarget(double inputFieldDeg, TurretMode mode, double robotFieldYawDeg, double mannualTurretAdjust) {
         double absoluteTarget = 0;
-        robotFieldYawDeg = normalizeRobotHeading0_360(robotFieldYawDeg);
+        //robotFieldYawDeg = normalizeRobotHeading0_360(robotFieldYawDeg);
+        robotFieldYawDeg = Range.clip(robotFieldYawDeg,-179,180);
 
         switch (mode) {
             case FIELD_CENTRIC:
                 // inputFieldDeg is your constant (e.g., 180 for West)
-                // Subtract robot heading to find robot-relative angle
-                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
+                // Subtract robot heading to find robot-relative angle  BUT LIKE NOT ACTUALLY
+                //absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
+                absoluteTarget = Range.clip((inputFieldDeg + robotFieldYawDeg),0,360);
                 // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case AUTO_ALIGN:
                 // Input is already the field yaw calculated from (dx, dy)
                 // Example: calculateAutoAlignYaw(robotX, robotY, targetX, targetY)
-                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
+               // absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
+
+                absoluteTarget = Range.clip((inputFieldDeg + robotFieldYawDeg),0,360);
                 // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
