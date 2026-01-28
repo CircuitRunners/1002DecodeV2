@@ -506,7 +506,7 @@ public class Intake {
                 gateClose();
                 transferOn();
                 setDirectionCycle();
-                intake.setPower(0.9);
+                intake.setPower(1); //0.9
 
                 if (stateTimer.milliseconds() > 700) {
                     intakeMotorHalt();
@@ -544,7 +544,7 @@ public class Intake {
                     setDirectionCycle();
                     transferOn();
                     gateClose();
-                    intake.setPower(0.9);
+                    intake.setPower(1); //0.9
                 }
                 else {
                     intakeMotorHalt();
@@ -556,7 +556,7 @@ public class Intake {
                 gateClose();
                 transferOn();
                 setDirectionCycle();
-                intake.setPower(0.9);
+                intake.setPower(1); //0.9
 
                 if (stateTimer.milliseconds() > 170) {
                     intakeMotorHalt();

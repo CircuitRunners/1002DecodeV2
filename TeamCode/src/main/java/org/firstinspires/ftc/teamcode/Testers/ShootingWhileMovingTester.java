@@ -774,7 +774,7 @@ public class ShootingWhileMovingTester extends OpMode {
             Vector robotVel = follower.getVelocity();
             double robotHeadingDeg = Math.toDegrees(robotPose.getHeading());
 
-            calculateNewGoalPos(follower.getPose().getX(),follower.getPose().getY(),RED_GOAL_X,GOAL_Y,robotHeadingDeg,450,0,0,true);
+            calculateNewGoalPos(follower.getPose().getX(),follower.getPose().getY(),BLUE_GOAL_X,GOAL_Y,robotHeadingDeg,450,0,0,false);
 
 //            setTargetsWithMotionCompensation(
 //                    robotPose.getX(), robotPose.getY(),
@@ -794,6 +794,7 @@ public class ShootingWhileMovingTester extends OpMode {
         telemetry.addData("Robot Vel Follower", follower.getVelocity().getMagnitude());
         telemetry.addData("Robot X/Y Velo Follower (INCH/SEC)", "%.1f / %.1f", follower.getPose().getX(), follower.getPose().getY());
         telemetry.addData("Robot X/Y Velo Pinpoint (INCH/SEC)", "%.1f / %.1f", pinpoint.getVelX(DistanceUnit.INCH), pinpoint.getVelX(DistanceUnit.INCH));
+        telemetry.addData("Calculated Time", shotTime);
         telemetry.update();
 
         loopTimer.reset();
@@ -852,15 +853,23 @@ public class ShootingWhileMovingTester extends OpMode {
         if (autoAlign) shooterLogic.setTurretTarget(turretAngle, Shooter.TurretMode.AUTO_ALIGN, robotHeadingDeg, 0);
     }
 
-
+    public static double shotTime = 0;
     public void calculateNewGoalPos( double robotX, double robotY,
                                      double goalX, double goalY,
                                      double robotHeadingDeg, double flywheelOffset,double turretOffset, double hoodOffset, boolean isRed){
 
         double dist = Math.hypot(goalX - robotX, goalY - robotY);
 
-        double shotTime = (t_a * Math.pow(dist, 4)) + (t_b * Math.pow(dist, 3)) +
-                (t_c * Math.pow(dist, 2)) + (t_d * dist) + t_e;
+//        double shotTime = (t_a * Math.pow(dist, 4)) + (t_b * Math.pow(dist, 3)) +
+//                (t_c * Math.pow(dist, 2)) + (t_d * dist) + t_e;\
+
+        double oldVelo = (v_a * Math.pow(dist, 4)) + (v_b * Math.pow(dist, 3)) +
+                (v_c * Math.pow(dist, 2)) + (v_d * dist) + v_e;
+
+        double oldHoodPos = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
+                (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
+
+        shotTime = calculateShotTime(oldVelo,Math.toRadians(oldHoodPos),16,38.75,1);
 
         double newGoalX = goalX - (shotTime * pinpoint.getVelX(DistanceUnit.INCH));
         double newGoalY = goalY - (shotTime * pinpoint.getVelY(DistanceUnit.INCH));
@@ -876,7 +885,7 @@ public class ShootingWhileMovingTester extends OpMode {
         shooterLogic.setTargetVelocityTicks(velo + flywheelOffset);
         shooterLogic.setHoodTargetAngle(Range.clip(hoodPos + hoodOffset, 0, 45));
 
-        double requiredFieldYaw;
+        double requiredFieldYaw = 0;
         if (!isRed) {
             requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, false);
         }
@@ -908,5 +917,46 @@ public class ShootingWhileMovingTester extends OpMode {
         }
         return targetFieldYawDegBlue; // Returns (-180 to 180)
     }
+
+
+ /**   @param ticksPerSec flywheel encoder velocity (ticks/sec)
+ * @param hoodAngleRad hood angle in radians
+ * @param launchHeightIn launch height (in)
+ * @param goalHeightIn goal height (in)
+ * @param k efficiency constant (0 < k <= 1)
+ * @return shot time in seconds
+ */
+
+ static final double TICKS_PER_REV = 4096.0;
+    static final double WHEEL_RADIUS_IN = 1.4173; // 72mm / 2 -> inches
+    static final double G = 386.0; // in/s^2
+    public static double calculateShotTime(
+            double ticksPerSec,
+            double hoodAngleRad,
+            double launchHeightIn,
+            double goalHeightIn,
+            double k
+    ) {
+        // 1) ticks/sec -> launch velocity (in/s)
+        double v0 =
+                k *
+                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
+                        / TICKS_PER_REV;
+        // 2) Quadratic coefficients
+        double a = 0.5 * G;
+        double b = -v0 * Math.sin(hoodAngleRad);
+        double c = goalHeightIn - launchHeightIn;
+        // 3) Discriminant check
+        double discriminant = b * b - 4.0 * a * c;
+        if (discriminant < 0) {
+            return Double.NaN; // shot cannot reach goal
+        }
+        // 4) Take the LARGER root (ball hits on way down)
+        double sqrtD = Math.sqrt(discriminant);
+        double t1 = (-b + sqrtD) / (2.0 * a);
+        double t2 = (-b - sqrtD) / (2.0 * a);
+        return Math.max(t1, t2);
+    }
+
 
 }

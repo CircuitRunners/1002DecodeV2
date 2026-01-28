@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Testers;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -11,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
 import java.util.List;
-
+@Disabled
 @Configurable
 @TeleOp(name = "Shooter: K-Tuner but sigma", group = "TEST")
 public class KShooterTester extends OpMode {
@@ -121,6 +122,7 @@ public class KShooterTester extends OpMode {
             telemetry.addData("Target Ticks/Sec", "%.0f", targetTicksPerSec);
             telemetry.addData("Current Ticks/Sec", "%.0f", currentVelo);
             telemetry.addData("Hood Angle", "%.2f°", desiredHoodAngle);
+            telemetry.addData("shottime",calculateShotTime(targetTicksPerSec,Math.toRadians(desiredHoodAngle),16,38.75,1));
 
             telemetry.addLine("\n== CALCULATED PHYSICS ==");
             if (denom <= 0) {
@@ -140,4 +142,36 @@ public class KShooterTester extends OpMode {
             if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
             else intake.doIntakeHalt();
         }
+
+
+    static final double TICKS_PER_REV = 4096.0;
+    static final double WHEEL_RADIUS_IN = 1.4173; // 72mm / 2 -> inches
+    static final double G = 386.0; // in/s^2
+    public static double calculateShotTime(
+            double ticksPerSec,
+            double hoodAngleRad,
+            double launchHeightIn,
+            double goalHeightIn,
+            double k
+    ) {
+        // 1) ticks/sec -> launch velocity (in/s)
+        double v0 =
+                k *
+                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
+                        / TICKS_PER_REV;
+        // 2) Quadratic coefficients
+        double a = 0.5 * G;
+        double b = -v0 * Math.sin(hoodAngleRad);
+        double c = goalHeightIn - launchHeightIn;
+        // 3) Discriminant check
+        double discriminant = b * b - 4.0 * a * c;
+        if (discriminant < 0) {
+            return Double.NaN; // shot cannot reach goal
+        }
+        // 4) Take the LARGER root (ball hits on way down)
+        double sqrtD = Math.sqrt(discriminant);
+        double t1 = (-b + sqrtD) / (2.0 * a);
+        double t2 = (-b - sqrtD) / (2.0 * a);
+        return Math.max(t1, t2);
+    }
     }

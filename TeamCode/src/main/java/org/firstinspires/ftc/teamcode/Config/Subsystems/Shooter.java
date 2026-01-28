@@ -239,29 +239,47 @@ private static final double[][] MUZZLE_K_TABLE = {
     }
 
 
-    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
-                                                double targetXInches, double targetYInches, boolean isRed) {
-        double deltaY = targetYInches - robotYInches;
-        double deltaX = targetXInches - robotXInches;
+//    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
+//                                                double targetXInches, double targetYInches, boolean isRed) {
+//        double deltaY = targetYInches - robotYInches; //63
+//        double deltaX = targetXInches - robotXInches; //-55 for blue, 55 red
+//
+//        // Standard atan2(y, x) for East = 0, North = 90
+//        double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
+//        double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
+//
+//        double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
+//        if (targetFieldYawDeg < 0) {
+//            targetFieldYawDeg += 360;
+//        }
+//        double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
+//        if (targetFieldYawDegBlue < 0) {
+//            targetFieldYawDegBlue += 360;
+//        }
+//        if (isRed) {
+//            return targetFieldYawDeg;
+//        }
+//        return targetFieldYawDegBlue; // Returns (-180 to 180)
+//    }
 
-        // Standard atan2(y, x) for East = 0, North = 90
-        double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
-        double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
+    private static double calculateAutoAlignYaw(double robotX, double robotY, double goalX, double goalY, boolean isRed) {
+        double deltaX = goalX - robotX;
+        double deltaY = goalY - robotY;
 
-        double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
-        if (targetFieldYawDeg < 0) {
-            targetFieldYawDeg += 360;
-        }
-        double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
-        if (targetFieldYawDegBlue < 0) {
-            targetFieldYawDegBlue += 360;
-        }
-        if (isRed) {
-            return targetFieldYawDeg;
-        }
-        return targetFieldYawDegBlue; // Returns (-180 to 180)
+        // 0° = +X, CCW positive
+        double yaw = Math.toDegrees(Math.atan2(deltaY, deltaX));
+
+        yaw = Math.round(yaw * 10.0)/10.0;
+
+        if (yaw < 0) yaw += 360;
+
+
+
+        // Turret zero = robot forward (+Y)
+        yaw = (yaw - 90 + 360) % 360;
+
+        return yaw;
     }
-
 
 
 
