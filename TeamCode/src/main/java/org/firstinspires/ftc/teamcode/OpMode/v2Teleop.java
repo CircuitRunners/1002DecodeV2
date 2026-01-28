@@ -165,6 +165,7 @@ public class v2Teleop extends OpMode {
         telemetry.addData("DESIRED VELO:",shooter.getTargetFLywheelVelo());
         telemetry.addData("Flywheel Velo", currentFlywheelVelo);
         telemetry.addData("Beam Broken", isBeamBroken);
+        telemetry.addData("Balls shot:", ballsShotInState);
 
 
        // telemetry.addData("Shot Possible", !shooter.isShotImpossible);
@@ -244,7 +245,7 @@ public class v2Teleop extends OpMode {
             intake.doIntakeHalt();
         }
 
-        if (ballsShotInState >= 3) resetToIntake();
+        //if (ballsShotInState >= 3) resetToIntake();
     }
 
     private void handleScoringState(Pose pose, double vx, double vy, double head, boolean beam) {
