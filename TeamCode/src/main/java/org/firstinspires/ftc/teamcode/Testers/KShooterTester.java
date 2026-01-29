@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.Testers;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.MathFunctions;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -10,6 +13,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.Config.Util.Poses;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
 @Disabled
@@ -18,10 +23,21 @@ import java.util.List;
 public class KShooterTester extends OpMode {
 
         // ===== Physics Constants =====
-        public static double TEST_DISTANCE_INCHES = 120.0;
-        public static double GOAL_HEIGHT = 38.75;
-        public static double LAUNCH_HEIGHT = 11.6;
-        public static double GRAVITY = 386.088;
+        private static double TEST_DISTANCE_INCHES = 120.0;
+        private static double GOAL_HEIGHT_OLD = 38.75;
+      private static double LAUNCH_HEIGHT = 11.6;
+        private static double GRAVITY = 386.088;
+
+    final double GOAL_HEIGHT = 25.75;          // inches
+    final double ANGLE_BIAS_DEG = -18.35;       // a
+    final double G_INCHES = 386.088;            // gravity
+    final double VECTOR_TUNE = 2.54;
+
+        public static double GOAL_X = 15;
+
+        public static double GOAL_Y = 135;
+
+        public static boolean sixSeven = false;
 
         // ===== Dashboard Tunables =====
         public static double targetTicksPerSec = 250000.0; // Starting at your typical range
@@ -37,6 +53,8 @@ public class KShooterTester extends OpMode {
         private boolean lastButton = false;
         private boolean lastLogButton = false;
 
+    private Follower follower;
+
         @Override
         public void init() {
             allHubs = hardwareMap.getAll(LynxModule.class);
@@ -50,6 +68,9 @@ public class KShooterTester extends OpMode {
             shooter = new Shooter(hardwareMap, telemetry);
             intake = new Intake(hardwareMap, telemetry);
 
+            follower = Constants.createFollower(hardwareMap);
+            follower.setStartingPose(Poses.getStartingPose());
+
             telemetry.setMsTransmissionInterval(50); // Faster telemetry for tuning
             telemetry.addLine("Ready to Tune.");
             telemetry.update();
@@ -59,6 +80,7 @@ public class KShooterTester extends OpMode {
         public void loop() {
             for (LynxModule hub : allHubs) hub.clearBulkCache();
             sensors.update();
+            follower.update();
 
             // --- 1. SMART CONTROLS ---
 
@@ -82,16 +104,27 @@ public class KShooterTester extends OpMode {
             double currentVelo = sensors.getFlywheelVelo();
             double currentTurret = shooter.getCurrentTurretPosition();
 
+            if (gamepad1.circle) {
+                follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+            }
+
+
+
             shooter.setHoodTargetAngle(desiredHoodAngle);
             if (enableShooter) {
-                shooter.setTargetVelocityTicks(targetTicksPerSec);
+                if (sixSeven){
+                    shooter.setTargetVelocityTicks(flywheelTicksFromDistance(follower.getPose().getX(),follower.getPose().getY(), GOAL_X,GOAL_Y));
+                }
+                else {
+                    shooter.setTargetVelocityTicks(targetTicksPerSec);
+                }
             } else {
                 shooter.stopFlywheel();
             }
             shooter.update(currentVelo, currentTurret);
 
             // --- 3. PHYSICS & K-FACTOR CALCULATION ---
-            double y = GOAL_HEIGHT - LAUNCH_HEIGHT;
+            double y = GOAL_HEIGHT_OLD - LAUNCH_HEIGHT;
             double theta = Math.toRadians(desiredHoodAngle);
 
             // V_req = sqrt( (g * x^2) / (2 * cos^2(theta) * (x * tan(theta) - y)) )
@@ -173,5 +206,44 @@ public class KShooterTester extends OpMode {
         double t1 = (-b + sqrtD) / (2.0 * a);
         double t2 = (-b - sqrtD) / (2.0 * a);
         return Math.max(t1, t2);
+    }
+
+
+    public  double flywheelTicksFromDistance(double robotX, double robotY, double goalX, double goalY) {
+        double distanceInches = Math.hypot(goalX - robotX, goalY - robotY);
+        // --- constants (copied from your OpMode) ---
+                   // tune factor
+
+        // Prevent nonsense
+        distanceInches = Math.max(distanceInches, 1.0);
+
+        // Initial physics angle
+        double angle = Math.atan(
+                2 * GOAL_HEIGHT / distanceInches
+                        - Math.tan(Math.toRadians(ANGLE_BIAS_DEG))
+        );
+
+        // Clamp to hood limits
+        angle = MathFunctions.clamp(
+                angle,
+                Math.toRadians(10),
+                Math.toRadians(85)
+        );
+
+        double cos = Math.cos(angle);
+        double denom = 2 * cos * cos *
+                (distanceInches * Math.tan(angle) - GOAL_HEIGHT);
+
+        if (denom <= 0) return 0;
+
+        // Muzzle velocity (in/s)
+        double velocity = Math.sqrt(
+                G_INCHES * distanceInches * distanceInches / denom
+        );
+
+        // Convert to ticks
+        return shooter.calcFlywheelSpeedTicks(
+                velocity * VECTOR_TUNE
+        );
     }
     }
