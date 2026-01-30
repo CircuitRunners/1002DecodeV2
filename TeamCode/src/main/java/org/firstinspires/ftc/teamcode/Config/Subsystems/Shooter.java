@@ -166,6 +166,7 @@ public class Shooter {
         turretPIDF.setSetPoint(0);
         flywheelPIDF.setSetPoint(0);
 
+
         setHoodTargetAngle(45);
     }
 
@@ -715,6 +716,8 @@ private static final double[][] MUZZLE_K_TABLE = {
         }
     }
 
+
+
     public void setTargetsByDistanceAdjustable(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign,double flywheelMannualAdjustment, double hoodMannualAdjustment, boolean isRed, double turretManualAdjustment) {
         double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
 
@@ -775,6 +778,10 @@ private static final double[][] MUZZLE_K_TABLE = {
     }
     public double calcFlywheelSpeedTicks(double flywheelSpeedInches){
         return flywheelSpeedInches / ((72 * Math.PI)/(4096 * 25.4));
+    }
+
+    public void resetTurretPID(){
+        turretPIDF.reset();
     }
 
 //    public double getFlywheelVelo(){

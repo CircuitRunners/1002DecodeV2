@@ -219,7 +219,7 @@ public class v2Teleop extends OpMode {
         }
 
         // Hardware re-zero
-        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
             shooter.rezeroTurretPosition();
             gamepad2.rumble(500);
             //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
@@ -228,8 +228,8 @@ public class v2Teleop extends OpMode {
         if (player2.wasJustPressed(GamepadKeys.Button.CROSS)){
             shooter.setTurretTarget(limelight.updateError(), Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
         }
-        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)){
-            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
+        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)){
+           shooter.resetTurretPID();
         }
 
         //square turns it off

@@ -11,6 +11,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
@@ -23,7 +24,7 @@ import java.util.List;
 
 @Configurable
 @Autonomous(name = "GS 12 Ball ", group = "A", preselectTeleOp = "v2Teleop")
-public class AdaptationOfThePowerOfFriendship extends OpMode {
+public class Sorted9BallClose extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -33,8 +34,14 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     private Intake intake;
     private Sensors sensors;
 
+    private LimelightCamera limelight;
+
     private int pathState;
     private Poses.Alliance lastKnownAlliance = null;
+
+    private LimelightCamera.BallOrder desiredOrder = null;
+
+    boolean doSort = false;
 
 
 
@@ -67,17 +74,12 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.25)
                 .build();
 
-        // Path 3: Intake 1 to Gate
-        openGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine1), Poses.get(Poses.pickupLine1ToGateControlPoint), Poses.get(Poses.openGate)))
 
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(90), 0.45)
-                .build();
 
         // Path 4: Gate back to Shoot
         travelBackToShoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.openGate), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Math.toRadians(90), Poses.get(Poses.shootPositionGoalSide3).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.shootPositionGoalSide3).getHeading())
                 .build();
 
         // Path 5: Shoot to Intake 2
@@ -92,17 +94,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
 
-        // Path 7: Shoot to Intake 3
-        intake3 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
-                .build();
 
-        // Path 8: Intake 3 back to final Shoot
-        travelBackToShoot3 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
-                .build();
 
         park  = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
@@ -121,19 +113,30 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, true);
+                    shooter.setTurretTarget(253, Shooter.TurretMode.FIELD_CENTRIC,follower.getHeading(),0);
 
                     setPathState();
                 }
                 break;
 
-            case 1: // Shoot 3 Preloads
+            case 1:
+                desiredOrder = limelight.detectBallOrder();
+                if (desiredOrder != null){
+                    doSort = true;
+                }
+                setPathState();
+                break;
+
+
+            case 2: // Shoot 3 Preloads
                 if (!follower.isBusy() ) {
+                    shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getHeading(),0);
                     handleAutoShooting(currentPose, targetX, 7,0);
-//                    goForLaunch = true;
+
                 }
                 break;
 
-            case 2: // Drive to Intake 1
+            case 3: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake1, true);
@@ -141,13 +144,6 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 }
                 break;
 
-            case 3: // Gate logic
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(openGate, true);
-                    setPathState();
-                }
-                break;
 
             case 4: // Return to Shoot 1
                 if (!follower.isBusy()) {
@@ -157,7 +153,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 break;
 
             case 5: // Shoot 3 Balls (Cycle 1)
-                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
+                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 1) {
                     handleAutoShooting(currentPose, targetX, 4.5,0);
                 }
                 break;
@@ -234,13 +230,20 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,false,0);
         }
         //shooter.flywheelVeloReached = false;
+        if (doSort){
+            intake.prepareAndStartSort();
+            if (shooter.flywheelVeloReached){
+                intake.setCanShoot(true);
+            }
+        }
 
-        trackShotCount(shooter.isBeamBroken());
+        else {
+            trackShotCount(shooter.isBeamBroken());
 
 
-        // Once RPM and Hood Angle are locked, engage the transfer
-        if (shooter.flywheelVeloReached  && pathTimer.getElapsedTimeSeconds() >=3) {
-            doTransfer = true;
+            // Once RPM and Hood Angle are locked, engage the transfer
+            if (shooter.flywheelVeloReached && pathTimer.getElapsedTimeSeconds() >= 3) {
+                doTransfer = true;
 
 //            boolean currentBeamState = shooter.isBeamBroken();
 //
@@ -249,14 +252,15 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 //                ballsShotInState++;
 //            }
 //            lastBeamState = currentBeamState;
+            }
+
+
+            if (doTransfer && shooter.turretReached) {
+                intake.doTransfer();
+            }
+
+
         }
-
-
-        if (doTransfer){
-            intake.doTransfer();
-        }
-
-
         // Advance to next state if 3 balls fired OR the safety timer expires
         if (pathTimer.getElapsedTimeSeconds() > timeout || ballsShotInState >= 3) {
             doTransfer = false;
@@ -264,6 +268,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             ballsShotInState = 0;
             intake.doIntakeHalt();
             goForLaunch = false;
+            intake.setCanShoot(false);
             setPathState();
         }
     }
@@ -293,6 +298,9 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         shooter = new Shooter(hardwareMap, telemetry);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
+
+        limelight = new LimelightCamera(hardwareMap);
+        intake.setCanShoot(false);
     }
 
     @Override
@@ -344,7 +352,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         pinpoint.update();
         sensors.update();
         shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
-        intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
+        intake.update(shooter.isBeamBroken(), desiredOrder,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
                 sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
