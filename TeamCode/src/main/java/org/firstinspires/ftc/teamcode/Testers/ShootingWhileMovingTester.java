@@ -693,6 +693,9 @@ public class ShootingWhileMovingTester extends OpMode {
 
     private ElapsedTime loopTimer = new ElapsedTime();
 
+    private double newX = BLUE_GOAL_X;
+    private double newY = GOAL_Y;
+
     @Override
     public void init() {
         allHubs = hardwareMap.getAll(LynxModule.class);
@@ -791,8 +794,9 @@ public class ShootingWhileMovingTester extends OpMode {
         // --- Telemetry ---
         telemetry.addData("Shooter Enabled", enableShooter);
         telemetry.addData("Position", followerData);
+        telemetry.addData("new goal x/y", "%.1f / %.1f",newX,newY);
         telemetry.addData("Robot Vel Follower", follower.getVelocity().getMagnitude());
-        telemetry.addData("Robot X/Y Velo Follower (INCH/SEC)", "%.1f / %.1f", follower.getPose().getX(), follower.getPose().getY());
+        telemetry.addData("Robot X/Y Velo Follower (INCH/SEC)", "%.1f / %.1f", follower.getVelocity().getXComponent(), follower.getVelocity().getYComponent());
         telemetry.addData("Robot X/Y Velo Pinpoint (INCH/SEC)", "%.1f / %.1f", pinpoint.getVelX(DistanceUnit.INCH), pinpoint.getVelX(DistanceUnit.INCH));
         telemetry.addData("Calculated Time", shotTime);
         telemetry.update();
@@ -808,88 +812,122 @@ public class ShootingWhileMovingTester extends OpMode {
     }
 
     // --- Motion compensation with turret offset ---
-    public void setTargetsWithMotionCompensation(
-            double robotX, double robotY,
-            double goalX, double goalY,
-            double robotHeadingDeg,
-            Vector robotVelocity,
-            boolean autoAlign,
-            double flywheelManualAdjust,
-            double hoodManualAdjust,
-            double turretManualAdjust,
-            boolean isRed
-    ) {
-        // 1️⃣ Distance to goal
-        double x = Math.hypot(goalX - robotX, goalY - robotY);
-
-        // 2️⃣ Base hood and flywheel from quartic
-        double baseVelo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
-                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
-
-        double hoodPos = (h_a * Math.pow(x, 4)) + (h_b * Math.pow(x, 3)) +
-                (h_c * Math.pow(x, 2)) + (h_d * x) + h_e;
-
-        // 3️⃣ Goal vector (robot → goal)
-        Vector goalVector = new Vector();
-        goalVector.setOrthogonalComponents(goalX - robotX, goalY - robotY);
-        Vector goalUnit = goalVector.normalize();
-
-        // 4️⃣ Motion compensation
-        double vParallel = robotVelocity.dot(goalUnit);   // along goal → flywheel
-        double vPerp     = robotVelocity.cross(goalUnit); // perpendicular → turret offset
-
-        double compensatedVeloInches = baseVelo + vParallel * FLYWHEEL_COMP_TUNING;
-        double compensatedVeloTicks  = shooterLogic.calcFlywheelSpeedTicks(compensatedVeloInches) + flywheelManualAdjust;
-
-        double turretOffsetRad = Math.atan2(vPerp, compensatedVeloInches); // turret adjustment for lateral motion
-
-        // 5️⃣ Base turret angle (auto-align to goal)
-        double requiredYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, isRed);
-        double turretAngle = requiredYaw + Math.toDegrees(turretOffsetRad) + turretManualAdjust;
-
-        // 6️⃣ Set shooter targets
-        shooterLogic.setTargetVelocityTicks(compensatedVeloTicks);
-        shooterLogic.setHoodTargetAngle(Range.clip(hoodPos + hoodManualAdjust, 0, 45));
-        if (autoAlign) shooterLogic.setTurretTarget(turretAngle, Shooter.TurretMode.AUTO_ALIGN, robotHeadingDeg, 0);
-    }
+//    public void setTargetsWithMotionCompensation(
+//            double robotX, double robotY,
+//            double goalX, double goalY,
+//            double robotHeadingDeg,
+//            Vector robotVelocity,
+//            boolean autoAlign,
+//            double flywheelManualAdjust,
+//            double hoodManualAdjust,
+//            double turretManualAdjust,
+//            boolean isRed
+//    ) {
+//        // 1️⃣ Distance to goal
+//        double x = Math.hypot(goalX - robotX, goalY - robotY);
+//
+//        // 2️⃣ Base hood and flywheel from quartic
+//        double baseVelo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
+//                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
+//
+//        double hoodPos = (h_a * Math.pow(x, 4)) + (h_b * Math.pow(x, 3)) +
+//                (h_c * Math.pow(x, 2)) + (h_d * x) + h_e;
+//
+//        // 3️⃣ Goal vector (robot → goal)
+//        Vector goalVector = new Vector();
+//        goalVector.setOrthogonalComponents(goalX - robotX, goalY - robotY);
+//        Vector goalUnit = goalVector.normalize();
+//
+//        // 4️⃣ Motion compensation
+//        double vParallel = robotVelocity.dot(goalUnit);   // along goal → flywheel
+//        double vPerp     = robotVelocity.cross(goalUnit); // perpendicular → turret offset
+//
+//        double compensatedVeloInches = baseVelo + vParallel * FLYWHEEL_COMP_TUNING;
+//        double compensatedVeloTicks  = shooterLogic.calcFlywheelSpeedTicks(compensatedVeloInches) + flywheelManualAdjust;
+//
+//        double turretOffsetRad = Math.atan2(vPerp, compensatedVeloInches); // turret adjustment for lateral motion
+//
+//        // 5️⃣ Base turret angle (auto-align to goal)
+//        double requiredYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, isRed);
+//        double turretAngle = requiredYaw + Math.toDegrees(turretOffsetRad) + turretManualAdjust;
+//
+//        // 6️⃣ Set shooter targets
+//        shooterLogic.setTargetVelocityTicks(compensatedVeloTicks);
+//        shooterLogic.setHoodTargetAngle(Range.clip(hoodPos + hoodManualAdjust, 0, 45));
+//        if (autoAlign) shooterLogic.setTurretTarget(turretAngle, Shooter.TurretMode.AUTO_ALIGN, robotHeadingDeg, 0);
+//    }
 
     public static double shotTime = 0;
     public void calculateNewGoalPos( double robotX, double robotY,
                                      double goalX, double goalY,
                                      double robotHeadingDeg, double flywheelOffset,double turretOffset, double hoodOffset, boolean isRed){
 
-        double dist = Math.hypot(goalX - robotX, goalY - robotY);
+
+        double ogGoalX = goalX;
+        double ogGoalY = goalY;
+
+        double newGoalX = 0;
+        double newGoalY = 0;
+
+        double newDist = 0;
+
+        double velo = 0;
+
+        double hoodPos = 0;
 
 //        double shotTime = (t_a * Math.pow(dist, 4)) + (t_b * Math.pow(dist, 3)) +
 //                (t_c * Math.pow(dist, 2)) + (t_d * dist) + t_e;\
+        for (int i = 0; i < 2; i++) {
 
-        double oldVelo = (v_a * Math.pow(dist, 4)) + (v_b * Math.pow(dist, 3)) +
-                (v_c * Math.pow(dist, 2)) + (v_d * dist) + v_e;
+            double dist = Math.hypot(ogGoalX - robotX, ogGoalY - robotY);
 
-        double oldHoodPos = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
-                (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
+            // double oldVelo = shooterLogic.flywheelTicksFromDistance(robotX,robotY,BLUE_GOAL_X,GOAL_Y);
+            double oldVelo = (v_a * Math.pow(dist, 4)) + (v_b * Math.pow(dist, 3)) +
+                    (v_c * Math.pow(dist, 2)) + (v_d * dist) + v_e;
 
-        shotTime = calculateShotTime(oldVelo,Math.toRadians(oldHoodPos),16,38.75,1);
+            double oldHoodPos = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
+                    (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
 
-        double newGoalX = goalX - (shotTime * pinpoint.getVelX(DistanceUnit.INCH));
-        double newGoalY = goalY - (shotTime * pinpoint.getVelY(DistanceUnit.INCH));
+            shotTime = shooterLogic.calculateShotTime(oldVelo, Math.toRadians(oldHoodPos), BLUE_GOAL_X, GOAL_Y, robotX, robotY);
 
-        double newDist = Math.hypot(newGoalX - robotX, newGoalY - robotY);
 
-        double velo = (v_a * Math.pow(newDist, 4)) + (v_b * Math.pow(newDist, 3)) +
-                (v_c * Math.pow(newDist, 2)) + (v_d * newDist) + v_e;
+            if (Math.abs(follower.getVelocity().getMagnitude()) > 1) {
 
-        double hoodPos = (h_a * Math.pow(newDist, 4)) + (h_b * Math.pow(newDist, 3)) +
-                (h_c * Math.pow(newDist, 2)) + (h_d * newDist) + h_e;
+
+                newGoalX = goalX + (shotTime * -follower.getVelocity().getXComponent());
+                newGoalY = goalY + (shotTime * -follower.getVelocity().getYComponent());
+
+                newDist = Math.hypot(newGoalX - robotX, newGoalY - robotY);
+
+                velo = (v_a * Math.pow(newDist, 4)) + (v_b * Math.pow(newDist, 3)) +
+                        (v_c * Math.pow(newDist, 2)) + (v_d * newDist) + v_e;
+
+                hoodPos = (h_a * Math.pow(newDist, 4)) + (h_b * Math.pow(newDist, 3)) +
+                        (h_c * Math.pow(newDist, 2)) + (h_d * newDist) + h_e;
+            } else {
+                newGoalX = goalX;
+                newGoalY = goalY;
+
+                newDist = dist;
+
+                velo = oldVelo;
+
+                hoodPos = oldHoodPos;
+            }
+
+            ogGoalX = newGoalX;
+            ogGoalY = newGoalY;
+
+        }
 
         shooterLogic.setTargetVelocityTicks(velo + flywheelOffset);
         shooterLogic.setHoodTargetAngle(Range.clip(hoodPos + hoodOffset, 0, 45));
 
         double requiredFieldYaw = 0;
         if (!isRed) {
-            requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, false);
+            requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, newGoalX, newGoalY, false);
         }
-        else { requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, true);}
+        else { requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, newGoalX, newGoalY, true);}
         // B. Pass to the turret setter
         shooterLogic.setTurretTarget(requiredFieldYaw, Shooter.TurretMode.AUTO_ALIGN, robotHeadingDeg,turretOffset);
     }
@@ -930,33 +968,33 @@ public class ShootingWhileMovingTester extends OpMode {
  static final double TICKS_PER_REV = 4096.0;
     static final double WHEEL_RADIUS_IN = 1.4173; // 72mm / 2 -> inches
     static final double G = 386.0; // in/s^2
-    public static double calculateShotTime(
-            double ticksPerSec,
-            double hoodAngleRad,
-            double launchHeightIn,
-            double goalHeightIn,
-            double k
-    ) {
-        // 1) ticks/sec -> launch velocity (in/s)
-        double v0 =
-                k *
-                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
-                        / TICKS_PER_REV;
-        // 2) Quadratic coefficients
-        double a = 0.5 * G;
-        double b = -v0 * Math.sin(hoodAngleRad);
-        double c = goalHeightIn - launchHeightIn;
-        // 3) Discriminant check
-        double discriminant = b * b - 4.0 * a * c;
-        if (discriminant < 0) {
-            return Double.NaN; // shot cannot reach goal
-        }
-        // 4) Take the LARGER root (ball hits on way down)
-        double sqrtD = Math.sqrt(discriminant);
-        double t1 = (-b + sqrtD) / (2.0 * a);
-        double t2 = (-b - sqrtD) / (2.0 * a);
-        return Math.max(t1, t2);
-    }
+//    public static double calculateShotTime(
+//            double ticksPerSec,
+//            double hoodAngleRad,
+//            double launchHeightIn,
+//            double goalHeightIn,
+//            double k
+//    ) {
+//        // 1) ticks/sec -> launch velocity (in/s)
+//        double v0 =
+//                k *
+//                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
+//                        / TICKS_PER_REV;
+//        // 2) Quadratic coefficients
+//        double a = 0.5 * G;
+//        double b = -v0 * Math.sin(hoodAngleRad);
+//        double c = goalHeightIn - launchHeightIn;
+//        // 3) Discriminant check
+//        double discriminant = b * b - 4.0 * a * c;
+//        if (discriminant < 0) {
+//            return Double.NaN; // shot cannot reach goal
+//        }
+//        // 4) Take the LARGER root (ball hits on way down)
+//        double sqrtD = Math.sqrt(discriminant);
+//        double t1 = (-b + sqrtD) / (2.0 * a);
+//        double t2 = (-b - sqrtD) / (2.0 * a);
+//        return Math.max(t1, t2);
+//    }
 
 
 }

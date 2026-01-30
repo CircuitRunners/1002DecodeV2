@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -30,7 +31,9 @@ public class Shooter {
 
     // PIDF Coefficients
     private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
-    private static final double[] turretCoefficients = {0.087, 0.000, 0.00399995, 0.0009};
+//    private static final double[] turretCoefficients = {0.087, 0.000, 0.00399995, 0.0009};
+
+    private static final double[] turretCoefficients = {0.086, 0.000, 0.0039999995, 0.0009};
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
@@ -51,6 +54,11 @@ public class Shooter {
     private static final double LAUNCH_HEIGHT_IN = 16; //11.6
     private static final double GOAL_HEIGHT_IN = 38.75;
     private static final double GOAL_HEIGHT_SAFETY_OFFSET_IN = 2.0;
+
+    final double GOAL_HEIGHT = 38.75;          // inches
+    final double ANGLE_BIAS_DEG = -18.35;       // a
+    final double G_INCHES = 386.088;            // gravity
+    final double VECTOR_TUNE = 2.49;
 
     private static final double EFFECTIVE_GOAL_HEIGHT_IN =
             GOAL_HEIGHT_IN + GOAL_HEIGHT_SAFETY_OFFSET_IN;
@@ -239,47 +247,47 @@ private static final double[][] MUZZLE_K_TABLE = {
     }
 
 
-//    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
-//                                                double targetXInches, double targetYInches, boolean isRed) {
-//        double deltaY = targetYInches - robotYInches; //63
-//        double deltaX = targetXInches - robotXInches; //-55 for blue, 55 red
-//
-//        // Standard atan2(y, x) for East = 0, North = 90
-//        double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
-//        double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
-//
-//        double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
-//        if (targetFieldYawDeg < 0) {
-//            targetFieldYawDeg += 360;
-//        }
-//        double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
-//        if (targetFieldYawDegBlue < 0) {
-//            targetFieldYawDegBlue += 360;
-//        }
-//        if (isRed) {
-//            return targetFieldYawDeg;
-//        }
-//        return targetFieldYawDegBlue; // Returns (-180 to 180)
-//    }
+    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
+                                                double targetXInches, double targetYInches, boolean isRed) {
+        double deltaY = targetYInches - robotYInches;
+        double deltaX = targetXInches - robotXInches;
 
-    private static double calculateAutoAlignYaw(double robotX, double robotY, double goalX, double goalY, boolean isRed) {
-        double deltaX = goalX - robotX;
-        double deltaY = goalY - robotY;
+        // Standard atan2(y, x) for East = 0, North = 90
+        double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
+        double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
 
-        // 0° = +X, CCW positive
-        double yaw = Math.toDegrees(Math.atan2(deltaY, deltaX));
-
-        yaw = Math.round(yaw * 10.0)/10.0;
-
-        if (yaw < 0) yaw += 360;
-
-
-
-        // Turret zero = robot forward (+Y)
-        yaw = (yaw - 90 + 360) % 360;
-
-        return yaw;
+        double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
+        if (targetFieldYawDeg < 0) {
+            targetFieldYawDeg += 360;
+        }
+        double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
+        if (targetFieldYawDegBlue < 0) {
+            targetFieldYawDegBlue += 360;
+        }
+        if (isRed) {
+            return targetFieldYawDeg;
+        }
+        return targetFieldYawDegBlue; // Returns (-180 to 180)
     }
+
+//    private static double calculateAutoAlignYaw(double robotX, double robotY, double goalX, double goalY, boolean isRed) {
+//        double deltaX = goalX - robotX;
+//        double deltaY = goalY - robotY;
+//
+//        // 0° = +X, CCW positive
+//        double yaw = Math.toDegrees(Math.atan2(deltaY, deltaX));
+//
+//        yaw = Math.round(yaw * 10.0)/10.0;
+//
+//        if (yaw < 0) yaw += 360;
+//
+//
+//
+//        // Turret zero = robot forward (+Y)
+//        yaw = (yaw - 90 + 360) % 360;
+//
+//        return yaw;
+//    }
 
 
 
@@ -299,20 +307,14 @@ private static final double[][] MUZZLE_K_TABLE = {
             case FIELD_CENTRIC:
                 // inputFieldDeg is your constant (e.g., 180 for West)
                 // Subtract robot heading to find robot-relative angle
-                absoluteTarget = inputFieldDeg - robotFieldYawDeg;
-                if (absoluteTarget > 360) absoluteTarget-= 360;
-                if (absoluteTarget < 0) absoluteTarget += 360;
-                absoluteTarget = Range.clip(absoluteTarget,0,360);
+                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
                 // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
             case AUTO_ALIGN:
                 // Input is already the field yaw calculated from (dx, dy)
                 // Example: calculateAutoAlignYaw(robotX, robotY, targetX, targetY)
-                absoluteTarget = inputFieldDeg - robotFieldYawDeg;
-                if (absoluteTarget > 360) absoluteTarget-= 360;
-                if (absoluteTarget < 0) absoluteTarget += 360;
-                absoluteTarget = Range.clip(absoluteTarget,0,360);
+                absoluteTarget = Range.clip((((inputFieldDeg - robotFieldYawDeg + 360) % 360)), 0, 360);
                 // absoluteTarget = normalizeRobotHeading0_360(inputFieldDeg - robotFieldYawDeg);
                 break;
 
@@ -327,7 +329,6 @@ private static final double[][] MUZZLE_K_TABLE = {
         // Set the setpoint (Non-Continuous PID handles the 'long way')
         setTurretTargetPosition(absoluteTarget + mannualTurretAdjust);
     }
-
     public void setTurretTargetPosition(double positionDeg) {
 //        if (positionDeg > 360){
 //            positionDeg -= 360;
@@ -335,7 +336,7 @@ private static final double[][] MUZZLE_K_TABLE = {
 //        else if (positionDeg < 0){
 //            positionDeg +=360;
 //        }
-       // targetTurretPosition = Range.clip(positionDeg, -265, 265);
+        // targetTurretPosition = Range.clip(positionDeg, -265, 265);
         //targetTurretPosition = Range.clip(positionDeg,0,315);
 
 
@@ -363,6 +364,7 @@ private static final double[][] MUZZLE_K_TABLE = {
         // 3. Clip to stay away from the physical hardstops (e.g., +/- 175)
         targetTurretPosition = Range.clip(physicalTarget, -178, 180);
     }
+
 
 
     // ------------------------------------
@@ -398,7 +400,7 @@ private static final double[][] MUZZLE_K_TABLE = {
 
     // --- Physical Constants (inches & Seconds) ---
     private static final double TICKS_PER_REV_ENCODER = 4096.0;
-    private static final double WHEEL_RADIUS_IN = 1.417;
+
     private static final double GEAR_RATIO = 33.0 / 27.0;
 
     // Variables outside the loop to persist "memory" between frames
@@ -409,51 +411,51 @@ private static final double[][] MUZZLE_K_TABLE = {
 
 
     //pass in everything in inches and degrees (inch/sec for velo too)
-    public void calculateIterativeShot(
-            double robotX, double robotY, double goalX, double goalY,
-            double robotVeloX, double robotVeloY,double robotHeading, boolean isRed, double flywheelMannualOffset, double hoodMannualOffset, double turretManualOffset) {
-
-        // Start with the real goal position
-        double virtualGoalX = goalX;
-        double virtualGoalY = goalY;
-
-        // Run 5 iterations to converge on the moving target
-        for (int i = 0; i < 1; i++) {
-            // 1. Calculate distance to our "Virtual Goal"
-            double dist = Math.hypot(virtualGoalX - robotX, virtualGoalY - robotY);
-
-            // 2. Get base Ticks and Hood from your Quartic curves for this distance
-            double baseTicks = (v_a * Math.pow(dist, 4)) + (v_b * Math.pow(dist, 3)) +
-                    (v_c * Math.pow(dist, 2)) + (v_d * dist) + v_e;
-
-            double baseHood = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
-                    (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
-
-            // 3. Convert Ticks to Inches/Sec to find Time of Flight
-            // Formula: Ticks -> Inches/Sec -> calculateTimeToGoalSeconds
-            double ticksToInches =
-                    calcFlywheelSpeedInches(baseTicks);
-            double muzzleVeloInches = baseTicks * ticksToInches;
-
-            persistentShotTime = calculateTimeToGoalSeconds(muzzleVeloInches, baseHood,dist);
-
-            // 4. Update the Virtual Goal position based on robot velocity
-            // New Pos = Current Pos + (-Robot Velocity * Time)
-            virtualGoalX = goalX - (robotVeloX * (persistentShotTime + transferTimeSec));
-            virtualGoalY = goalY - (robotVeloY * (persistentShotTime + transferTimeSec));
-
-            // 5. Store the final results from this iteration
-            finalAdjustedVeloTicks = baseTicks;
-            finalAdjustedHoodDeg = baseHood;
-            finalAdjustedTurretFieldYaw = calculateAutoAlignYaw(robotX, robotY, virtualGoalX, virtualGoalY, isRed);
-        }
-
-        // After the loop, apply the results to the hardware
-        setTargetVelocityTicks(finalAdjustedVeloTicks + flywheelMannualOffset);
-        setHoodTargetAngle(Range.clip(finalAdjustedHoodDeg + hoodMannualOffset, 0, 45));
-        // Turret uses the yaw calculated for the VIRTUAL goal
-        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading,turretManualOffset);
-    }
+//    public void calculateIterativeShot(
+//            double robotX, double robotY, double goalX, double goalY,
+//            double robotVeloX, double robotVeloY,double robotHeading, boolean isRed, double flywheelMannualOffset, double hoodMannualOffset, double turretManualOffset) {
+//
+//        // Start with the real goal position
+//        double virtualGoalX = goalX;
+//        double virtualGoalY = goalY;
+//
+//        // Run 5 iterations to converge on the moving target
+//        for (int i = 0; i < 1; i++) {
+//            // 1. Calculate distance to our "Virtual Goal"
+//            double dist = Math.hypot(virtualGoalX - robotX, virtualGoalY - robotY);
+//
+//            // 2. Get base Ticks and Hood from your Quartic curves for this distance
+//            double baseTicks = (v_a * Math.pow(dist, 4)) + (v_b * Math.pow(dist, 3)) +
+//                    (v_c * Math.pow(dist, 2)) + (v_d * dist) + v_e;
+//
+//            double baseHood = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
+//                    (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
+//
+//            // 3. Convert Ticks to Inches/Sec to find Time of Flight
+//            // Formula: Ticks -> Inches/Sec -> calculateTimeToGoalSeconds
+//            double ticksToInches =
+//                    calcFlywheelSpeedInches(baseTicks);
+//            double muzzleVeloInches = baseTicks * ticksToInches;
+//
+//            persistentShotTime = calculateTimeToGoalSeconds(muzzleVeloInches, baseHood,dist);
+//
+//            // 4. Update the Virtual Goal position based on robot velocity
+//            // New Pos = Current Pos + (-Robot Velocity * Time)
+//            virtualGoalX = goalX - (robotVeloX * (persistentShotTime + transferTimeSec));
+//            virtualGoalY = goalY - (robotVeloY * (persistentShotTime + transferTimeSec));
+//
+//            // 5. Store the final results from this iteration
+//            finalAdjustedVeloTicks = baseTicks;
+//            finalAdjustedHoodDeg = baseHood;
+//            finalAdjustedTurretFieldYaw = calculateAutoAlignYaw(robotX, robotY, virtualGoalX, virtualGoalY, isRed);
+//        }
+//
+//        // After the loop, apply the results to the hardware
+//        setTargetVelocityTicks(finalAdjustedVeloTicks + flywheelMannualOffset);
+//        setHoodTargetAngle(Range.clip(finalAdjustedHoodDeg + hoodMannualOffset, 0, 45));
+//        // Turret uses the yaw calculated for the VIRTUAL goal
+//        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading,turretManualOffset);
+//    }
 
 
 
@@ -616,6 +618,69 @@ private static final double[][] MUZZLE_K_TABLE = {
         return false;
     }
 
+
+   public double flywheelTicksFromDistance(double robotX, double robotY, double goalX, double goalY) {
+        double distanceInches = Math.hypot(goalX - robotX, goalY - robotY);
+        // --- constants (copied from your OpMode) ---
+        // tune factor
+
+        // Prevent nonsense
+        distanceInches = Math.max(distanceInches, 1.0);
+
+        // Initial physics angle
+        double angle = Math.atan(
+                2 * GOAL_HEIGHT / distanceInches
+                        - Math.tan(Math.toRadians(ANGLE_BIAS_DEG))
+        );
+
+        // Clamp to hood limits
+        angle = MathFunctions.clamp(
+                angle,
+                Math.toRadians(10),
+                Math.toRadians(85)
+        );
+
+        double cos = Math.cos(angle);
+        double denom = 2 * cos * cos *
+                (distanceInches * Math.tan(angle) - GOAL_HEIGHT);
+
+        if (denom <= 0) return 0;
+
+        // Muzzle velocity (in/s)
+        double velocity = Math.sqrt(
+                G_INCHES * distanceInches * distanceInches / denom
+        );
+
+        // Convert to ticks
+        return calcFlywheelSpeedTicks(
+                velocity * VECTOR_TUNE
+        );
+    }
+
+    static final double TICKS_PER_REV = 4096.0;
+    static final double WHEEL_RADIUS_IN = 1.4173; // 72mm / 2 -> inches
+    static final double G = 386.0; // in/s^2
+    public static double k = 0.4;
+
+    public static double calculateShotTime(
+            double ticksPerSec,
+            double hoodAngleRad,
+            double GOAL_X, double GOAL_Y,double robotX,double robotY
+    ) {
+
+
+
+        double distanceInches = Math.hypot(GOAL_X - robotX, GOAL_Y - robotY);
+
+
+        double v0 =
+                k *
+                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
+                        / TICKS_PER_REV;
+
+        double vx = v0 * Math.cos(hoodAngleRad);
+        return distanceInches / vx;
+    }
     public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign, double hoodMannualAdjustment, boolean isRed, double turretAdjustment) {
         double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
 
@@ -625,6 +690,8 @@ private static final double[][] MUZZLE_K_TABLE = {
         // Quartic calculation for Velocity
         velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
                 (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
+
+       // velo = flywheelTicksFromDistance(robotX,robotY,goalX,goalY);
 
 
         // Quartic calculation for Hood
@@ -657,6 +724,8 @@ private static final double[][] MUZZLE_K_TABLE = {
         // Quartic calculation for Velocity
         velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
                 (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
+       // velo = flywheelTicksFromDistance(robotX,robotY,goalX,goalY);
+
 
 
         // Quartic calculation for Hood
@@ -668,7 +737,7 @@ private static final double[][] MUZZLE_K_TABLE = {
         if (autoAlign){
             double requiredFieldYaw;
             if (!isRed) {
-                requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, false);
+                requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY + 3, false);
             }
             else { requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, true);}
             // B. Pass to the turret setter

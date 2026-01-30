@@ -28,10 +28,12 @@ import java.util.List;
 public class notCookedTurretTuner extends OpMode {
 
     // ===== Dashboard Tunables =====
-    public static double kP = 0.007;
+
+
+    public static double kP = 0.087;
     public static double kI = 0.000;
-    public static double kD = 0.000;
-    public static double kF = 0.0;
+    public static double kD =  0.00399995;
+    public static double kF = 0.0009;
     public static double targetAngle = 180;
     public static double maxPower = 1.0;
     public static boolean isReversed = false;

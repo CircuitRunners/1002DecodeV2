@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -24,11 +25,14 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import java.util.List;
 import java.util.Locale;
 
 @TeleOp(name = "Zenith Teleop", group = "A")
 @Configurable
 public class v2Teleop extends OpMode {
+
+    private List<LynxModule> allHubs;
 
     private MecanumDrive drive;
     private Intake intake;
@@ -48,7 +52,7 @@ public class v2Teleop extends OpMode {
     private boolean lastBeamState = false;
 
     private final double RED_GOAL_X = 127.0;
-    private final double BLUE_GOAL_X = 17.0;
+    private final double BLUE_GOAL_X = 15.0;
     private final double GOAL_Y = 129;
     private static final double METERS_TO_INCH = 39.37;
 
@@ -64,6 +68,9 @@ public class v2Teleop extends OpMode {
 
     @Override
     public void init() {
+
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Poses.getStartingPose());
         follower.update();
@@ -111,6 +118,8 @@ public class v2Teleop extends OpMode {
 
     @Override
     public void loop() {
+
+        for (LynxModule hub : allHubs) hub.clearBulkCache();
         timer.reset();
         // --- 1. HARDWARE UPDATES ---
         follower.update();
@@ -276,16 +285,16 @@ public class v2Teleop extends OpMode {
        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
         if (isRedAlliance) {
             if (noAutoAlign) {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,450, 0,true,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,450, 0,true,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 450,0,true,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 450,0,true,turretMannualAdjust);
             }
         }
         else{
             if (noAutoAlign) {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 450,0,false,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 450,0,false,turretMannualAdjust);
             } else {
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, true, 450,0,false,turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 450,0,false,turretMannualAdjust);
             }
         }
     }
