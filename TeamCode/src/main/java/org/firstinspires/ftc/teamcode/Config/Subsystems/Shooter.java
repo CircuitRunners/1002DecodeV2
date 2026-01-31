@@ -30,10 +30,10 @@ public class Shooter {
 
 
     // PIDF Coefficients
-    private static final double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
+    public static  double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
 //    private static final double[] turretCoefficients = {0.087, 0.000, 0.00399995, 0.0009};
 
-    private static final double[] turretCoefficients = {0.086, 0.000, 0.0039999995, 0.0009};
+    public static  double[] turretCoefficients = {0.9, 0.006, 0.035, 0.003};
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
@@ -98,12 +98,38 @@ public class Shooter {
 
     // Velocity Coefficients
 //    public static double v_a = 0.00212656, v_b = -0.690055, v_c = 80.9096, v_d = -3021.17244, v_e = 221635.584;
-    public static double v_a = -0.000419907, v_b = 0.162408, v_c = -21.9297, v_d = 1991.28761, v_e = 150460.825;
+//    public static double v_a = -0.000419907, v_b = 0.162408, v_c = -21.9297, v_d = 1991.28761, v_e = 150460.825;
 
 
     // Hood Coefficients
     //public static double h_a = -0.00000272327, h_b = 0.000865664, h_c = -0.0980841, h_d = 4.82789, h_e = -51.50719;
     public static double h_a = -(2.52835e-7), h_b = 0.00012437, h_c = -0.0230779, h_d = 1.9269, h_e = -17.60642;
+
+    /**
+     * Flywheel velocity lookup table
+     *
+     * distanceInches , flywheelTicksPerSec
+     *
+     * MUST be sorted by distance (ascending)
+     */
+    private static final double[][] VELO_LUT = {
+            { 20.0, 182746 },
+            { 25.0, 188910 },
+            { 30.0, 194507 },
+            { 40.0, 204343 },
+            { 50.0, 212877 },
+            { 60.0, 220628 },
+            { 70.0, 228019 },
+            { 80.0, 235366 },
+            { 90.0, 242891 },
+            { 100.0, 250709 },
+            { 110.0, 258839 },
+            { 120.0, 267196 },
+            { 130.0, 275569 },
+            { 140.0, 283754 },
+            { 150.0, 291284 },
+            { 155.0, 292000 },
+    };
 
     /**
      * Data structure for the calculated optimal shot parameters.
@@ -187,48 +213,48 @@ public class Shooter {
  *
  * DO NOT try to "fix" these with physics — trust the table.
  */
-private static final double[][] MUZZLE_K_TABLE = {
-        // angleDeg ,   k
-        { 38.0, 0.00098 },
-        { 42.0, 0.00092 },
-        { 44.0, 0.00090 },
-        { 45.0, 0.00090 }
-};
-    // ---------------------------------------------------------------------------
-// 
-
-    // Given a hood angle (in degrees), return the correct k-factor by
-    // linearly interpolating between the nearest lookup table entries.
-    private double getKForAngle(double angleDeg) {
-        // --- Clamp below table range ---
-        if (angleDeg <= MUZZLE_K_TABLE[0][0]) {
-            return MUZZLE_K_TABLE[0][1];
-        }
-
-        // --- Clamp above table range ---
-        if (angleDeg >= MUZZLE_K_TABLE[MUZZLE_K_TABLE.length - 1][0]) {
-            return MUZZLE_K_TABLE[MUZZLE_K_TABLE.length - 1][1];
-        }
-
-        // --- Find the interval the angle belongs to ---
-        for (int i = 0; i < MUZZLE_K_TABLE.length - 1; i++) {
-            double a0 = MUZZLE_K_TABLE[i][0];
-            double k0 = MUZZLE_K_TABLE[i][1];
-            double a1 = MUZZLE_K_TABLE[i + 1][0];
-            double k1 = MUZZLE_K_TABLE[i + 1][1];
-
-            if (angleDeg >= a0 && angleDeg <= a1) {
-                // how far between a0 and a1
-                double t = (angleDeg - a0) / (a1 - a0);
-
-                // Linear interpolation for smooth k value
-                return k0 + t * (k1 - k0);
-            }
-        }
-
-        // Should never occur
-        return MUZZLE_K_TABLE[0][1];
-    }
+//private static final double[][] MUZZLE_K_TABLE = {
+//        // angleDeg ,   k
+//        { 38.0, 0.00098 },
+//        { 42.0, 0.00092 },
+//        { 44.0, 0.00090 },
+//        { 45.0, 0.00090 }
+//};
+//    // ---------------------------------------------------------------------------
+////
+//
+//    // Given a hood angle (in degrees), return the correct k-factor by
+//    // linearly interpolating between the nearest lookup table entries.
+//    private double getKForAngle(double angleDeg) {
+//        // --- Clamp below table range ---
+//        if (angleDeg <= MUZZLE_K_TABLE[0][0]) {
+//            return MUZZLE_K_TABLE[0][1];
+//        }
+//
+//        // --- Clamp above table range ---
+//        if (angleDeg >= MUZZLE_K_TABLE[MUZZLE_K_TABLE.length - 1][0]) {
+//            return MUZZLE_K_TABLE[MUZZLE_K_TABLE.length - 1][1];
+//        }
+//
+//        // --- Find the interval the angle belongs to ---
+//        for (int i = 0; i < MUZZLE_K_TABLE.length - 1; i++) {
+//            double a0 = MUZZLE_K_TABLE[i][0];
+//            double k0 = MUZZLE_K_TABLE[i][1];
+//            double a1 = MUZZLE_K_TABLE[i + 1][0];
+//            double k1 = MUZZLE_K_TABLE[i + 1][1];
+//
+//            if (angleDeg >= a0 && angleDeg <= a1) {
+//                // how far between a0 and a1
+//                double t = (angleDeg - a0) / (a1 - a0);
+//
+//                // Linear interpolation for smooth k value
+//                return k0 + t * (k1 - k0);
+//            }
+//        }
+//
+//        // Should never occur
+//        return MUZZLE_K_TABLE[0][1];
+//    }
 
     /**
      * Normalizes an angle from [-180, 180] to [0, 360] (Robot Heading).
@@ -266,9 +292,9 @@ private static final double[][] MUZZLE_K_TABLE = {
             targetFieldYawDegBlue += 360;
         }
         if (isRed) {
-            return targetFieldYawDeg;
+            return Math.round(targetFieldYawDeg);
         }
-        return targetFieldYawDegBlue; // Returns (-180 to 180)
+        return Math.round(targetFieldYawDegBlue); // Returns (-180 to 180)
     }
 
 //    private static double calculateAutoAlignYaw(double robotX, double robotY, double goalX, double goalY, boolean isRed) {
@@ -524,9 +550,17 @@ private static final double[][] MUZZLE_K_TABLE = {
 //        if (targetFlywheelVelocity == 0) {
 //            setFlywheelPower(0);
 //        }
+        turretPIDF.setPIDF( turretCoefficients[0], turretCoefficients[1],
 
+                turretCoefficients[2], turretCoefficients[3]);
         double turretOutput = turretPIDF.calculate(currentTurretAngle0_360,targetTurretPosition);
-        turretOutput = Range.clip(turretOutput, -maxTurretPower, maxTurretPower);
+
+        if (Math.abs(targetTurretPosition - currentTurretAngle0_360) <= 4){
+            turretOutput = 0;
+        }
+        else{
+            turretOutput = Range.clip(turretOutput, -maxTurretPower, maxTurretPower);
+        }
         turret.setPower(turretOutput);
 
         // Hood Control (No PIDF)
@@ -548,6 +582,43 @@ private static final double[][] MUZZLE_K_TABLE = {
     // ------------------------------------
 
 
+
+    /**
+     * Returns interpolated flywheel velocity (ticks/sec)
+     * for a given distance in inches.
+     */
+    private static double getFlywheelVeloFromDistanceLUT(double distanceInches) {
+
+        // --- Clamp below table ---
+        if (distanceInches <= VELO_LUT[0][0]) {
+            return VELO_LUT[0][1];
+        }
+
+        // --- Clamp above table ---
+        if (distanceInches >= VELO_LUT[VELO_LUT.length - 1][0]) {
+            return VELO_LUT[VELO_LUT.length - 1][1];
+        }
+
+        // --- Find the two surrounding points ---
+        for (int i = 0; i < VELO_LUT.length - 1; i++) {
+            double d0 = VELO_LUT[i][0];
+            double v0 = VELO_LUT[i][1];
+
+            double d1 = VELO_LUT[i + 1][0];
+            double v1 = VELO_LUT[i + 1][1];
+
+            if (distanceInches >= d0 && distanceInches <= d1) {
+                // interpolation factor (0 → 1)
+                double t = (distanceInches - d0) / (d1 - d0);
+
+                // linear interpolation
+                return v0 + t * (v1 - v0);
+            }
+        }
+
+        // Should never hit
+        return VELO_LUT[0][1];
+    }
     /**
      * Maps a desired hood angle to the required servo position [0.0, 1.0] using linear scaling.
      */
@@ -620,43 +691,43 @@ private static final double[][] MUZZLE_K_TABLE = {
     }
 
 
-   public double flywheelTicksFromDistance(double robotX, double robotY, double goalX, double goalY) {
-        double distanceInches = Math.hypot(goalX - robotX, goalY - robotY);
-        // --- constants (copied from your OpMode) ---
-        // tune factor
-
-        // Prevent nonsense
-        distanceInches = Math.max(distanceInches, 1.0);
-
-        // Initial physics angle
-        double angle = Math.atan(
-                2 * GOAL_HEIGHT / distanceInches
-                        - Math.tan(Math.toRadians(ANGLE_BIAS_DEG))
-        );
-
-        // Clamp to hood limits
-        angle = MathFunctions.clamp(
-                angle,
-                Math.toRadians(10),
-                Math.toRadians(85)
-        );
-
-        double cos = Math.cos(angle);
-        double denom = 2 * cos * cos *
-                (distanceInches * Math.tan(angle) - GOAL_HEIGHT);
-
-        if (denom <= 0) return 0;
-
-        // Muzzle velocity (in/s)
-        double velocity = Math.sqrt(
-                G_INCHES * distanceInches * distanceInches / denom
-        );
-
-        // Convert to ticks
-        return calcFlywheelSpeedTicks(
-                velocity * VECTOR_TUNE
-        );
-    }
+//   public double flywheelTicksFromDistance(double robotX, double robotY, double goalX, double goalY) {
+//        double distanceInches = Math.hypot(goalX - robotX, goalY - robotY);
+//        // --- constants (copied from your OpMode) ---
+//        // tune factor
+//
+//        // Prevent nonsense
+//        distanceInches = Math.max(distanceInches, 1.0);
+//
+//        // Initial physics angle
+//        double angle = Math.atan(
+//                2 * GOAL_HEIGHT / distanceInches
+//                        - Math.tan(Math.toRadians(ANGLE_BIAS_DEG))
+//        );
+//
+//        // Clamp to hood limits
+//        angle = MathFunctions.clamp(
+//                angle,
+//                Math.toRadians(10),
+//                Math.toRadians(85)
+//        );
+//
+//        double cos = Math.cos(angle);
+//        double denom = 2 * cos * cos *
+//                (distanceInches * Math.tan(angle) - GOAL_HEIGHT);
+//
+//        if (denom <= 0) return 0;
+//
+//        // Muzzle velocity (in/s)
+//        double velocity = Math.sqrt(
+//                G_INCHES * distanceInches * distanceInches / denom
+//        );
+//
+//        // Convert to ticks
+//        return calcFlywheelSpeedTicks(
+//                velocity * VECTOR_TUNE
+//        );
+//    }
 
     static final double TICKS_PER_REV = 4096.0;
     static final double WHEEL_RADIUS_IN = 1.4173; // 72mm / 2 -> inches
@@ -688,9 +759,11 @@ private static final double[][] MUZZLE_K_TABLE = {
         double hoodPos;
         double velo;
 
+
+        velo = getFlywheelVeloFromDistanceLUT(x);
         // Quartic calculation for Velocity
-        velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
-                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
+//        velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
+//                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
 
        // velo = flywheelTicksFromDistance(robotX,robotY,goalX,goalY);
 
@@ -724,9 +797,11 @@ private static final double[][] MUZZLE_K_TABLE = {
         double hoodPos;
         double velo;
 
+
+        velo = getFlywheelVeloFromDistanceLUT(x);
         // Quartic calculation for Velocity
-        velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
-                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
+//        velo = (v_a * Math.pow(x, 4)) + (v_b * Math.pow(x, 3)) +
+//                (v_c * Math.pow(x, 2)) + (v_d * x) + v_e;
        // velo = flywheelTicksFromDistance(robotX,robotY,goalX,goalY);
 
 
@@ -783,6 +858,12 @@ private static final double[][] MUZZLE_K_TABLE = {
     public void resetTurretPID(){
         turretPIDF.reset();
     }
+
+//    public double getFlywheelVelo(){
+//        return shooter1.getVelocity(AngleUnit.RADIANS);
+//    }
+
+
 
 //    public double getFlywheelVelo(){
 //        return shooter1.getVelocity();

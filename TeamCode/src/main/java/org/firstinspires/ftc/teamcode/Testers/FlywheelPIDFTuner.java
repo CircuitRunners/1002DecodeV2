@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 
 import java.util.List;
@@ -154,7 +155,7 @@ public class FlywheelPIDFTuner extends OpMode {
 
         sensors.update();
 
-        double rPM = sensors.getFlywheelVelo();
+        double rPM = Math.round(sensors.getFlywheelVelo());
 
         // --- Update gains and setpoint ---
         pidf.setPIDF(kP, kI, kD, kF);
@@ -178,10 +179,14 @@ public class FlywheelPIDFTuner extends OpMode {
         // --- Telemetry ---
         double loopTime = loopTimer.milliseconds();
         telemetry.addData("Target Vel (ticks/s)", targetVelocity);
-        telemetry.addData("Measured Vel (ticks/s)",sensors.getFlywheelVelo());
+        telemetry.addData("Measured Vel (ticks/s)", sensors.getFlywheelVelo());
         telemetry.addData("Output Power", output);
         telemetry.addData("Loop Time (ms)", loopTime);
         telemetry.addData("Cooked Delay (ms)", cookedLoopTargetMS);
+
+        //telemetry.addData("Flywheel Velo Motor",shooter1.getVelocity(AngleUnit.DEGREES));
+//        telemetry.addData("Flywheel Velo Motor / rounded",Math.round(shooter2.getVelocity(AngleUnit.DEGREES)));
+//        telemetry.addData("Flywheel Velo Motor RAD",shooter2.getVelocity(AngleUnit.RADIANS));
         telemetry.update();
 
         // --- Cooked delay to simulate TeleOp lag (~100 ms total loop) ---

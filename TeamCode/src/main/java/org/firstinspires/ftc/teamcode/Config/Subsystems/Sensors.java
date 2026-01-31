@@ -26,6 +26,7 @@ public class Sensors {
 
 
 
+
     // --- CALIBRATION CONSTANTS ---
     private final int TURRET_OFFSET_DEGREES = 0;
     private final int TURRET_MAX_TICKS = 40500;
@@ -55,7 +56,7 @@ public class Sensors {
 //        config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
 
 
-        config.setEncoder(1, SRSHub.Encoder.QUADRATURE); //flywheel encoder
+        config.setEncoder(5, SRSHub.Encoder.QUADRATURE); //flywheel encoder
         //config.setEncoder(3, SRSHub.Encoder.QUADRATURE); // turret incremental
 
         RobotLog.clearGlobalWarningMsg();
@@ -213,7 +214,7 @@ public class Sensors {
 
     // flywheel velo in ticks/sec
     public double getFlywheelVelo() {
-        return hub.readEncoder(1).velocity;
+        return hub.readEncoder(5).velocity;
     }
 
 
