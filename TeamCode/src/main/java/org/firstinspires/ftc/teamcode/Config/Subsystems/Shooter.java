@@ -144,11 +144,11 @@ public class Shooter {
         // --- Hardware Initialization (omitted for brevity) ---
         shooter1 = hardwareMap.get(DcMotorEx.class, "leftShooter");
         shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        shooter1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         shooter2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
         shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -519,9 +519,13 @@ public class Shooter {
     // ##  Update Loop
     // ------------------------------------
 
-    public void update(double currentFlywheelVelo,double currentTurretAngle0_360) {
+    public void update(double currentTurretAngle0_360) {
+        double shooter1Velocity = shooter1.getVelocity();
+        double shooter2Velocity = shooter2.getVelocity();
 
-        if (currentFlywheelVelo >= targetFlywheelVelocity - 300 || currentFlywheelVelo <= targetFlywheelVelocity + 300) {
+        double averageVelo = (shooter1Velocity + shooter2Velocity) / 2;
+
+        if (averageVelo >= targetFlywheelVelocity - 300 || averageVelo <= targetFlywheelVelocity + 300) {
             flywheelVeloReached = true;
         }
         else {
@@ -540,10 +544,11 @@ public class Shooter {
         // Reset calibration flag at the start of the loop
         hoodCalibrationRequired = false;
 
+
         flywheelPIDF.setPIDF(flywheelCoefficients[0],flywheelCoefficients[1],flywheelCoefficients[2],flywheelCoefficients[3]);
 
-        double flywheelOutput = flywheelPIDF.calculate(currentFlywheelVelo,targetFlywheelVelocity);
-        flywheelOutput = Range.clip(flywheelOutput, 0, 0.8);
+        double flywheelOutput = flywheelPIDF.calculate(averageVelo,targetFlywheelVelocity);
+        flywheelOutput = Range.clip(flywheelOutput, 0, 1);
         shooter1.setPower(flywheelOutput);
         shooter2.setPower(flywheelOutput);
 
@@ -859,9 +864,9 @@ public class Shooter {
         turretPIDF.reset();
     }
 
-//    public double getFlywheelVelo(){
-//        return shooter1.getVelocity(AngleUnit.RADIANS);
-//    }
+    public double getFlywheelVelo(){
+        return (shooter1.getVelocity() + shooter2.getVelocity())/2;
+    }
 
 
 

@@ -135,7 +135,7 @@ public class v2Teleop extends OpMode {
 
         follower.getVelocity();
 
-        veloReached =  (Math.abs(sensors.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (1500 )) && Math.abs(sensors.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (16000)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+        veloReached =  (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (1500 )) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (16000)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
 
 
 
@@ -151,7 +151,7 @@ public class v2Teleop extends OpMode {
                 ? Intake.targetPatternFromAuto
                 : LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN;
 
-        double currentFlywheelVelo = sensors.getFlywheelVelo();
+        double currentFlywheelVelo = shooter.getFlywheelVelo();
         double currentTurretAngle = shooter.getCurrentTurretPosition();
         boolean isBeamBroken = shooter.isBeamBroken();
 
@@ -206,7 +206,7 @@ public class v2Teleop extends OpMode {
 
         // --- 5. SUBSYSTEM UPDATES ---
         intake.setCanShoot(veloReached && shooter.turretReached && teleopShootApporval );
-        shooter.update(currentFlywheelVelo, currentTurretAngle);
+        shooter.update(currentTurretAngle);
         intake.update(isBeamBroken, activePattern,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),

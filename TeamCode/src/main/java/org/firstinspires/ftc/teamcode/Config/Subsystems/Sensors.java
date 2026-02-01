@@ -56,7 +56,7 @@ public class Sensors {
 //        config.setAnalogDigitalDevice(3, SRSHub.AnalogDigitalDevice.ANALOG);  // Turret Encoder
 
 
-        config.setEncoder(5, SRSHub.Encoder.QUADRATURE); //flywheel encoder
+       // config.setEncoder(5, SRSHub.Encoder.QUADRATURE); //flywheel encoder
         //config.setEncoder(3, SRSHub.Encoder.QUADRATURE); // turret incremental
 
         RobotLog.clearGlobalWarningMsg();
@@ -213,9 +213,9 @@ public class Sensors {
 //    }
 
     // flywheel velo in ticks/sec
-    public double getFlywheelVelo() {
-        return hub.readEncoder(5).velocity;
-    }
+//    public double getFlywheelVelo() {
+//        return hub.readEncoder(5).velocity;
+//    }
 
 
 

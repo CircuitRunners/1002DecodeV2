@@ -155,7 +155,7 @@ public class FlywheelPIDFTuner extends OpMode {
 
         sensors.update();
 
-        double rPM = Math.round(sensors.getFlywheelVelo());
+        double rPM = Math.round((shooter1.getVelocity() + shooter2.getVelocity()) /2);
 
         // --- Update gains and setpoint ---
         pidf.setPIDF(kP, kI, kD, kF);
@@ -179,7 +179,7 @@ public class FlywheelPIDFTuner extends OpMode {
         // --- Telemetry ---
         double loopTime = loopTimer.milliseconds();
         telemetry.addData("Target Vel (ticks/s)", targetVelocity);
-        telemetry.addData("Measured Vel (ticks/s)", sensors.getFlywheelVelo());
+        telemetry.addData("Measured Vel (ticks/s)", (shooter1.getVelocity() + shooter2.getVelocity())/2);
         telemetry.addData("Output Power", output);
         telemetry.addData("Loop Time (ms)", loopTime);
         telemetry.addData("Cooked Delay (ms)", cookedLoopTargetMS);

@@ -74,7 +74,7 @@ public class ShooterKTuner extends OpMode {
         // Shooter constructor now handles PID initialization correctly
         shooter = new Shooter(hardwareMap, telemetry);
 
-        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(shooter.getCurrentTurretPosition());
 
         intake = new Intake(hardwareMap, telemetry);
 
@@ -129,7 +129,7 @@ public class ShooterKTuner extends OpMode {
 
 
         // --- STEP 3: APPLY LOGIC TO SUBSYSTEM ---
-        double currentVelo = sensors.getFlywheelVelo();
+        double currentVelo = shooter.getFlywheelVelo();
         double currentTurret = shooter.getCurrentTurretPosition();
 
         if (gamepad1.circle) {
@@ -151,7 +151,7 @@ public class ShooterKTuner extends OpMode {
         }
 
         // Write to hardware (Servos + Motors)
-        shooter.update(currentVelo, currentTurret);
+        shooter.update(currentTurret);
         intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),

@@ -101,7 +101,7 @@ public class KShooterTester extends OpMode {
             if (gamepad1.left_bumper) desiredHoodAngle -= 0.5;
 
             // --- 2. SUBSYSTEM UPDATE ---
-            double currentVelo = sensors.getFlywheelVelo();
+            double currentVelo = shooter.getFlywheelVelo();
             double currentTurret = shooter.getCurrentTurretPosition();
 
             if (gamepad1.circle) {
@@ -121,7 +121,7 @@ public class KShooterTester extends OpMode {
             } else {
                 shooter.stopFlywheel();
             }
-            shooter.update(currentVelo, currentTurret);
+            shooter.update(currentTurret);
 
             // --- 3. PHYSICS & K-FACTOR CALCULATION ---
             double y = GOAL_HEIGHT_OLD - LAUNCH_HEIGHT;

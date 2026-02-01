@@ -728,7 +728,7 @@ public class ShootingWhileMovingTester extends OpMode {
         pinpoint.update();
         follower.update();
         sensors.update();
-        shooterLogic.update(sensors.getFlywheelVelo(), shooterLogic.getCurrentTurretPosition());
+        shooterLogic.update(shooterLogic.getCurrentTurretPosition());
 
         // --- Intake update ---
         intake.update(

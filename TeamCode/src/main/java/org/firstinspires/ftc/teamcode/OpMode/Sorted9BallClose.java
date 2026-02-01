@@ -351,7 +351,7 @@ public class Sorted9BallClose extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(shooter.getCurrentTurretPosition());
         intake.update(shooter.isBeamBroken(), desiredOrder,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
@@ -362,7 +362,7 @@ public class Sorted9BallClose extends OpMode {
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
+        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
         telemetry.addData("is up to sped",shooter.flywheelVeloReached);
         telemetry.addData("Balls shot in state:",ballsShotInState);
         telemetry.addData("Loop Time",loopTimer.getElapsedTime());

@@ -369,7 +369,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         follower.update();
         pinpoint.update();
         sensors.update();
-        shooter.update(sensors.getFlywheelVelo(), shooter.getCurrentTurretPosition());
+        shooter.update(shooter.getCurrentTurretPosition());
         intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
@@ -377,16 +377,16 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
         autonomousPathUpdate();
 
-        veloReached = (Math.abs(sensors.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (8500 + flywheelMannualOffset)) && Math.abs(sensors.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (12000+ flywheelMannualOffset)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+        veloReached = (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (8500 + flywheelMannualOffset)) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (12000+ flywheelMannualOffset)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", sensors.getFlywheelVelo());
+        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
         telemetry.addData("is up to sped",veloReached);
         telemetry.addData("Balls shot in state:",ballsShotInState);
         telemetry.addData("Loop Time",loopTimer.getElapsedTime());
-        telemetry.addData("FLywheel Velo",sensors.getFlywheelVelo());
+        telemetry.addData("FLywheel Velo",shooter.getFlywheelVelo());
         telemetry.addData("target velo",shooter.getTargetFLywheelVelo());
         telemetry.addData("Go for launch?",goForLaunch);
         telemetry.update();
