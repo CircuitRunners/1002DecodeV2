@@ -156,13 +156,27 @@ public class Poses {
             new Pose(141.5, 85, Math.toRadians(180)),
             new Pose(3.5, 85, Math.toRadians(0))
     );
-    public static final AlliancePose openGateAutoIntake = new AlliancePose(
+    public static final AlliancePose openGateAutoIntakeJames = new AlliancePose(
             new Pose(130.0, 62.5, Math.toRadians(42)),
             new Pose(10, 62.5, Math.toRadians(138))
     );
-    public static final AlliancePose openGateAutoIntakeControlPoint = new AlliancePose(
+    public static final AlliancePose openGateAutoIntakeControlPointJames = new AlliancePose(
             new Pose(47, 37, Math.toRadians(42)),
             new Pose(93, 37, Math.toRadians(138))
+    );
+
+    public static final AlliancePose openGateHighCycle = new AlliancePose(
+            new Pose(133,60,Math.toRadians(45)),
+            new Pose(11,60, Math.toRadians(135))
+    );
+
+    public static final AlliancePose openGateHighCycleControlPoint = new AlliancePose(
+            new Pose(87.5, 74, Math.toRadians(42)),
+            new Pose(56.5, 74, Math.toRadians(138))
+    );
+    public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
+            new Pose(135,50,Math.toRadians(90)),
+            new Pose(9,50, Math.toRadians(90))
     );
 
 

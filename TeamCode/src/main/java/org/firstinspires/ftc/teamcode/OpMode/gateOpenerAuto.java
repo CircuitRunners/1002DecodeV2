@@ -46,7 +46,7 @@ public class gateOpenerAuto extends OpMode {
 
     private boolean doTransfer = false;
 
-    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, park;
+    private PathChain travelToShoot, openGate, intakeGate,intake1, travelBackToShoot1, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, park;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
@@ -68,14 +68,18 @@ public class gateOpenerAuto extends OpMode {
                 .build();
 
         openGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.openGateAutoIntake)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.openGateAutoIntake).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
+                .build();
+        intakeGate = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
                 .build();
 
         // Path 6: Intake 2 back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.openGateAutoIntake), Poses.get(Poses.openGateAutoIntakeControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateAutoIntake).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle),Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
 
         intake1 = follower.pathBuilder()
@@ -141,15 +145,19 @@ public class gateOpenerAuto extends OpMode {
                 }
                 break;
 
-            case 9:
+
             case 5: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
                     follower.followPath(openGate, true);
-                    setPathState();
+                    setPathState(67);
                 }
                 break;
 
-            case 10:
+            case 67:
+                if (!follower.isBusy()){
+                    follower.followPath(intakeGate, true);
+                    setPathState(6);
+                }
             case 6: // WAIT at Gate (2.5s)
                 intake.doIntake(); // keep intaking while stalled
 
@@ -158,7 +166,7 @@ public class gateOpenerAuto extends OpMode {
                 }
                 break;
 
-            case 11:
+
             case 7: // Return to Shoot 2
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShootFromGate, true);
@@ -166,14 +174,35 @@ public class gateOpenerAuto extends OpMode {
                 }
                 break;
 
-            case 12:
+
             case 8: // Shoot 3 Balls (Cycle 2)
                 if (!follower.isBusy()) {
                     handleAutoShooting(currentPose, targetX, 4.5,0);
                 }
                 break;
 
-            case 13:
+            case 9:
+                intake.doIntake();
+                if (!follower.isBusy()) {
+                    follower.followPath(intake3, true);
+                    setPathState();
+                }
+                break;
+
+            case 10:
+                if (!follower.isBusy()) {
+                    follower.followPath(travelBackToShootFromIntake3, true);
+                    setPathState();
+                }
+                break;
+
+            case 11: // Return to Shoot 1
+                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
+                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                }
+                break;
+
+            case 12:
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake1, true);
@@ -181,14 +210,14 @@ public class gateOpenerAuto extends OpMode {
                 }
                 break;
 
-            case 14:
+            case 13:
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShootFromIntake1, true);
                     setPathState();
                 }
                 break;
 
-            case 15: // Return to Shoot 1
+            case 14: // Return to Shoot 1
                 if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
                     handleAutoShooting(currentPose, targetX, 4.5,0);
                 }
