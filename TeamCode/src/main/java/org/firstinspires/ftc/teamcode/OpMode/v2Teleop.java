@@ -56,6 +56,7 @@ public class v2Teleop extends OpMode {
     private final double GOAL_Y = 129;
     private static final double METERS_TO_INCH = 39.37;
 
+
     boolean veloReached = false;
 
     private boolean vibratedYet = false;
@@ -259,10 +260,12 @@ public class v2Teleop extends OpMode {
             initiateTransfer = false;
         }
 
+        if (initiateTransfer){
+            trackShotCount(beam);
+        }
         if (initiateTransfer && veloReached){
             teleopShootApporval = true;
             intake.doTestShooter();
-            trackShotCount(beam);
         }
         else if (initiateTransfer && !veloReached){
             intake.doIntakeHalt();
@@ -301,15 +304,15 @@ public class v2Teleop extends OpMode {
       if (pose.getY() > 69) {
           if (isRedAlliance) {
               if (noAutoAlign) {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 425, 0, true, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 0, 0, true, turretMannualAdjust);
               } else {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 425, 0, true, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 0, 0, true, turretMannualAdjust);
               }
           } else {
               if (noAutoAlign) {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 450, 0, false, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 0, 0, false, turretMannualAdjust);
               } else {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 450, 0, false, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 0, 0, false, turretMannualAdjust);
               }
           }
       }
@@ -317,16 +320,16 @@ public class v2Teleop extends OpMode {
       else {
               if (isRedAlliance) {
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,1250, 0,true,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,0, 0,true,turretMannualAdjust);
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 1150,0,true,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 0,0,true,turretMannualAdjust);
                   }
               }
               else{
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 1150,0,false,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 0,0,false,turretMannualAdjust);
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 1150,0,false,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 0,0,false,turretMannualAdjust);
                   }
               }
           }

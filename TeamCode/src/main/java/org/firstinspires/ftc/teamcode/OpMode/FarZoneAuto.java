@@ -58,17 +58,21 @@ public class FarZoneAuto extends OpMode {
         humanPlayerIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.humanPlayerControlPoint), Poses.get(Poses.humanPlayerIntake)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
-                .build();
-
-        backUp = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntake), Poses.get(Poses.backUpPoint)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.backUpPoint).getHeading(), 0.25)
-                .build();
-
-        backIn = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.backUpPoint), Poses.get(Poses.humanPlayerIntake)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.backUpPoint).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
                 .build();
+//
+//        backUp = follower.pathBuilder()
+//                .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntake), Poses.get(Poses.backUpPoint)))
+//                .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.backUpPoint).getHeading(), 0.25)
+//                .build();
+//
+//        backIn = follower.pathBuilder()
+//                .addPath(new BezierLine(Poses.get(Poses.backUpPoint), Poses.get(Poses.humanPlayerIntake)))
+//                .setLinearHeadingInterpolation(Poses.get(Poses.backUpPoint).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
+//                .build();
 
         // Path 3: Intake 1 to Gate
 //        openGate = follower.pathBuilder()
@@ -116,25 +120,11 @@ public class FarZoneAuto extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(humanPlayerIntake, true);
-                    setPathState();
+                    setPathState(5);
                 }
                 break;
 
-            case 3: // Drive to Intake 1
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(backUp, true);
-                    setPathState();
-                }
-                break;
 
-            case 4: // Drive to Intake 1
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(backIn, true);
-                    setPathState();
-                }
-                break;
 
             case 5: // Return to Shoot 1
                 if (!follower.isBusy()) {

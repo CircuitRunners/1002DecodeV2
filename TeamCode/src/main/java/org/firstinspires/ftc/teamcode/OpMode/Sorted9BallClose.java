@@ -36,6 +36,10 @@ public class Sorted9BallClose extends OpMode {
 
     private LimelightCamera limelight;
 
+    boolean veloReached = false;
+
+    double flywheelMannualOffset = 700;
+
     private int pathState;
     private Poses.Alliance lastKnownAlliance = null;
 
@@ -224,26 +228,19 @@ public class Sorted9BallClose extends OpMode {
 
 
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,true,0);
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,flywheelMannualOffset, mannualHoodOffset,true,0);
         }
         else {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,false,0);
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,flywheelMannualOffset, mannualHoodOffset,false,0);
         }
         //shooter.flywheelVeloReached = false;
-        if (doSort){
-            intake.prepareAndStartSort();
-            if (shooter.flywheelVeloReached){
-                intake.setCanShoot(true);
-            }
-        }
-
-        else {
-            trackShotCount(shooter.isBeamBroken());
 
 
-            // Once RPM and Hood Angle are locked, engage the transfer
-            if (shooter.flywheelVeloReached && pathTimer.getElapsedTimeSeconds() >= 3) {
-                doTransfer = true;
+
+
+        // Once RPM and Hood Angle are locked, engage the transfer
+        if (veloReached  && goForLaunch && (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE) ) {
+            doTransfer = true;
 
 //            boolean currentBeamState = shooter.isBeamBroken();
 //
@@ -252,15 +249,15 @@ public class Sorted9BallClose extends OpMode {
 //                ballsShotInState++;
 //            }
 //            lastBeamState = currentBeamState;
-            }
-
-
-            if (doTransfer && shooter.turretReached) {
-                intake.doTransfer();
-            }
-
-
         }
+
+
+        if (doTransfer){
+            trackShotCount(shooter.isBeamBroken());
+            intake.doTestShooter();
+        }
+
+
         // Advance to next state if 3 balls fired OR the safety timer expires
         if (pathTimer.getElapsedTimeSeconds() > timeout || ballsShotInState >= 3) {
             doTransfer = false;
@@ -268,8 +265,8 @@ public class Sorted9BallClose extends OpMode {
             ballsShotInState = 0;
             intake.doIntakeHalt();
             goForLaunch = false;
-            intake.setCanShoot(false);
             setPathState();
+
         }
     }
 
@@ -282,6 +279,8 @@ public class Sorted9BallClose extends OpMode {
         pathState += 1;
         pathTimer.resetTimer();
     }
+
+
 
     @Override
     public void init() {
@@ -352,20 +351,28 @@ public class Sorted9BallClose extends OpMode {
         pinpoint.update();
         sensors.update();
         shooter.update(shooter.getCurrentTurretPosition());
-        intake.update(shooter.isBeamBroken(), desiredOrder,
+        intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
                 sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
 
         autonomousPathUpdate();
 
+
+
+        veloReached = (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (8500 + flywheelMannualOffset)) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (12000+ flywheelMannualOffset)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
         telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
-        telemetry.addData("is up to sped",shooter.flywheelVeloReached);
+        telemetry.addData("is up to sped",veloReached);
         telemetry.addData("Balls shot in state:",ballsShotInState);
         telemetry.addData("Loop Time",loopTimer.getElapsedTime());
+        telemetry.addData("FLywheel Velo",shooter.getFlywheelVelo());
+        telemetry.addData("target velo",shooter.getTargetFLywheelVelo());
+        telemetry.addData("Go for launch?",goForLaunch);
+        telemetry.addData("State", "%s (%.1f ms)", intake.getCurrentIntakeState(), intake.stateTimer.milliseconds());
         telemetry.update();
     }
 
@@ -383,5 +390,12 @@ public class Sorted9BallClose extends OpMode {
         lastBeamState = currentBeamState;
     }
 
+    private void resetShootingState() {
+        ballsShotInState = 0;
+        doTransfer = false;
+        goForLaunch = false;
+        lastBeamState = shooter.isBeamBroken();
+        pathTimer.resetTimer();
+    }
 
 }

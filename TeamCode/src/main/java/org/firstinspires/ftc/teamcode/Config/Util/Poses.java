@@ -122,7 +122,7 @@ public class Poses {
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
-            new Pose(140, 56, Math.toRadians(0)),
+            new Pose(139, 56, Math.toRadians(0)),
             new Pose(5, 56, Math.toRadians(180))
     );
 
@@ -153,8 +153,8 @@ public class Poses {
     );
 
     public static final AlliancePose openGate = new AlliancePose(
-            new Pose(141.5, 85, Math.toRadians(180)),
-            new Pose(3.5, 85, Math.toRadians(0))
+            new Pose(143, 84.5, Math.toRadians(180)),
+            new Pose(1, 84.5, Math.toRadians(0))
     );
     public static final AlliancePose openGateAutoIntakeJames = new AlliancePose(
             new Pose(130.0, 62.5, Math.toRadians(42)),
@@ -205,8 +205,8 @@ public class Poses {
             new Pose(84, 8, Math.toRadians(0))
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
-            new Pose(60, 24, Math.toRadians(120)),
-            new Pose(84, 24, Math.toRadians(60))
+            new Pose(60, 24, Math.toRadians(130)),
+            new Pose(84, 24, Math.toRadians(50))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
             new Pose(7, 8, Math.toRadians(180)),

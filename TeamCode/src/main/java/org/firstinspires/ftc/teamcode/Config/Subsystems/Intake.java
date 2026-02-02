@@ -56,7 +56,7 @@ public class Intake {
     }
 
     private IntakeState currentState = IntakeState.IDLE;
-    private ElapsedTime stateTimer = new ElapsedTime();
+    public ElapsedTime stateTimer = new ElapsedTime();
 
     // Logic Latches (The "Memory" of the ball positions)
     private boolean ball1Latched = false;
@@ -690,6 +690,10 @@ public class Intake {
 
     public void initiateTransferNoSort(){
         newState(IntakeState.TRANSFERRING);
+    }
+
+    public IntakeState getCurrentIntakeState() {
+        return currentState;
     }
 
 

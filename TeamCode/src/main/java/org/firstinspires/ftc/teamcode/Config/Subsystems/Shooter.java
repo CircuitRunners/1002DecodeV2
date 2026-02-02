@@ -30,8 +30,9 @@ public class Shooter {
 
 
     // PIDF Coefficients
-    public static  double[] flywheelCoefficients = {0.000005, 0, 0.000000005, 0.0000027};
+
 //    private static final double[] turretCoefficients = {0.087, 0.000, 0.00399995, 0.0009};
+    public static  double[] flywheelCoefficients = {1.1, 0.000001, 0.00465, 0.000071};
 
     public static  double[] turretCoefficients = {0.9, 0.006, 0.035, 0.003};
 
@@ -113,22 +114,20 @@ public class Shooter {
      * MUST be sorted by distance (ascending)
      */
     private static final double[][] VELO_LUT = {
-            { 20.0, 182746 },
-            { 25.0, 188910 },
-            { 30.0, 194507 },
-            { 40.0, 204343 },
-            { 50.0, 212877 },
-            { 60.0, 220628 },
-            { 70.0, 228019 },
-            { 80.0, 235366 },
-            { 90.0, 242891 },
-            { 100.0, 250709 },
-            { 110.0, 258839 },
-            { 120.0, 267196 },
-            { 130.0, 275569 },
-            { 140.0, 283754 },
-            { 150.0, 291284 },
-            { 155.0, 292000 },
+            { 20.0,  1065},
+            { 30.0, 1125 },
+            { 40.0, 1175 },
+            { 50.0, 1175 },
+            { 60.0, 1219 },
+            { 70.0, 1260 },
+            { 80.0, 1297 },
+            { 90.0, 1355},
+            { 100.0, 1450 },
+            { 110.0, 1500 },
+            { 120.0, 1585 },
+            { 130.0, 1655 },
+            { 140.0, 1684 },
+            { 145.0, 1688 }
     };
 
     /**
@@ -144,11 +143,11 @@ public class Shooter {
         // --- Hardware Initialization (omitted for brevity) ---
         shooter1 = hardwareMap.get(DcMotorEx.class, "leftShooter");
         shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         shooter2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
         shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -549,8 +548,16 @@ public class Shooter {
 
         double flywheelOutput = flywheelPIDF.calculate(averageVelo,targetFlywheelVelocity);
         flywheelOutput = Range.clip(flywheelOutput, 0, 1);
-        shooter1.setPower(flywheelOutput);
-        shooter2.setPower(flywheelOutput);
+
+        if (Math.abs(averageVelo) <= 85 && Math.abs(targetFlywheelVelocity - averageVelo) <= 10){
+            shooter1.setPower(0);
+            shooter2.setPower(0);
+        }
+        else{
+            shooter1.setPower(flywheelOutput);
+            shooter2.setPower(flywheelOutput);;
+        }
+
 
 //        if (targetFlywheelVelocity == 0) {
 //            setFlywheelPower(0);
