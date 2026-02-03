@@ -40,7 +40,7 @@ public class SigmaIntakeTest extends OpMode {
         intake.setCanShoot(false);
         telemetry.update();
     }
-
+//hi
     @Override
     public void loop() {
         player1.readButtons();
