@@ -688,9 +688,9 @@ public class Intake {
         telemetry.update();
     }
 
-    public void initiateTransferNoSort(){
-        newState(IntakeState.TRANSFERRING);
-    }
+//    public void initiateTransferNoSort(){
+//        newState(IntakeState.TRANSFERRING);
+//    }
 
     public IntakeState getCurrentIntakeState() {
         return currentState;
