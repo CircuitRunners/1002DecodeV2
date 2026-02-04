@@ -92,6 +92,11 @@ public class Sorted9BallClose extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine2).getHeading(), 0.45)
                 .build();
 
+        intake3 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
+                .build();
+
         // Path 6: Intake 2 back to Shoot
         travelBackToShoot2 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
@@ -117,7 +122,7 @@ public class Sorted9BallClose extends OpMode {
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, true);
-                    shooter.setTurretTarget(253, Shooter.TurretMode.FIELD_CENTRIC,follower.getHeading(),0);
+                    //shooter.setTurretTarget(253, Shooter.TurretMode.FIELD_CENTRIC,follower.getHeading(),0);
 
                     setPathState();
                 }
@@ -133,11 +138,14 @@ public class Sorted9BallClose extends OpMode {
 
 
             case 2: // Shoot 3 Preloads
-                if (!follower.isBusy() ) {
-                    shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getHeading(),0);
-                    handleAutoShooting(currentPose, targetX, 7,0);
-
+                    //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getHeading(),0);
+                handleAutoShooting(currentPose, targetX, 7,0);
+                if (!goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
+
                 break;
 
             case 3: // Drive to Intake 1
@@ -157,8 +165,11 @@ public class Sorted9BallClose extends OpMode {
                 break;
 
             case 5: // Shoot 3 Balls (Cycle 1)
-                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 1) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                handleAutoShooting(currentPose, targetX, 4.5,0);
+                if (!goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
                 break;
 
@@ -178,8 +189,11 @@ public class Sorted9BallClose extends OpMode {
                 break;
 
             case 8: // Shoot 3 Balls (Cycle 2)
-                if (!follower.isBusy()) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                handleAutoShooting(currentPose, targetX, 4.5,0);
+                if (!goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
                 break;
 
@@ -199,8 +213,11 @@ public class Sorted9BallClose extends OpMode {
                 break;
 
             case 11: // Final 3 Balls
-                if (!follower.isBusy()) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                handleAutoShooting(currentPose, targetX, 4.5,0);
+                if (!goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
                 break;
 

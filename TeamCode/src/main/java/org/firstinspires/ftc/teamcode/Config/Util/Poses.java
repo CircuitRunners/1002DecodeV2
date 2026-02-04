@@ -122,28 +122,28 @@ public class Poses {
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
-            new Pose(140, 51, Math.toRadians(0)),
-            new Pose(5, 51, Math.toRadians(180))
+            new Pose(135, 54, Math.toRadians(0)),
+            new Pose(9, 54, Math.toRadians(180))
     );
 
     // LINE_2_CONTROL_POINT
     public static final AlliancePose line2ControlPoint = new AlliancePose(
-            new Pose(82.0, 51, Math.toRadians(0)),
-            new Pose(64, 51, Math.toRadians(180))
+            new Pose(82.0, 48, Math.toRadians(0)),
+            new Pose(64, 48, Math.toRadians(180))
     );
 
 
 
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
-            new Pose(140, 27, Math.toRadians(0)),
-            new Pose(5, 27, Math.toRadians(180))
+            new Pose(135, 31, Math.toRadians(0)),
+            new Pose(9, 31, Math.toRadians(180))
     );
 
     // LINE_3_CONTROL_POINT
     public static final AlliancePose line3ControlPoint = new AlliancePose(
-            new Pose(81.0, 27, Math.toRadians(0)),
-            new Pose(64, 27, Math.toRadians(180))
+            new Pose(81.0, 23, Math.toRadians(0)),
+            new Pose(64, 23, Math.toRadians(180))
     );
 
     // LINEUP_AT_GATE
@@ -153,8 +153,8 @@ public class Poses {
     );
 
     public static final AlliancePose openGate = new AlliancePose(
-            new Pose(141.5, 84.5, Math.toRadians(180)),
-            new Pose(2.5, 84.5, Math.toRadians(0))
+            new Pose(141.5, 86, Math.toRadians(180)),
+            new Pose(2.5, 86, Math.toRadians(0))
     );
     public static final AlliancePose openGateAutoIntakeJames = new AlliancePose(
             new Pose(130.0, 62.5, Math.toRadians(42)),
