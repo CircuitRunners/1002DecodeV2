@@ -81,6 +81,9 @@ public class Shooter {
     public static boolean turretReached = false;
     public static boolean hoodReached = false;
 
+    private double turretMinRange = -720;
+    private double turretMaxRange = 720;
+
     //public static boolean isShotImpossible = false;
 
 
@@ -838,7 +841,7 @@ public class Shooter {
     public double getCurrentTurretPosition(){
         return Range.scale(
                 turret.getCurrentPosition(),
-                -720, 720,              // Input Range
+                turretMinRange, turretMaxRange,              // Input Range
                 -180, 180
         );// Outp// ut Range (CORRECTED)
     }
@@ -854,6 +857,13 @@ public class Shooter {
         turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         setTurretTarget(0,TurretMode.ROBOT_CENTRIC,getCurrentTurretPosition(),0);
+    }
+
+    public void resetTurretPos(double currentFixedTurretPos){
+        double fixedPosTicks = Range.scale(currentFixedTurretPos,-180,180,turretMinRange,turretMaxRange);
+        double error = getCurrentTurretPosition() - fixedPosTicks;
+        turretMinRange += error;
+        turretMaxRange += error;
     }
 
     public double getTargetFLywheelVelo(){

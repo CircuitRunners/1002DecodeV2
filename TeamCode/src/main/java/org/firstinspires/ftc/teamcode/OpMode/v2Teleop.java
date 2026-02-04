@@ -410,7 +410,7 @@ public class v2Teleop extends OpMode {
         //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         if (gamepad1.right_trigger > 0.2){
             intake.doIntake();
-            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), 0);
+            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), turretMannualAdjust);
 
         }
         else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
