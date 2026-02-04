@@ -458,6 +458,21 @@ public class v2Teleop extends OpMode {
         }
     }
 
+    public void updateTurretWithAprilTag() {
+        if (follower.getPose().getY() > 72.0) {
+            limelight.limelightCamera.pipelineSwitch(3);
+            LLResult result = limelight.getResult();
+            double error = limelight.updateError();
+            if (result != null && result.isValid()) {
+                double currentTurretAngle = shooter.getCurrentTurretPosition();
+                shooter.setTurretTargetPosition(currentTurretAngle - error);
+                gamepad1.rumble(200);
+
+            }
+        }
+
+    }
+
     @Override public void stop() { limelight.limelightCamera.stop(); }
 
 //    public void calculateIterativeShot(){
