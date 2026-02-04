@@ -247,7 +247,11 @@ public class v2Teleop extends OpMode {
     }
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
+        if (!noAutoAlign){
+           // updateTurretWithAprilTag();
+        }
         applyShooterTargets(pose, vx, vy, head);
+
         if (veloReached  && !vibratedYet) {
             gamepad1.rumble(250);
             vibratedYet = true;
@@ -256,18 +260,16 @@ public class v2Teleop extends OpMode {
             initiateTransfer = true;
         }
 
-        if (gamepad1.right_trigger < 0.19){
-            initiateTransfer = false;
-        }
+
 
         if (initiateTransfer){
             trackShotCount(beam);
         }
-        if (initiateTransfer && veloReached){
+        if (initiateTransfer && veloReached && (pose.getY() > 80 && gamepad1.right_trigger > 0.2)){
             teleopShootApporval = true;
             intake.doTestShooter();
         }
-        else if (initiateTransfer && !veloReached){
+        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
             intake.doIntakeHalt();
         }
 
@@ -410,7 +412,9 @@ public class v2Teleop extends OpMode {
         //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         if (gamepad1.right_trigger > 0.2){
             intake.doIntake();
+            if (!noAutoAlign){
             shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), turretMannualAdjust);
+            }
 
         }
         else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
@@ -459,13 +463,14 @@ public class v2Teleop extends OpMode {
     }
 
     public void updateTurretWithAprilTag() {
-        if (follower.getPose().getY() > 72.0) {
-            limelight.limelightCamera.pipelineSwitch(3);
+        if (follower.getPose().getY() > 78.0) {
+            limelight.limelightCamera.pipelineSwitch(5);
             LLResult result = limelight.getResult();
             double error = limelight.updateError();
             if (result != null && result.isValid()) {
                 double currentTurretAngle = shooter.getCurrentTurretPosition();
                 shooter.setTurretTargetPosition(currentTurretAngle - error);
+                shooter.resetTurretPos(shooter.calculateAutoAlignYaw(follower.getPose().getX(),follower.getPose().getY(),isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X,GOAL_Y,isRedAlliance));
                 gamepad1.rumble(200);
 
             }

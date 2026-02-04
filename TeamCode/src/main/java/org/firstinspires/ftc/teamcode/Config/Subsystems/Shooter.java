@@ -276,7 +276,7 @@ public class Shooter {
     }
 
 
-    private static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
+    public static double calculateAutoAlignYaw(double robotXInches, double robotYInches,
                                                 double targetXInches, double targetYInches, boolean isRed) {
         double deltaY = targetYInches - robotYInches;
         double deltaX = targetXInches - robotXInches;
@@ -860,10 +860,10 @@ public class Shooter {
     }
 
     public void resetTurretPos(double currentFixedTurretPos){
-        double fixedPosTicks = Range.scale(currentFixedTurretPos,-180,180,turretMinRange,turretMaxRange);
-        double error = getCurrentTurretPosition() - fixedPosTicks;
-        turretMinRange += error;
-        turretMaxRange += error;
+        double error = getCurrentTurretPosition() - currentFixedTurretPos;
+        double errorTicks = Range.scale(error,-180,180,turretMinRange,turretMaxRange);
+        turretMinRange += errorTicks;
+        turretMaxRange += errorTicks;
     }
 
     public double getTargetFLywheelVelo(){
