@@ -11,7 +11,6 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
@@ -33,25 +32,20 @@ public class Sorted9BallClose extends OpMode {
     private Shooter shooter;
     private Intake intake;
     private Sensors sensors;
-
     private LimelightCamera limelight;
-
-    boolean veloReached = false;
-
-    double flywheelMannualOffset = 700;
 
     private int pathState;
     private Poses.Alliance lastKnownAlliance = null;
-
     private LimelightCamera.BallOrder desiredOrder = null;
 
-    boolean doSort = false;
-
-
+    boolean veloReached = false;
+    boolean flywheelLocked = false;
+    double flywheelMannualOffset = 700;
 
     // Shot Counting Variables
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
+    private boolean beamWasCleared = true;
 
     // Field Constants
     private final double RED_GOAL_X = 127.0;
@@ -61,91 +55,70 @@ public class Sorted9BallClose extends OpMode {
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
 
-    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,park;
+    private PathChain travelToShoot, intake1, travelBackToShoot1, intake2, travelBackToShoot2;
 
     public void buildPaths() {
-        // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.shootPositionGoalSide2)))
-
                 .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
-
                 .build();
 
-        // Path 2: Shoot to Intake 1
         intake1 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.pickupLine1)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.25)
                 .build();
 
-
-
-        // Path 4: Gate back to Shoot
         travelBackToShoot1 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.shootPositionGoalSide2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.shootPositionGoalSide3).getHeading())
                 .build();
 
-        // Path 5: Shoot to Intake 2
         intake2 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine2).getHeading(), 0.45)
                 .build();
 
-        intake3 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
-                .build();
-
-        // Path 6: Intake 2 back to Shoot
         travelBackToShoot2 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
-
-
-
-        park  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine2).getHeading(), 0.45)
-                .build();
-
-
     }
 
     public void autonomousPathUpdate() {
         Pose currentPose = follower.getPose();
         double targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
 
+        // Reset flags if not in a shooting state (Logic from 12-ball)
+        boolean isShootingState = (pathState == 2 || pathState == 5 || pathState == 8);
+        if (!isShootingState) {
+            doTransfer = false;
+            goForLaunch = false;
+            flywheelLocked = false;
+        }
+
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                //intake.retainBalls();
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, true);
-                    //shooter.setTurretTarget(253, Shooter.TurretMode.FIELD_CENTRIC,follower.getHeading(),0);
-
+                    shooter.setTurretTarget(253, Shooter.TurretMode.FIELD_CENTRIC, follower.getHeading(), 0);
                     setPathState();
                 }
                 break;
 
-            case 1:
+            case 1: // Limelight Detection (Sorted logic preserved)
                 desiredOrder = limelight.detectBallOrder();
-                if (desiredOrder != null){
-                    doSort = true;
+                if (desiredOrder != null) {
+                    setPathState();
                 }
-                setPathState();
+                // Optional: add a timeout here if Limelight doesn't see anything
                 break;
 
-
             case 2: // Shoot 3 Preloads
-                    //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getHeading(),0);
-                handleAutoShooting(currentPose, targetX, 7,0);
-                if (!goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
+                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getHeading(), 0);
+                handleAutoShooting(currentPose, targetX, 7.0, 0);
+                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
-
                 break;
 
             case 3: // Drive to Intake 1
@@ -156,19 +129,17 @@ public class Sorted9BallClose extends OpMode {
                 }
                 break;
 
-
             case 4: // Return to Shoot 1
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                    intake.doIntakeHalt();
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
             case 5: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 4.5,0);
-                if (!goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
+                handleAutoShooting(currentPose, targetX, 4.5, 0);
+                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
                 break;
@@ -182,48 +153,17 @@ public class Sorted9BallClose extends OpMode {
                 break;
 
             case 7: // Return to Shoot 2
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                    intake.doIntakeHalt();
                     follower.followPath(travelBackToShoot2, true);
                     setPathState();
                 }
                 break;
 
             case 8: // Shoot 3 Balls (Cycle 2)
-                handleAutoShooting(currentPose, targetX, 4.5,0);
-                if (!goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
+                handleAutoShooting(currentPose, targetX, 4.5, 0);
+                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
-                }
-                break;
-
-            case 9: // Drive to Intake 3
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(intake3, false);
-                    setPathState();
-                }
-                break;
-
-            case 10: // Return to Shoot 3
-                if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShoot3, true);
-                    setPathState();
-                }
-                break;
-
-            case 11: // Final 3 Balls
-                handleAutoShooting(currentPose, targetX, 4.5,0);
-                if (!goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
-                    goForLaunch = true;
-                }
-                break;
-
-            case 12: // Final 3 Balls
-                if (!follower.isBusy()) {
-                    follower.followPath(park,true);
                 }
                 break;
 
@@ -235,73 +175,62 @@ public class Sorted9BallClose extends OpMode {
         }
     }
 
-    /**
-     * Logic for calculating ballistics, locking turret,
-     * and counting exactly 3 shots based on beam break transitions.
-     */
     private void handleAutoShooting(Pose pose, double targetX, double timeout, double mannualHoodOffset) {
-        // Updated shooting command as requested
         double headingDeg = Math.toDegrees(pose.getHeading());
 
-
+        // Ballistics targeting
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,flywheelMannualOffset, mannualHoodOffset,true,0);
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, flywheelMannualOffset, mannualHoodOffset, true, 0);
+        } else {
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, flywheelMannualOffset, mannualHoodOffset, false, 0);
         }
-        else {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,flywheelMannualOffset, mannualHoodOffset,false,0);
+
+        // Latch flywheel (12-ball logic)
+        if (veloReached) {
+            flywheelLocked = true;
         }
-        //shooter.flywheelVeloReached = false;
 
-
-
-
-        // Once RPM and Hood Angle are locked, engage the transfer
-        if (veloReached  && goForLaunch && (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE) ) {
+        // Only allow feeding when ready (added intake state check from 9-ball)
+        if (flywheelLocked && goForLaunch && (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE)) {
             doTransfer = true;
-
-//            boolean currentBeamState = shooter.isBeamBroken();
-//
-//            // Increment count on "Falling Edge" (Ball has fully cleared the shooter)
-//            if (lastBeamState && !currentBeamState) {
-//                ballsShotInState++;
-//            }
-//            lastBeamState = currentBeamState;
         }
 
-
-        if (doTransfer){
+        if (doTransfer) {
             trackShotCount(shooter.isBeamBroken());
             intake.doTestShooter();
         }
 
-
-        // Advance to next state if 3 balls fired OR the safety timer expires
-        if (pathTimer.getElapsedTimeSeconds() > timeout || ballsShotInState >= 3) {
-            doTransfer = false;
+        // Fail-safe exit
+        if (ballsShotInState >= 3 || pathTimer.getElapsedTimeSeconds() > timeout) {
+            resetShootingState();
             shooter.stopFlywheel();
-            ballsShotInState = 0;
             intake.doIntakeHalt();
-            goForLaunch = false;
             setPathState();
-
         }
     }
 
-    public void setPathState(int pState) {
-        pathState = pState;
-        pathTimer.resetTimer();
+    private void trackShotCount(boolean currentBeamState) {
+        if (!currentBeamState) {
+            beamWasCleared = true;
+        }
+        if (currentBeamState && beamWasCleared) {
+            ballsShotInState++;
+            beamWasCleared = false;
+        }
     }
 
-    public void setPathState() {
-        pathState += 1;
+    private void resetShootingState() {
+        ballsShotInState = 0;
+        doTransfer = false;
+        goForLaunch = false;
+        beamWasCleared = true;
+        flywheelLocked = false;
+        lastBeamState = shooter.isBeamBroken();
         pathTimer.resetTimer();
     }
-
-
 
     @Override
     public void init() {
-        // Bulk reading for loop speed
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
@@ -314,44 +243,23 @@ public class Sorted9BallClose extends OpMode {
         shooter = new Shooter(hardwareMap, telemetry);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
-
         limelight = new LimelightCamera(hardwareMap);
+
         intake.setCanShoot(false);
+        goForLaunch = false;
     }
 
     @Override
     public void init_loop() {
         Poses.updateAlliance(gamepad1, telemetry);
-
-
         if (Poses.getAlliance() != lastKnownAlliance) {
             follower.setStartingPose(Poses.get(Poses.startPoseGoalSide));
             buildPaths();
-
             lastKnownAlliance = Poses.getAlliance();
-            telemetry.addData("STATUS", "Paths Rebuilt for " + lastKnownAlliance);
-            telemetry.addLine("");
         }
-
-        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
-
-                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
-
-
-
-
-        telemetry.addLine("--- Alliance Selector ---");
-        telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
-        telemetry.addLine("");
-        telemetry.addData("Alliance Set", Poses.getAlliance());
-        telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
-
-        telemetry.addData("X Pos", follower.getPose().getX());
-        telemetry.addData("Y Pos", follower.getPose().getY());
-        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
-        telemetry.update();
         sensors.update();
         lastBeamState = shooter.isBeamBroken();
+        telemetry.update();
     }
 
     @Override
@@ -362,34 +270,29 @@ public class Sorted9BallClose extends OpMode {
 
     @Override
     public void loop() {
-        // Must update all hardware/sensors every loop
         loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
         sensors.update();
         shooter.update(shooter.getCurrentTurretPosition());
-        intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
+
+        // Passing detected colors to intake for sorting
+        intake.update(shooter.isBeamBroken(), desiredOrder != null ? desiredOrder : LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
                 sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
 
         autonomousPathUpdate();
 
-
-
-        veloReached = (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (8500 + flywheelMannualOffset)) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (12000+ flywheelMannualOffset)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+        // Updated veloReached calculation from 12-ball
+        veloReached = (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - 40)
+                && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + 40)
+                && Math.abs(shooter.getTargetFLywheelVelo()) >= 1);
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
-        telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
-        telemetry.addData("is up to sped",veloReached);
-        telemetry.addData("Balls shot in state:",ballsShotInState);
-        telemetry.addData("Loop Time",loopTimer.getElapsedTime());
-        telemetry.addData("FLywheel Velo",shooter.getFlywheelVelo());
-        telemetry.addData("target velo",shooter.getTargetFLywheelVelo());
-        telemetry.addData("Go for launch?",goForLaunch);
-        telemetry.addData("State", "%s (%.1f ms)", intake.getCurrentIntakeState(), intake.stateTimer.milliseconds());
+        telemetry.addData("Velo Reached", veloReached);
+        telemetry.addData("Intake State", intake.getCurrentIntakeState());
         telemetry.update();
     }
 
@@ -400,19 +303,13 @@ public class Sorted9BallClose extends OpMode {
         Poses.savePose(follower.getPose());
     }
 
-    private void trackShotCount(boolean currentBeamState) {
-        if (lastBeamState && !currentBeamState) {
-            ballsShotInState++;
-        }
-        lastBeamState = currentBeamState;
-    }
-
-    private void resetShootingState() {
-        ballsShotInState = 0;
-        doTransfer = false;
-        goForLaunch = false;
-        lastBeamState = shooter.isBeamBroken();
+    public void setPathState(int pState) {
+        pathState = pState;
         pathTimer.resetTimer();
     }
 
+    public void setPathState() {
+        pathState += 1;
+        pathTimer.resetTimer();
+    }
 }
