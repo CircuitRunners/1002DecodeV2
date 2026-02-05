@@ -34,6 +34,9 @@ public class Sorted9BallClose extends OpMode {
     private Sensors sensors;
     private LimelightCamera limelight;
 
+    private List<LynxModule> allHubs;
+
+
     private int pathState;
     private Poses.Alliance lastKnownAlliance = null;
     private LimelightCamera.BallOrder desiredOrder = null;
@@ -232,8 +235,8 @@ public class Sorted9BallClose extends OpMode {
 
     @Override
     public void init() {
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
         pathTimer = new Timer();
         loopTimer = new Timer();
@@ -252,6 +255,7 @@ public class Sorted9BallClose extends OpMode {
 
     @Override
     public void init_loop() {
+        for (LynxModule hub : allHubs) hub.clearBulkCache();
         Poses.updateAlliance(gamepad1, telemetry);
 
 
@@ -293,6 +297,7 @@ public class Sorted9BallClose extends OpMode {
 
     @Override
     public void loop() {
+        for (LynxModule hub : allHubs) hub.clearBulkCache();
         loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
@@ -319,6 +324,7 @@ public class Sorted9BallClose extends OpMode {
         intake.doSortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
                 sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder, shooter.isBeamBroken());
+        telemetry.addData("loop time",loopTimer.getElapsedTime());
         telemetry.update();
     }
 
