@@ -55,12 +55,17 @@ public class Sorted9BallClose extends OpMode {
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
 
-    private PathChain travelToShoot, intake1, travelBackToShoot1, intake2, travelBackToShoot2;
+    private PathChain travelToShoot, getBallOrder, intake1, travelBackToShoot1, intake2, travelBackToShoot2;
 
     public void buildPaths() {
         travelToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.getMotif).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .build();
+
+        getBallOrder = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.getMotif).getHeading())
                 .build();
 
         intake1 = follower.pathBuilder()
@@ -99,25 +104,24 @@ public class Sorted9BallClose extends OpMode {
         switch (pathState) {
             case 0: // Travel to Initial Shoot
                 if (!follower.isBusy()) {
-                    follower.followPath(travelToShoot, true);
-                    shooter.setTurretTarget(253, Shooter.TurretMode.FIELD_CENTRIC, follower.getHeading(), 0);
+                    follower.followPath(getBallOrder, true);
                     setPathState();
                 }
                 break;
 
             case 1: // Limelight Detection (Sorted logic preserved)
                 desiredOrder = limelight.detectBallOrder();
-                if (desiredOrder != null) {
+                if (desiredOrder != null && !follower.isBusy()) {
+                    follower.followPath(travelToShoot, true);
                     setPathState();
                 }
                 // Optional: add a timeout here if Limelight doesn't see anything
                 break;
 
             case 2: // Shoot 3 Preloads
-                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getHeading(), 0);
                 intake.prepareAndStartSort();
                 handleAutoShooting(currentPose, targetX, 7.0, 0);
-                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
+                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
                     goForLaunch = true;
                 }
                 break;
@@ -290,6 +294,7 @@ public class Sorted9BallClose extends OpMode {
                 && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + 40)
                 && Math.abs(shooter.getTargetFLywheelVelo()) >= 1);
 
+        telemetry.addData("Ball Order", desiredOrder);
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Velo Reached", veloReached);

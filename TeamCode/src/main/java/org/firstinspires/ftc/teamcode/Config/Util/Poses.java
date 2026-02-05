@@ -84,6 +84,10 @@ public class Poses {
             new Pose(32, 135.5, Math.toRadians(180))        // Blue
     );
 
+    public static final AlliancePose getMotif = new AlliancePose(
+            new Pose(112.0, 135.5, Math.toRadians(120)),      // Red: X=144-32=112, Theta=180-180=0
+            new Pose(32, 135.5, Math.toRadians(60))        // Blue
+    );
     // SHOOT_POSITION_GOAL_SIDE
 //    public static final AlliancePose shootPositionGoalSide = new AlliancePose(
 //            new Pose(86.5, 80.0, Math.toRadians(36.5)),     // Red: X=144-59.5=84.5, Theta=180-135=45
@@ -109,27 +113,27 @@ public class Poses {
 
     // CONTROL_POINT_LINE_1_FOR_SHOOT_POSE_2
     public static final AlliancePose controlPointLine1ForShootPose2 = new AlliancePose(
-            new Pose(91.0, 80, Math.toRadians(0)),
-            new Pose(53, 80, Math.toRadians(180))
+            new Pose(91.0, 75, Math.toRadians(0)),
+            new Pose(53, 75, Math.toRadians(180))
     );
 
     // PICKUP_LINE_1
     public static final AlliancePose pickupLine1 = new AlliancePose(
-            new Pose(127, 81, Math.toRadians(0)),
-            new Pose(13.5, 81, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
+            new Pose(127, 80, Math.toRadians(0)),
+            new Pose(13.5, 80, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
 
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
-            new Pose(135, 54, Math.toRadians(0)),
-            new Pose(9, 54, Math.toRadians(180))
+            new Pose(135, 56, Math.toRadians(0)),
+            new Pose(9, 56, Math.toRadians(180))
     );
 
     // LINE_2_CONTROL_POINT
     public static final AlliancePose line2ControlPoint = new AlliancePose(
-            new Pose(82.0, 48, Math.toRadians(0)),
-            new Pose(64, 48, Math.toRadians(180))
+            new Pose(82.0, 42, Math.toRadians(0)),
+            new Pose(64, 42, Math.toRadians(180))
     );
 
 
@@ -153,8 +157,8 @@ public class Poses {
     );
 
     public static final AlliancePose openGate = new AlliancePose(
-            new Pose(141.5, 86, Math.toRadians(180)),
-            new Pose(2.5, 86, Math.toRadians(0))
+            new Pose(143, 83, Math.toRadians(180)),
+            new Pose(1, 83, Math.toRadians(0))
     );
     public static final AlliancePose openGateAutoIntakeJames = new AlliancePose(
             new Pose(130.0, 62.5, Math.toRadians(42)),
