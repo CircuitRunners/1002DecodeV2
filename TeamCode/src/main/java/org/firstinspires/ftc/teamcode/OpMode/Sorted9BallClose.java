@@ -115,6 +115,7 @@ public class Sorted9BallClose extends OpMode {
 
             case 2: // Shoot 3 Preloads
                 shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getHeading(), 0);
+                intake.prepareAndStartSort();
                 handleAutoShooting(currentPose, targetX, 7.0, 0);
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
@@ -131,7 +132,7 @@ public class Sorted9BallClose extends OpMode {
 
             case 4: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    intake.doIntakeHalt();
+                    intake.prepareAndStartSort();
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
@@ -154,7 +155,7 @@ public class Sorted9BallClose extends OpMode {
 
             case 7: // Return to Shoot 2
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    intake.doIntakeHalt();
+                    intake.prepareAndStartSort();
                     follower.followPath(travelBackToShoot2, true);
                     setPathState();
                 }
@@ -293,6 +294,9 @@ public class Sorted9BallClose extends OpMode {
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Velo Reached", veloReached);
         telemetry.addData("Intake State", intake.getCurrentIntakeState());
+        intake.doSortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
+                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
+                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder, shooter.isBeamBroken());
         telemetry.update();
     }
 
