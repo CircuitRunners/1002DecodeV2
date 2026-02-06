@@ -252,7 +252,7 @@ public class Sorted9BallClose extends OpMode {
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
         limelight = new LimelightCamera(hardwareMap);
-
+        limelight.limelightCamera.start();
         intake.setCanShoot(false);
         goForLaunch = false;
     }
