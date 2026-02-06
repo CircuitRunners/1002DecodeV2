@@ -161,6 +161,8 @@ public class LimelightCamera {
 //    }
 
     public BallOrder detectBallOrder() {
+        limelightCamera.pipelineSwitch(5);
+
         LLResult result = getResult();
 
         if (result == null || !result.isValid()) {
