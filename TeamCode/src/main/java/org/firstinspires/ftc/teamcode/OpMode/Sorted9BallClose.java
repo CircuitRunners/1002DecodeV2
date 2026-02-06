@@ -51,9 +51,9 @@ public class Sorted9BallClose extends OpMode {
     private boolean beamWasCleared = true;
 
     // Field Constants
-    private final double RED_GOAL_X = 127.0;
-    private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 127.5;
+    private final double RED_GOAL_X = 123.5;
+    private final double BLUE_GOAL_X = 21;
+    private final double GOAL_Y = 132;
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
@@ -65,15 +65,18 @@ public class Sorted9BallClose extends OpMode {
     private PathChain travelToShoot, getBallOrder, intake1, travelBackToShoot1, intake2, travelBackToShoot2;
 
     public void buildPaths() {
+
+        getBallOrder = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.getMotif)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.getMotif).getHeading())
+                .build();
+
         travelToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.shootPositionGoalSide2)))
+                .addPath(new BezierLine(Poses.get(Poses.getMotif), Poses.get(Poses.shootPositionGoalSide2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.getMotif).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
 
-        getBallOrder = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.getMotif).getHeading())
-                .build();
+
 
         intake1 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.pickupLine1)))

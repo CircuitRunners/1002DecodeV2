@@ -51,9 +51,9 @@ public class FarZoneAuto extends OpMode {
     private boolean intakeStoppedForShooting = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 127.0;
-    private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 127.5;
+    private final double RED_GOAL_X = 123.5;
+    private final double BLUE_GOAL_X = 21;
+    private final double GOAL_Y = 132;
 
     private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2;
 

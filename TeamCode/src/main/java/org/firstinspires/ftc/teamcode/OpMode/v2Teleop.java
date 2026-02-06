@@ -51,9 +51,9 @@ public class v2Teleop extends OpMode {
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
 
-    private final double RED_GOAL_X = 127.0;
-    private final double BLUE_GOAL_X = 15.0;
-    private final double GOAL_Y = 129;
+    private final double RED_GOAL_X = 123.5;
+    private final double BLUE_GOAL_X = 21;
+    private final double GOAL_Y = 132;
     private static final double METERS_TO_INCH = 39.37;
 
 
@@ -68,6 +68,10 @@ public class v2Teleop extends OpMode {
     private double turretMannualAdjust = 0;
 
     boolean teleopShootApporval = false;
+
+    public static  double[] turretCoefficientsTeleop = {0.2, 0.006, 0.004, 0.0053};
+
+    public static double turretDeadband = 0;
 
 
 
@@ -138,7 +142,8 @@ public class v2Teleop extends OpMode {
 
         veloReached =  (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (1500 )) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (16000)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
 
-
+        shooter.turretCoefficientsTeleop = turretCoefficientsTeleop;
+        shooter.turretDeadband = turretDeadband;
 
 
         // --- 2. DATA SNAPSHOTS (Call once, reference variables) ---
@@ -265,11 +270,18 @@ public class v2Teleop extends OpMode {
         if (initiateTransfer){
             trackShotCount(beam);
         }
-        if (initiateTransfer && veloReached && (pose.getY() > 80 && gamepad1.right_trigger > 0.2)){
+        if (initiateTransfer && veloReached && (pose.getY() > 80 )){
             teleopShootApporval = true;
             intake.doTestShooter();
         }
-        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
+        else if (initiateTransfer && veloReached && (pose.getY() <= 80 && gamepad1.right_trigger > 0.2)){
+            teleopShootApporval = true;
+            intake.doTestShooter();
+        }
+//        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
+//            intake.doIntakeHalt();
+//        }
+        else{
             intake.doIntakeHalt();
         }
 

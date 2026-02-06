@@ -47,9 +47,9 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 127.0;
-    private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 127.5;
+    private final double RED_GOAL_X = 123.5;
+    private final double BLUE_GOAL_X = 21;
+    private final double GOAL_Y = 132;
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;

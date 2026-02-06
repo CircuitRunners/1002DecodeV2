@@ -49,6 +49,8 @@ public class Shooter {
     // --- PHYSICS CONSTANTS ---
     private static final double GRAVITY = 386.088; // in/s^2
 
+    public static double turretDeadband = 4;
+
     // Heights (meters)
     private static final double LAUNCH_HEIGHT_IN = 16; //11.6
     private static final double GOAL_HEIGHT_IN = 38.75;
@@ -299,13 +301,21 @@ public class Shooter {
             targetFieldYawDeg += 360;
         }
         double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
+
+       //NEW
+        targetFieldYawDegBlue = targetFieldYawDeg +180;
         if (targetFieldYawDegBlue < 0) {
             targetFieldYawDegBlue += 360;
         }
+        else if (targetFieldYawDegBlue > 360){
+            targetFieldYawDegBlue -=360;
+        }
+
+        //END NEW
         if (isRed) {
             return Math.round(targetFieldYawDeg);
         }
-        return Math.round(targetFieldYawDegBlue); // Returns (-180 to 180)
+        return Math.round(targetFieldYawDeg); // Returns (-180 to 180)
     }
 
 //    private static double calculateAutoAlignYaw(double robotX, double robotY, double goalX, double goalY, boolean isRed) {
@@ -579,7 +589,10 @@ public class Shooter {
                 turretCoefficientsTeleop[2], turretCoefficientsTeleop[3]);
         double turretOutput = turretPIDF.calculate(currentTurretAngle0_360,targetTurretPosition);
 
-        if (Math.abs(targetTurretPosition - currentTurretAngle0_360) <= 4){
+        if (Math.abs(targetTurretPosition - currentTurretAngle0_360) <= turretDeadband){
+            turretOutput = 0;
+        }
+        else if (targetTurretPosition == 0 && ((targetTurretPosition - currentTurretAngle0_360) <= 4)){
             turretOutput = 0;
         }
         else{

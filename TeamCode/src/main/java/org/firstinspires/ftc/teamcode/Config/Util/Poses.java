@@ -85,8 +85,8 @@ public class Poses {
     );
 
     public static final AlliancePose getMotif = new AlliancePose(
-            new Pose(112.0, 135.5, Math.toRadians(120)),      // Red: X=144-32=112, Theta=180-180=0
-            new Pose(32, 135.5, Math.toRadians(60))        // Blue
+            new Pose(112.1, 135.5, Math.toRadians(120)),      // Red: X=144-32=112, Theta=180-180=0
+            new Pose(31.9, 135.5, Math.toRadians(60))        // Blue
     );
     // SHOOT_POSITION_GOAL_SIDE
 //    public static final AlliancePose shootPositionGoalSide = new AlliancePose(
