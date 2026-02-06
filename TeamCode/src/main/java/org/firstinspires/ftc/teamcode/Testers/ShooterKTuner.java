@@ -72,7 +72,7 @@ public class ShooterKTuner extends OpMode {
         sensors.update();
 
         // Shooter constructor now handles PID initialization correctly
-        shooter = new Shooter(hardwareMap, telemetry);
+        shooter = new Shooter(hardwareMap, telemetry,false);
 
         shooter.update(shooter.getCurrentTurretPosition());
 

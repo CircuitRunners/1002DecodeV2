@@ -243,7 +243,7 @@ public class FarZoneAuto extends OpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry);
+        shooter = new Shooter(hardwareMap, telemetry,true);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
         goForLaunch = false;

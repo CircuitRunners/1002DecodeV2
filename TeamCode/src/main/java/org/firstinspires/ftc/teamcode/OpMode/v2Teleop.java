@@ -88,7 +88,7 @@ public class v2Teleop extends OpMode {
         drive.init(hardwareMap);
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry);
+        shooter = new Shooter(hardwareMap, telemetry,false);
         limelight = new LimelightCamera(hardwareMap);
         limelight.limelightCamera.start();
 

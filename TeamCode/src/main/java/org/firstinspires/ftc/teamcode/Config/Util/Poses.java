@@ -95,20 +95,26 @@ public class Poses {
 //    );
 
     // SHOOT_POSITION_GOAL_SIDE_2
+//    public static final AlliancePose shootPositionGoalSide2 = new AlliancePose(
+//            new Pose(100.5, 107, Math.toRadians(37)),     // Red: X=144-48=96, Theta=180-132.5=47.5
+//            new Pose(43.5, 107, Math.toRadians(145))       // Blue
+//    );
+//
+//    public static final AlliancePose shootPositionGoalSide3 = new AlliancePose(
+//            new Pose(105.5, 104.5, Math.toRadians(42)),     // Red: X=144-48=96, Theta=180-132.5=47.5
+//            new Pose(38.5, 104.5, Math.toRadians(138))       // Blue
+//    );
+
     public static final AlliancePose shootPositionGoalSide2 = new AlliancePose(
-            new Pose(100.5, 107, Math.toRadians(37)),     // Red: X=144-48=96, Theta=180-132.5=47.5
-            new Pose(43.5, 107, Math.toRadians(145))       // Blue
+            new Pose(100.5, 107, Math.toRadians(37)),
+            new Pose(43.5, 107, Math.toRadians(145)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide3 = new AlliancePose(
-            new Pose(105.5, 104.5, Math.toRadians(42)),     // Red: X=144-48=96, Theta=180-132.5=47.5
-            new Pose(38.5, 104.5, Math.toRadians(138))       // Blue
+            new Pose(105.5, 104.5, Math.toRadians(42)),
+            new Pose(38.5, 104.5, Math.toRadians(138)) // 144 - 105.5 = 38.5
     );
 
-//    public static final AlliancePose shootPositionGoalSide2LasthHot = new AlliancePose(
-//            new Pose(100.5, 119.5, Math.toRadians(22)),     // Red: X=144-48=96, Theta=180-132.5=47.5
-//            new Pose(43.5, 119.5, Math.toRadians(158))      // Blue
-//    );
 
 
     // CONTROL_POINT_LINE_1_FOR_SHOOT_POSE_2
@@ -150,37 +156,72 @@ public class Poses {
             new Pose(64, 23, Math.toRadians(180))
     );
 
-    // LINEUP_AT_GATE
+//    // LINEUP_AT_GATE
+//    public static final AlliancePose lineupAtGate = new AlliancePose(
+//            new Pose(119.0, 61.0, Math.toRadians(0)),
+//            new Pose(24, 68, Math.toRadians(180))
+//    );
+//
+//    public static final AlliancePose openGate = new AlliancePose(
+//            new Pose(143, 83, Math.toRadians(180)),
+//            new Pose(1, 83, Math.toRadians(0))
+//    );
+//    public static final AlliancePose openGateAutoIntakeJames = new AlliancePose(
+//            new Pose(130.0, 62.5, Math.toRadians(42)),
+//            new Pose(10, 62.5, Math.toRadians(138))
+//    );
+//    public static final AlliancePose openGateAutoIntakeControlPointJames = new AlliancePose(
+//            new Pose(47, 37, Math.toRadians(42)),
+//            new Pose(93, 37, Math.toRadians(138))
+//    );
+//
+//    public static final AlliancePose openGateHighCycle = new AlliancePose(
+//            new Pose(133,60,Math.toRadians(45)),
+//            new Pose(11,60, Math.toRadians(135))
+//    );
+//
+//    public static final AlliancePose openGateHighCycleControlPoint = new AlliancePose(
+//            new Pose(87.5, 74, Math.toRadians(42)),
+//            new Pose(56.5, 74, Math.toRadians(138))
+//    );
+//    public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
+//            new Pose(135,50,Math.toRadians(90)),
+//            new Pose(9,50, Math.toRadians(90))
+//    );
+
     public static final AlliancePose lineupAtGate = new AlliancePose(
             new Pose(119.0, 61.0, Math.toRadians(0)),
-            new Pose(24, 68, Math.toRadians(180))
+            new Pose(25.0, 61.0, Math.toRadians(180)) // 144 - 119 = 25
     );
 
     public static final AlliancePose openGate = new AlliancePose(
             new Pose(143, 83, Math.toRadians(180)),
-            new Pose(1, 83, Math.toRadians(0))
+            new Pose(1, 83, Math.toRadians(0)) // 144 - 143 = 1 ✅
     );
+
     public static final AlliancePose openGateAutoIntakeJames = new AlliancePose(
             new Pose(130.0, 62.5, Math.toRadians(42)),
-            new Pose(10, 62.5, Math.toRadians(138))
+            new Pose(14.0, 62.5, Math.toRadians(138)) // was 10 ❌
     );
+
     public static final AlliancePose openGateAutoIntakeControlPointJames = new AlliancePose(
             new Pose(47, 37, Math.toRadians(42)),
-            new Pose(93, 37, Math.toRadians(138))
+            new Pose(97, 37, Math.toRadians(138)) // 144 - 47 = 97
     );
 
     public static final AlliancePose openGateHighCycle = new AlliancePose(
-            new Pose(133,60,Math.toRadians(45)),
-            new Pose(11,60, Math.toRadians(135))
+            new Pose(133, 60, Math.toRadians(45)),
+            new Pose(11, 60, Math.toRadians(135)) // correct
     );
 
     public static final AlliancePose openGateHighCycleControlPoint = new AlliancePose(
             new Pose(87.5, 74, Math.toRadians(42)),
-            new Pose(56.5, 74, Math.toRadians(138))
+            new Pose(56.5, 74, Math.toRadians(138)) // correct
     );
+
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(135,50,Math.toRadians(90)),
-            new Pose(9,50, Math.toRadians(90))
+            new Pose(135, 50, Math.toRadians(90)),
+            new Pose(9, 50, Math.toRadians(90)) // correct
     );
 
 
@@ -227,6 +268,29 @@ public class Poses {
     public static final AlliancePose intake3ControlPoint = new AlliancePose(
             new Pose(61.1, 38.5),
             new Pose(82.9, 38.5)
+    );
+
+
+
+    //15 ball shenanegans
+    public static final AlliancePose fifteenBallOpenGateControlPoint = new AlliancePose(
+            new Pose(113.7, 62),
+            new Pose(30.3, 62)
+    );
+
+    public static final AlliancePose fifteenBallLine4ControlPoint1 = new AlliancePose(
+            new Pose(142.6, 49),
+            new Pose(1.4, 49)
+    );
+
+    public static final AlliancePose fifteenBallLine4ControlPoint2 = new AlliancePose(
+            new Pose(133.4, 56),
+            new Pose(10.6, 56)
+    );
+
+    public static final AlliancePose fifteenBallPickupLine4 = new AlliancePose(
+            new Pose(135.5, 8.5,Math.toRadians(270)),
+            new Pose(8.5, 8.5,Math.toRadians(270))
     );
 
     // =======================

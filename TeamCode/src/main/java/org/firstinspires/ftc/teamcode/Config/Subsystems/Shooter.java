@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.pedropathing.math.MathFunctions;
-import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,7 +11,6 @@ import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Configurable
 public class Shooter {
@@ -34,7 +31,8 @@ public class Shooter {
 //    private static final double[] turretCoefficients = {0.087, 0.000, 0.00399995, 0.0009};
     public static  double[] flywheelCoefficients = {1.1, 0.000001, 0.00465, 0.000071};
 
-    public static  double[] turretCoefficients = {0.9, 0.006, 0.035, 0.003};
+    public static  double[] turretCoefficientsTeleop = {0.9, 0.006, 0.035, 0.003};
+    private static final double[] turretCoefficientsAuto = {0.087, 0.000, 0.00399995, 0.0009};
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
@@ -140,7 +138,7 @@ public class Shooter {
      */
 
 
-    public Shooter(HardwareMap hardwareMap, Telemetry telemetry) {
+    public Shooter(HardwareMap hardwareMap, Telemetry telemetry, boolean isAuto) {
         this.telemetry = telemetry;
 
         // --- Hardware Initialization (omitted for brevity) ---
@@ -178,13 +176,24 @@ public class Shooter {
 
         //flywheelPIDF.setTolerance(4500);
 
-        turretPIDF = new PIDFController(
+       if (isAuto){
+           turretPIDF = new PIDFController(
 
-                turretCoefficients[0], turretCoefficients[1],
+                   turretCoefficientsAuto[0], turretCoefficientsAuto[1],
 
-                turretCoefficients[2], turretCoefficients[3]
+                   turretCoefficientsAuto[2], turretCoefficientsAuto[3]
 
-        );
+           );
+       }
+       else {
+           turretPIDF = new PIDFController(
+
+                   turretCoefficientsTeleop[0], turretCoefficientsTeleop[1],
+
+                   turretCoefficientsTeleop[2], turretCoefficientsTeleop[3]
+
+           );
+       }
 
         turretPIDF.setTolerance(2);
 
@@ -565,9 +574,9 @@ public class Shooter {
 //        if (targetFlywheelVelocity == 0) {
 //            setFlywheelPower(0);
 //        }
-        turretPIDF.setPIDF( turretCoefficients[0], turretCoefficients[1],
+        turretPIDF.setPIDF( turretCoefficientsTeleop[0], turretCoefficientsTeleop[1],
 
-                turretCoefficients[2], turretCoefficients[3]);
+                turretCoefficientsTeleop[2], turretCoefficientsTeleop[3]);
         double turretOutput = turretPIDF.calculate(currentTurretAngle0_360,targetTurretPosition);
 
         if (Math.abs(targetTurretPosition - currentTurretAngle0_360) <= 4){

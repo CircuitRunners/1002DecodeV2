@@ -52,7 +52,7 @@ public class ShooterTester extends OpMode {
 //        drive = new MecanumDrive();
 //        drive.init(hardwareMap);
 
-        shooter = new Shooter(hardwareMap, telemetry);
+        shooter = new Shooter(hardwareMap, telemetry,false);
 
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");

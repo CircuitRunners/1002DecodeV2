@@ -74,7 +74,7 @@ public class notCookedTurretTuner extends OpMode {
         turret.setDirection(isReversed ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
 
 
-        shooter = new Shooter(hardwareMap,telemetry);
+        shooter = new Shooter(hardwareMap,telemetry,false);
         // 4. Sensor Initialization
         try {
             sensors.init(hardwareMap, HUB_NAME);

@@ -25,7 +25,7 @@ public class SigmaIntakeTest extends OpMode {
         player1 = new GamepadEx(gamepad1);
         intake = new Intake(hardwareMap, telemetry);
         sensors = new Sensors();
-        shooter = new Shooter(hardwareMap,telemetry);
+        shooter = new Shooter(hardwareMap,telemetry,false);
 
         try {
             // The Sensors class handles finding and configuring the SRSHub itself

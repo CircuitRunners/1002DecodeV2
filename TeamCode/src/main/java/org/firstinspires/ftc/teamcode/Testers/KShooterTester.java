@@ -65,7 +65,7 @@ public class KShooterTester extends OpMode {
             sensors = new Sensors();
             sensors.init(hardwareMap, "SRSHub");
 
-            shooter = new Shooter(hardwareMap, telemetry);
+            shooter = new Shooter(hardwareMap, telemetry,false);
             intake = new Intake(hardwareMap, telemetry);
 
             follower = Constants.createFollower(hardwareMap);

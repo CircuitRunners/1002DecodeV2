@@ -35,7 +35,7 @@ public class TurretAutoAlign extends OpMode {
 
         player1 = new GamepadEx(gamepad1);
 
-        turret = new Shooter(hardwareMap, telemetry);
+        turret = new Shooter(hardwareMap, telemetry,false);
 
         drive = new MecanumDrive();
         drive.init(hardwareMap);

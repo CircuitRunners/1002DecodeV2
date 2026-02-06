@@ -52,7 +52,7 @@ public class LimelightCamera {
         if (limelightCamera == null) {
             throw new IllegalStateException("❌ Limelight not found in hardwareMap! Check config name 'limelight'.");
         }
-
+        limelightCamera.start();
         pidf = new PIDFController(HEADING_KP_TX, HEADING_KI_TX, HEADING_KD_TX, HEADING_KF_TX);
         // Set the target to 0 (we want the Limelight Tx error to be zero)
         pidf.setSetPoint(0.0);

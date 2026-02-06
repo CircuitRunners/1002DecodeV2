@@ -713,7 +713,7 @@ public class ShootingWhileMovingTester extends OpMode {
         configurePinpoint();
 
         player1 = new GamepadEx(gamepad1);
-        shooterLogic = new Shooter(hardwareMap, telemetry);
+        shooterLogic = new Shooter(hardwareMap, telemetry,false);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
 

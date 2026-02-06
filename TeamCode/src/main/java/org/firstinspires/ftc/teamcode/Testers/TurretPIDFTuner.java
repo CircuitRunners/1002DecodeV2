@@ -68,7 +68,7 @@ public class TurretPIDFTuner extends OpMode {
 
         sensors = new Sensors();
 
-        shooter = new Shooter(hardwareMap,telemetry);
+        shooter = new Shooter(hardwareMap,telemetry,false);
 
         try {
             // The Sensors class handles finding and configuring the SRSHub itself
