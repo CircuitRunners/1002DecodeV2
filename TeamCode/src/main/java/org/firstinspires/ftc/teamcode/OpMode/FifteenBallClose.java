@@ -53,7 +53,8 @@ public class FifteenBallClose extends OpMode {
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
-
+    // One-shot latch: stops intake exactly once before shooting
+    private boolean intakeStoppedForShooting = false;
     boolean flywheelLocked = false;
 
     private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,intake4,travelBackToShoot4;
@@ -179,16 +180,24 @@ public class FifteenBallClose extends OpMode {
                 }
                 break;
 
-            case 4: // Shoot 3 Balls (Cycle 1)
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    intake.doIntakeHalt();
+            case 4: // Final 3 Balls
+
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 5.3, 0);
                 }
-                if (!goForLaunch
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
 
             case 5: // Drive to Intake 2
@@ -214,13 +223,19 @@ public class FifteenBallClose extends OpMode {
                 }
                 break;
 
-            case 8: // Shoot 3 Balls (Cycle 2)
+            case 8: // Final 3 Balls
 
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    intake.doIntakeHalt();
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 5.3, 0);
                 }
-                if (!goForLaunch
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
@@ -248,15 +263,22 @@ public class FifteenBallClose extends OpMode {
 
             case 11: // Final 3 Balls
 
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    intake.doIntakeHalt();
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 5.3, 0);
                 }
-                if (!goForLaunch
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
 
             case 12: // Drive to Intake 3
@@ -279,15 +301,22 @@ public class FifteenBallClose extends OpMode {
 
             case 14: // Final 3 Balls
 
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    intake.doIntakeHalt();
-                    handleAutoShooting(currentPose, targetX, 5.3, 0);
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 25, 0);
                 }
-                if (!goForLaunch
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
 
             default:
@@ -408,11 +437,13 @@ public class FifteenBallClose extends OpMode {
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
     }
 
     public void setPathState() {
         pathState += 1;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
     }
 
     @Override
@@ -503,6 +534,8 @@ public class FifteenBallClose extends OpMode {
         telemetry.addData("FLywheel Velo",shooter.getFlywheelVelo());
         telemetry.addData("target velo",shooter.getTargetFLywheelVelo());
         telemetry.addData("Go for launch?",goForLaunch);
+        telemetry.addData("Path t", follower.getCurrentTValue());
+        telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.update();
     }
 
@@ -534,7 +567,12 @@ public class FifteenBallClose extends OpMode {
         }
     }
 
-
+    private void stopIntakeOnceAtT(double t) {
+        if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
+            intake.doIntakeHalt();          // ONE-TIME call
+            intakeStoppedForShooting = true;
+        }
+    }
 
 
     private void resetShootingState() {

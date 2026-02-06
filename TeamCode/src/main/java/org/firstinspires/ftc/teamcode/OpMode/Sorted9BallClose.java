@@ -58,6 +58,10 @@ public class Sorted9BallClose extends OpMode {
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
 
+    // One-shot latch: stops intake exactly once before shooting
+    private boolean intakeStoppedForShooting = false;
+
+    private boolean sortStarted = false;
     private PathChain travelToShoot, getBallOrder, intake1, travelBackToShoot1, intake2, travelBackToShoot2;
 
     public void buildPaths() {
@@ -122,8 +126,10 @@ public class Sorted9BallClose extends OpMode {
                 break;
 
             case 2: // Shoot 3 Preloads
-                intake.prepareAndStartSort();
-                handleAutoShooting(currentPose, targetX, 7.0, 0);
+                doSort();
+                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 9.5) {
+                    handleAutoShooting(currentPose, targetX, 20.0, 0);
+                }
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
                     goForLaunch = true;
                 }
@@ -137,19 +143,40 @@ public class Sorted9BallClose extends OpMode {
                 }
                 break;
 
+
+
             case 4: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    intake.prepareAndStartSort();
+                    intake.doIntake();
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
-            case 5: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 4.5, 0);
-                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
+            case 5: // Final 3 Balls
+
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.35);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    doSort();
+                }
+
+                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                    handleAutoShooting(currentPose, targetX, 11.0, 0);
+                }
+
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
+
                 break;
 
             case 6: // Drive to Intake 2
@@ -162,17 +189,33 @@ public class Sorted9BallClose extends OpMode {
 
             case 7: // Return to Shoot 2
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    intake.prepareAndStartSort();
+                   intake.doIntake();
                     follower.followPath(travelBackToShoot2, true);
                     setPathState();
                 }
                 break;
 
             case 8: // Shoot 3 Balls (Cycle 2)
-                handleAutoShooting(currentPose, targetX, 4.5, 0);
-                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
+                stopIntakeOnceAtT(0.35);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    doSort();
+                }
+
+                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                    handleAutoShooting(currentPose, targetX, 11.0, 0);
+                }
+
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
 
             default:
@@ -199,7 +242,7 @@ public class Sorted9BallClose extends OpMode {
         }
 
         // Only allow feeding when ready (added intake state check from 9-ball)
-        if (flywheelLocked && goForLaunch && (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE)) {
+        if (flywheelLocked && goForLaunch && ((intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE) || pathTimer.getElapsedTimeSeconds() > 7.5)) {
             doTransfer = true;
         }
 
@@ -213,6 +256,7 @@ public class Sorted9BallClose extends OpMode {
             resetShootingState();
             shooter.stopFlywheel();
             intake.doIntakeHalt();
+            sortStarted = false;
             setPathState();
         }
     }
@@ -324,12 +368,15 @@ public class Sorted9BallClose extends OpMode {
         telemetry.addData("Ball Order", desiredOrder);
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
+        telemetry.addData("Path t", follower.getCurrentTValue());
+        telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.addData("Velo Reached", veloReached);
         telemetry.addData("Intake State", intake.getCurrentIntakeState());
         intake.doSortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
                 sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder, shooter.isBeamBroken());
         telemetry.addData("loop time",loopTimer.getElapsedTime());
+
         telemetry.update();
     }
 
@@ -344,10 +391,26 @@ public class Sorted9BallClose extends OpMode {
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
     }
 
     public void setPathState() {
         pathState += 1;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
+    }
+
+    private void stopIntakeOnceAtT(double t) {
+        if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
+            intake.doIntakeHalt();          // ONE-TIME call
+            intakeStoppedForShooting = true;
+        }
+    }
+
+    private void doSort(){
+        if (!sortStarted){
+            intake.prepareAndStartSort();
+            sortStarted = true;
+        }
     }
 }

@@ -54,6 +54,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
 
+    private boolean intakeStoppedForShooting = false;
     boolean flywheelLocked = false;
 
     private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,park;
@@ -179,17 +180,24 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 }
                 break;
 
-            case 5: // Shoot 3 Balls (Cycle 1)
+            case 5: // Final 3 Balls
 
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    intake.doIntakeHalt();
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 5.3, 0);
                 }
-                if (!goForLaunch
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
 
             case 6: // Drive to Intake 2
@@ -208,20 +216,25 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 }
                 break;
 
-            case 8: // Shoot 3 Balls (Cycle 2)
+            case 8: // Final 3 Balls
 
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    intake.doIntakeHalt();
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 5.3, 0);
                 }
-                if (!goForLaunch
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
 
                 break;
-
             case 9: // Drive to Intake 3
                 intake.doIntake();
                 if (!follower.isBusy()) {
@@ -242,16 +255,23 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
             case 11: // Final 3 Balls
 
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    intake.doIntakeHalt();
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 25, 0);
                 }
-                if (!goForLaunch
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
                 break;
+
 
 //            case 12: // Final 3 Balls
 //                if (!follower.isBusy()) {
@@ -377,11 +397,20 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
     }
 
     public void setPathState() {
         pathState += 1;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
+    }
+
+    private void stopIntakeOnceAtT(double t) {
+        if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
+            intake.doIntakeHalt();          // ONE-TIME call
+            intakeStoppedForShooting = true;
+        }
     }
 
     @Override
@@ -472,6 +501,8 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         telemetry.addData("FLywheel Velo",shooter.getFlywheelVelo());
         telemetry.addData("target velo",shooter.getTargetFLywheelVelo());
         telemetry.addData("Go for launch?",goForLaunch);
+        telemetry.addData("Path t", follower.getCurrentTValue());
+        telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.update();
     }
 

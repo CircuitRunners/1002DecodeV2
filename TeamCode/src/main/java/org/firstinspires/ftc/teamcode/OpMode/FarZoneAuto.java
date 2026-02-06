@@ -47,6 +47,9 @@ public class FarZoneAuto extends OpMode {
     private boolean lastBeamState = false;
     private boolean beamWasCleared = true;
 
+    // One-shot latch: stops intake exactly once before shooting
+    private boolean intakeStoppedForShooting = false;
+
     // Field Constants
     private final double RED_GOAL_X = 127.0;
     private final double BLUE_GOAL_X = 17.0;
@@ -106,7 +109,7 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 4.5, -2);
+                handleAutoShooting(currentPose, targetX, 6.5, 0);
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
@@ -122,17 +125,28 @@ public class FarZoneAuto extends OpMode {
 
             case 5: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    intake.doIntakeHalt();
+
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
             case 6: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 4.5, -2);
-                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 7, 0);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
 
             case 7: // Drive to Intake 2
@@ -145,27 +159,31 @@ public class FarZoneAuto extends OpMode {
 
             case 8: // Return to Shoot 2
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    intake.doIntakeHalt();
+
                     follower.followPath(travelBackToShoot2, true);
                     setPathState();
                 }
                 break;
 
             case 9: // Shoot 3 Balls (Cycle 2)
-                handleAutoShooting(currentPose, targetX, 4.5, -2);
-                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 15, 0);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
 
-            // ... (Case 10-13 transitions kept as requested) ...
 
-            case 14: // Final 3 Balls
-                handleAutoShooting(currentPose, targetX, 4.5, -2);
-                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) {
-                    goForLaunch = true;
-                }
-                break;
 
             default:
                 shooter.stopFlywheel();
@@ -225,11 +243,13 @@ public class FarZoneAuto extends OpMode {
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
     }
 
     public void setPathState() {
         pathState += 1;
         pathTimer.resetTimer();
+        intakeStoppedForShooting = false;
     }
 
     @Override
@@ -294,6 +314,8 @@ public class FarZoneAuto extends OpMode {
         telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
         telemetry.addData("Velo Reached", veloReached);
         telemetry.addData("Go for launch?", goForLaunch);
+        telemetry.addData("Path t", follower.getCurrentTValue());
+        telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.update();
     }
 
@@ -302,5 +324,12 @@ public class FarZoneAuto extends OpMode {
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());
+    }
+
+    private void stopIntakeOnceAtT(double t) {
+        if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
+            intake.doIntakeHalt();          // ONE-TIME call
+            intakeStoppedForShooting = true;
+        }
     }
 }
