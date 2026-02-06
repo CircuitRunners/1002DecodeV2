@@ -132,31 +132,53 @@ public class LimelightCamera {
     /**
      * Detects ball order based on AprilTag IDs 21-23; switches pipeline to detection pipeline
      */
+//    public BallOrder detectBallOrder() {
+//        limelightCamera.pipelineSwitch(5); // detection pipeline for ALL april tags
+//
+//        LLResult result = getResult();
+//        BallOrder detectedOrder = null; // default
+//
+////        if (result != null && result.isValid()) {
+//        if (result != null ) {
+//            for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
+//                int id = fr.getFiducialId();
+//
+//                if (id == 21) {
+//                    detectedOrder = BallOrder.GREEN_PURPLE_PURPLE;
+//                }
+//                if (id == 22) {
+//                    detectedOrder = BallOrder.PURPLE_GREEN_PURPLE;
+//                }
+//                if (id == 23) {
+//                    detectedOrder = BallOrder.PURPLE_PURPLE_GREEN;
+//                }
+//
+//            }
+//            currentOrder = detectedOrder;
+//            return detectedOrder;
+//        }
+//        return null;
+//    }
+
     public BallOrder detectBallOrder() {
-        limelightCamera.pipelineSwitch(5); // detection pipeline for ALL april tags
-
         LLResult result = getResult();
-        BallOrder detectedOrder = null; // default
 
-        if (result != null && result.isValid()) {
-            for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
-                int id = fr.getFiducialId();
-
-                if (id == 21) {
-                    detectedOrder = BallOrder.GREEN_PURPLE_PURPLE;
-                }
-                if (id == 22) {
-                    detectedOrder = BallOrder.PURPLE_GREEN_PURPLE;
-                }
-                if (id == 23) {
-                    detectedOrder = BallOrder.PURPLE_PURPLE_GREEN;
-                }
-
-            }
-            currentOrder = detectedOrder;
-            return detectedOrder;
+        if (result == null || !result.isValid()) {
+            return currentOrder;
         }
-        return null;
+
+        for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
+            switch (fr.getFiducialId()) {
+                case 21:
+                    return currentOrder = BallOrder.GREEN_PURPLE_PURPLE;
+                case 22:
+                    return currentOrder = BallOrder.PURPLE_GREEN_PURPLE;
+                case 23:
+                    return currentOrder = BallOrder.PURPLE_PURPLE_GREEN;
+            }
+        }
+
+        return currentOrder; // keep last known order
     }
 
     public BallOrder getCurrentBallOrder(){
