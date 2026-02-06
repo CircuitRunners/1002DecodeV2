@@ -62,7 +62,7 @@ public class v2Teleop extends OpMode {
     private boolean vibratedYet = false;
     private boolean initiateTransfer = false;
 
-    private boolean noAutoAlign  =false;
+    private boolean noAutoAlign = false;
 
     private final ElapsedTime timer = new ElapsedTime();
     private double turretMannualAdjust = 0;
@@ -230,7 +230,6 @@ public class v2Teleop extends OpMode {
             turretMannualAdjust +=5;
         }
         else if (gamepad1.dpad_left) {
-
             turretMannualAdjust -=5;
         }
 
@@ -252,9 +251,17 @@ public class v2Teleop extends OpMode {
     }
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
-        if (!noAutoAlign){
-           // updateTurretWithAprilTag();
+        boolean useAprilTagTurret = false;
+        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+            useAprilTagTurret = !useAprilTagTurret;
         }
+        if (useAprilTagTurret) {
+            noAutoAlign = true;
+            updateTurretWithAprilTag();
+        } else {
+            noAutoAlign = false;
+        }
+
         applyShooterTargets(pose, vx, vy, head);
 
         if (veloReached  && !vibratedYet) {
@@ -475,14 +482,15 @@ public class v2Teleop extends OpMode {
     }
 
     public void updateTurretWithAprilTag() {
-        if (follower.getPose().getY() > 78.0) {
+        if (follower.getPose().getY() > 72.0) {
             limelight.limelightCamera.pipelineSwitch(5);
             LLResult result = limelight.getResult();
-            double error = limelight.updateError();
             if (result != null && result.isValid()) {
+                double error = limelight.updateError();
                 double currentTurretAngle = shooter.getCurrentTurretPosition();
-                shooter.setTurretTargetPosition(currentTurretAngle - error);
-                shooter.resetTurretPos(shooter.calculateAutoAlignYaw(follower.getPose().getX(),follower.getPose().getY(),isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X,GOAL_Y,isRedAlliance));
+                double newTarget = currentTurretAngle + error;
+                if (newTarget < 0) newTarget += 360;
+                shooter.setTurretTargetPosition(newTarget);
                 gamepad1.rumble(200);
 
             }
