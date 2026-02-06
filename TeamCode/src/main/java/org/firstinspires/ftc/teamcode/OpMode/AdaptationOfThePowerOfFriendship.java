@@ -157,7 +157,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 2: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(intake1, true);
+                    follower.followPath(intake1, false);
                     setPathState();
                 }
 
