@@ -51,9 +51,10 @@ public class Sorted9BallClose extends OpMode {
     private boolean beamWasCleared = true;
 
     // Field Constants
-    private final double RED_GOAL_X = 128;
+    private final double RED_GOAL_X = 126;
     private final double BLUE_GOAL_X = 15;
     private final double GOAL_Y = 132;
+
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;

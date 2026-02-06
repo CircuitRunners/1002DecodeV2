@@ -69,7 +69,7 @@ public class v2Teleop extends OpMode {
 
     boolean teleopShootApporval = false;
 
-    public static  double[] turretCoefficientsTeleop = {0.2, 0.006, 0.004, 0.0053};
+    public static  double[] turretCoefficientsTeleop = {0.12, 0.00, 0.003, 0.003};
 
     public static double turretDeadband = 0;
 

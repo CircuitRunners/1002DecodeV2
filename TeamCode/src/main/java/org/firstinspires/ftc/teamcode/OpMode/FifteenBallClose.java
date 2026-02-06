@@ -47,9 +47,10 @@ public class FifteenBallClose extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 128;
+    private final double RED_GOAL_X = 126;
     private final double BLUE_GOAL_X = 15;
     private final double GOAL_Y = 132;
+
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
