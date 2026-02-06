@@ -337,6 +337,7 @@ public class Sorted9BallClose extends OpMode {
     public void stop() {
         shooter.stopFlywheel();
         intake.resetState();
+        limelight.limelightCamera.pause();
         Poses.savePose(follower.getPose());
     }
 
