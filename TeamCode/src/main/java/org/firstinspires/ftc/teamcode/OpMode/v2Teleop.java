@@ -52,7 +52,7 @@ public class v2Teleop extends OpMode {
     private boolean lastBeamState = false;
 
     private final double RED_GOAL_X = 128;
-    private final double BLUE_GOAL_X = 15;
+    private final double BLUE_GOAL_X = 11;
     private final double GOAL_Y = 132;
     private static final double METERS_TO_INCH = 39.37;
 
@@ -63,6 +63,8 @@ public class v2Teleop extends OpMode {
     private boolean initiateTransfer = false;
 
     private boolean noAutoAlign = false;
+    boolean useAprilTagAim = true;
+
 
     private final ElapsedTime timer = new ElapsedTime();
     private double turretMannualAdjust = 0;
@@ -184,6 +186,7 @@ public class v2Teleop extends OpMode {
         telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
         telemetry.addData("Flywheel Reached",veloReached );
         telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
+        telemetry.addData("Turret Mode", useAprilTagAim ? "LIMELIGHT" : "FIELD");
 
         telemetry.addLine("--- DIAGNOSTICS ---");
         telemetry.addData("Turret Ang", "%.2f", currentTurretAngle);
@@ -252,8 +255,16 @@ public class v2Teleop extends OpMode {
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
         LLResult result = limelight.getResult();
+        boolean toggleBumper = player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER);
+        boolean lastRightBumper = false;
+        if (toggleBumper && !lastRightBumper) {
+            useAprilTagAim = !useAprilTagAim;  // flip mod0o -
+        }
+        lastRightBumper = toggleBumper;
+
         if (follower.getPose().getY() > 72.0 && (isRedAlliance ? follower.getPose().getX() > 72.0 : follower.getPose().getX() < 72.0)
-                && result.isValid() && result != null) {
+                && result.isValid() && result != null
+                && useAprilTagAim) {
             updateTurretWithAprilTag();
             noAutoAlign = true;
         } else {
@@ -487,7 +498,6 @@ public class v2Teleop extends OpMode {
             double newTarget = currentTurretAngle + error;
             if (newTarget < 0) newTarget += 360;
             shooter.setTurretTargetPosition(newTarget);
-            gamepad1.rumble(200);
 
         }
 

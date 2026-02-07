@@ -52,7 +52,7 @@ public class FarZoneAuto extends OpMode {
 
     // Field Constants
     private final double RED_GOAL_X = 126;
-    private final double BLUE_GOAL_X = 15;
+    private final double BLUE_GOAL_X = 11;
     private final double GOAL_Y = 132;
 
 
@@ -276,7 +276,7 @@ public class FarZoneAuto extends OpMode {
 
 
         if (Poses.getAlliance() != lastKnownAlliance) {
-            follower.setStartingPose(Poses.get(Poses.startPoseGoalSide));
+            follower.setStartingPose(Poses.get(Poses.startPoseFarSide));
             buildPaths();
 
             lastKnownAlliance = Poses.getAlliance();

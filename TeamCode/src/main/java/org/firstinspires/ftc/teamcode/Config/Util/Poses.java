@@ -107,7 +107,7 @@ public class Poses {
 
     public static final AlliancePose shootPositionGoalSide2 = new AlliancePose(
             new Pose(100.5, 107, Math.toRadians(37)),
-            new Pose(43.5, 107, Math.toRadians(145)) // 144 - 100.5 = 43.5
+            new Pose(43.5, 110, Math.toRadians(143)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide3 = new AlliancePose(
@@ -126,14 +126,14 @@ public class Poses {
     // PICKUP_LINE_1
     public static final AlliancePose pickupLine1 = new AlliancePose(
             new Pose(129, 84, Math.toRadians(0)),
-            new Pose(15, 84, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
+            new Pose(18.5, 84, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
 
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
             new Pose(138, 58, Math.toRadians(0)),
-            new Pose(6, 58, Math.toRadians(180))
+            new Pose(7.5, 59, Math.toRadians(180))
     );
 
     // LINE_2_CONTROL_POINT
@@ -147,7 +147,7 @@ public class Poses {
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
             new Pose(140, 35, Math.toRadians(0)),
-            new Pose(4, 35, Math.toRadians(180))
+            new Pose(5.5, 36, Math.toRadians(180))
     );
 
     // LINE_3_CONTROL_POINT
@@ -196,7 +196,7 @@ public class Poses {
 
     public static final AlliancePose openGate = new AlliancePose(
             new Pose(143, 85, Math.toRadians(180)),
-            new Pose(1, 85, Math.toRadians(0)) // 144 - 143 = 1 ✅
+            new Pose(21, 72.5, Math.toRadians(0)) // 144 - 143 = 1 ✅
     );
 
     public static final AlliancePose openGateAutoIntakeJames = new AlliancePose(
@@ -246,20 +246,20 @@ public class Poses {
 
     // FAR SIDE
     public static final AlliancePose startPoseFarSide = new AlliancePose(
-            new Pose(84, 8, Math.toRadians(180)),
-            new Pose(60, 8, Math.toRadians(0))
+            new Pose(84, 3.5, Math.toRadians(90)),
+            new Pose(60, 3.5, Math.toRadians(90))
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
-            new Pose(84, 19, Math.toRadians(130)),
-            new Pose(60, 19, Math.toRadians(50))
+            new Pose(84, 18, Math.toRadians(63)),
+            new Pose(60, 18, Math.toRadians(113.5))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
-            new Pose(137, 8, Math.toRadians(180)),
-            new Pose(7, 8, Math.toRadians(0))
+            new Pose(137, 16.5, Math.toRadians(0)),
+            new Pose(7, 16.5 , Math.toRadians(180))
     );
     public static final AlliancePose backUpPoint = new AlliancePose(
-            new Pose(129, 8, Math.toRadians(180)),
-            new Pose(15, 8, Math.toRadians(0))
+            new Pose(129, 16.5, Math.toRadians(0)),
+            new Pose(15, 16.5, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
             new Pose(96.3, 7.2),

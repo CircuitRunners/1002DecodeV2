@@ -77,8 +77,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         // Path 3: Intake 1 to Gate
         openGate = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.openGate)))
-
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(90), 0.45)
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(90), 0.85)
                 .build();
 
         // Path 4: Gate back to Shoot
@@ -364,8 +363,8 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, 0,
-                    mannualHoodOffset,
+                    false, -52,
+                    mannualHoodOffset ,
                     false, 0
             );
         }
