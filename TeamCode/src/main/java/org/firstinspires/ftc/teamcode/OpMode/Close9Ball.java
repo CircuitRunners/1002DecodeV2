@@ -22,8 +22,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "GS 12 Ball ", group = "A", preselectTeleOp = "v2Teleop")
-public class AdaptationOfThePowerOfFriendship extends OpMode {
+@Autonomous(name = "GS 9 Ball ", group = "A", preselectTeleOp = "v2Teleop")
+public class Close9Ball extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -57,7 +57,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     private boolean intakeStoppedForShooting = false;
     boolean flywheelLocked = false;
 
-    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,park;
+    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, park;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
@@ -100,16 +100,6 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 .build();
 
         // Path 7: Shoot to Intake 3
-        intake3 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
-                .build();
-
-        // Path 8: Intake 3 back to final Shoot
-        travelBackToShoot3 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3),Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
-                .build();
 
         park  = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
@@ -167,7 +157,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 3: // Gate logic
                 intake.doIntake();
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 2)) {
-                    follower.followPath(openGate, false);
+                    follower.followPath(openGate, true);
                     setPathState();
                 }
                 break;
@@ -235,42 +225,6 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                     goForLaunch = true;
                 }
 
-                break;
-            case 9: // Drive to Intake 3
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(intake3, false);
-                    setPathState();
-                }
-                break;
-
-            case 10: // Return to Shoot 3
-
-                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-
-                    follower.followPath(travelBackToShoot3, true);
-                    setPathState();
-                }
-                break;
-
-
-            case 11: // Final 3 Balls
-
-                // Stop intake once we're ~45% through the path
-                stopIntakeOnceAtT(0.45);
-
-                // Shooter logic owns intake AFTER the stop
-                if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 25, 0);
-                }
-
-                // Allow feeding once fully settled
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
-                    goForLaunch = true;
-                }
                 break;
 
 

@@ -125,8 +125,8 @@ public class Poses {
 
     // PICKUP_LINE_1
     public static final AlliancePose pickupLine1 = new AlliancePose(
-            new Pose(131, 84, Math.toRadians(0)),
-            new Pose(13, 84, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
+            new Pose(129, 84, Math.toRadians(0)),
+            new Pose(15, 84, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
 
 
@@ -146,8 +146,8 @@ public class Poses {
 
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
-            new Pose(140, 33, Math.toRadians(0)),
-            new Pose(4, 33, Math.toRadians(180))
+            new Pose(140, 35, Math.toRadians(0)),
+            new Pose(4, 35, Math.toRadians(180))
     );
 
     // LINE_3_CONTROL_POINT
