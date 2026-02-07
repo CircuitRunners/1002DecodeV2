@@ -250,8 +250,8 @@ public class Poses {
             new Pose(60, 8, Math.toRadians(0))
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
-            new Pose(84, 24, Math.toRadians(130)),
-            new Pose(60, 24, Math.toRadians(50))
+            new Pose(84, 19, Math.toRadians(130)),
+            new Pose(60, 19, Math.toRadians(50))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
             new Pose(137, 8, Math.toRadians(180)),
