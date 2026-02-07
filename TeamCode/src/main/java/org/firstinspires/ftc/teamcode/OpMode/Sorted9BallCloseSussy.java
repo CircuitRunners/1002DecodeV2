@@ -10,6 +10,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
@@ -20,10 +21,10 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-
+@Disabled
 @Configurable
-@Autonomous(name = "GS 9 Ball SORT ", group = "A", preselectTeleOp = "v2Teleop")
-public class Sorted9BallClose extends OpMode {
+@Autonomous(name = "SUSSY GS 9 Ball SORT ", group = "A", preselectTeleOp = "v2Teleop")
+public class Sorted9BallCloseSussy extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -130,12 +131,12 @@ public class Sorted9BallClose extends OpMode {
                 break;
 
             case 2: // Shoot 3 Preloads
-                doSort();
-                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 9.5) {
+                doSort(0);
+                if (intake.getCurrentSussyState() == Intake.SussyState.DONE || pathTimer.getElapsedTimeSeconds() > 9.5) {
                     handleAutoShooting(currentPose, targetX, 20.0, 0);
                 }
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
-
+                    beamWasCleared = !shooter.isBeamBroken();
                     goForLaunch = true;
                 }
                 break;
@@ -165,10 +166,10 @@ public class Sorted9BallClose extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    doSort();
+                    doSort(1);
                 }
 
-                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                if (intake.getCurrentSussyState() == Intake.SussyState.DONE || pathTimer.getElapsedTimeSeconds() > 7.5) {
                     handleAutoShooting(currentPose, targetX, 11.0, 0);
                 }
 
@@ -178,7 +179,7 @@ public class Sorted9BallClose extends OpMode {
                         && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
-
+                    beamWasCleared = !shooter.isBeamBroken();
                     goForLaunch = true;
                 }
 
@@ -206,10 +207,10 @@ public class Sorted9BallClose extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    doSort();
+                    doSort(2);
                 }
 
-                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                if (intake.getCurrentSussyState() == Intake.SussyState.DONE || pathTimer.getElapsedTimeSeconds() > 7.5) {
                     handleAutoShooting(currentPose, targetX, 11.0, 0);
                 }
 
@@ -219,7 +220,7 @@ public class Sorted9BallClose extends OpMode {
                         && !goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
-
+                    beamWasCleared = !shooter.isBeamBroken();
                     goForLaunch = true;
                 }
 
@@ -249,7 +250,7 @@ public class Sorted9BallClose extends OpMode {
         }
 
         // Only allow feeding when ready (added intake state check from 9-ball)
-        if (flywheelLocked && goForLaunch && ((intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE) )) {
+        if (flywheelLocked && goForLaunch && ((intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE) || pathTimer.getElapsedTimeSeconds() > 7.5)) {
             doTransfer = true;
         }
 
@@ -382,10 +383,16 @@ public class Sorted9BallClose extends OpMode {
         telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.addData("Velo Reached", veloReached);
         telemetry.addData("Intake State", intake.getCurrentIntakeState());
-        intake.doSortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder, shooter.isBeamBroken());
+
         telemetry.addData("loop time",loopTimer.getElapsedTime());
+        intake.doSussySortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
+                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
+                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder);
+
+        intake.updateSussySorter(
+                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
+                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
+                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
 
         telemetry.update();
     }
@@ -417,9 +424,11 @@ public class Sorted9BallClose extends OpMode {
         }
     }
 
-    private void doSort(){
+    private void doSort(int cycleNum){
         if (!sortStarted){
-            intake.prepareAndStartSort();
+            intake.startSussySorter(desiredOrder,cycleNum,sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
+                    sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
+                    sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
             sortStarted = true;
         }
     }

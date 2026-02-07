@@ -273,14 +273,37 @@ public class FarZoneAuto extends OpMode {
     @Override
     public void init_loop() {
         Poses.updateAlliance(gamepad1, telemetry);
+
+
         if (Poses.getAlliance() != lastKnownAlliance) {
-            follower.setStartingPose(Poses.get(Poses.startPoseFarSide));
+            follower.setStartingPose(Poses.get(Poses.startPoseGoalSide));
             buildPaths();
+
             lastKnownAlliance = Poses.getAlliance();
+            telemetry.addData("STATUS", "Paths Rebuilt for " + lastKnownAlliance);
+            telemetry.addLine("");
         }
+
+        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+
+                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+
+
+
+
+        telemetry.addLine("--- Alliance Selector ---");
+        telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
+        telemetry.addLine("");
+        telemetry.addData("Alliance Set", Poses.getAlliance());
+        telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
+
+        telemetry.addData("X Pos", follower.getPose().getX());
+        telemetry.addData("Y Pos", follower.getPose().getY());
+        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+        telemetry.update();
         sensors.update();
         lastBeamState = shooter.isBeamBroken();
-        telemetry.update();
+
     }
 
     @Override

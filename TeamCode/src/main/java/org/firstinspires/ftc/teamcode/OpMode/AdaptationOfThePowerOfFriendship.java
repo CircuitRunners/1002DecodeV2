@@ -135,6 +135,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             flywheelLocked = false;
         }
 
+
         switch (pathState) {
             case 0: // Travel to Initial Shoot
                 //intake.retainBalls();
@@ -223,7 +224,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 5.3, 0);
+                    handleAutoShooting(currentPose, targetX, 5.9, 0);
                 }
 
                 // Allow feeding once fully settled
