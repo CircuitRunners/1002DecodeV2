@@ -555,10 +555,15 @@ public class Intake {
                     gateClose();
                     intake.setPower(1); //0.9
                 }
-                else {
+
+                else if (s1 != null && (internalTotalBalls < 2 || s2 != null)) {
                     intakeMotorHalt();
                     newState(IntakeState.VERIFYING_ORDER);
                 }
+//                else {
+//                    intakeMotorHalt();
+//                    newState(IntakeState.VERIFYING_ORDER);
+//                }
                 break;
 
             case POSITION_NUDGE:
@@ -586,15 +591,15 @@ public class Intake {
                 }
 
                 stabilityCounter++;
-                if (stabilityCounter >= 3) {
+                if (stabilityCounter >= 3 && stateTimer.milliseconds() > 3000) {
 
                     boolean possible = isPatternPossible(targetOrder);
                     String[] target = getTargetArray(targetOrder);
 
                     boolean s1Match = isColorMatch(s1, target[0]);
-                    boolean s2Match = (internalTotalBalls < 2) || isColorMatch(s2, target[1]);
+                    boolean s2Match = (s2 != null) && isColorMatch(s2, target[1]);
 
-                    if (!possible || (s1Match && s2Match)) {
+                    if (s1Match && s2Match) {
                         newState(IntakeState.READY_TO_FIRE);
                     }
                     else if (cycleCount < 4) {
