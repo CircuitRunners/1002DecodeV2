@@ -251,13 +251,9 @@ public class v2Teleop extends OpMode {
     }
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
-        boolean useAprilTagTurret = false;
-        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-            useAprilTagTurret = !useAprilTagTurret;
-        }
-        if (useAprilTagTurret) {
-            noAutoAlign = true;
+        if (follower.getPose().getY() > 72.0 && (isRedAlliance ? follower.getPose().getX() > 72.0 : follower.getPose().getX() < 72.0)) {
             updateTurretWithAprilTag();
+            noAutoAlign = true;
         } else {
             noAutoAlign = false;
         }
@@ -482,18 +478,16 @@ public class v2Teleop extends OpMode {
     }
 
     public void updateTurretWithAprilTag() {
-        if (follower.getPose().getY() > 72.0) {
-            limelight.limelightCamera.pipelineSwitch(5);
-            LLResult result = limelight.getResult();
-            if (result != null && result.isValid()) {
-                double error = limelight.updateError();
-                double currentTurretAngle = shooter.getCurrentTurretPosition();
-                double newTarget = currentTurretAngle + error;
-                if (newTarget < 0) newTarget += 360;
-                shooter.setTurretTargetPosition(newTarget);
-                gamepad1.rumble(200);
+        limelight.limelightCamera.pipelineSwitch(5);
+        LLResult result = limelight.getResult();
+        if (result != null && result.isValid()) {
+            double error = limelight.updateError();
+            double currentTurretAngle = shooter.getCurrentTurretPosition();
+            double newTarget = currentTurretAngle + error;
+            if (newTarget < 0) newTarget += 360;
+            shooter.setTurretTargetPosition(newTarget);
+            gamepad1.rumble(200);
 
-            }
         }
 
     }

@@ -505,8 +505,8 @@ public class Intake {
             case PRE_NUDGE:
                 gateClose();
                 transferOn();
-                setDirectionCycle();
-                intake.setPower(1); //0.9
+                setDirectionTransfer();
+                intake.setPower(-1); //0.9
 
                 if (stateTimer.milliseconds() > 700) {
                     intakeMotorHalt();
