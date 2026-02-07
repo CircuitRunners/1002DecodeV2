@@ -251,13 +251,14 @@ public class v2Teleop extends OpMode {
     }
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
-        if (follower.getPose().getY() > 72.0 && (isRedAlliance ? follower.getPose().getX() > 72.0 : follower.getPose().getX() < 72.0)) {
+        LLResult result = limelight.getResult();
+        if (follower.getPose().getY() > 72.0 && (isRedAlliance ? follower.getPose().getX() > 72.0 : follower.getPose().getX() < 72.0)
+                && result.isValid() && result != null) {
             updateTurretWithAprilTag();
             noAutoAlign = true;
         } else {
             noAutoAlign = false;
         }
-
         applyShooterTargets(pose, vx, vy, head);
 
         if (veloReached  && !vibratedYet) {

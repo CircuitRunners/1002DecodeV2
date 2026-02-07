@@ -167,7 +167,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 3: // Gate logic
                 intake.doIntake();
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 2)) {
-                    follower.followPath(openGate, true);
+                    follower.followPath(openGate, false);
                     setPathState();
                 }
                 break;
