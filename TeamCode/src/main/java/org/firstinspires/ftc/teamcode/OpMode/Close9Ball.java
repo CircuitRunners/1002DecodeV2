@@ -318,7 +318,7 @@ public class Close9Ball extends OpMode {
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, 0,
+                    false, -13,
                     mannualHoodOffset,
                     false, 0
             );

@@ -69,8 +69,8 @@ public class FarZoneAuto extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
                 .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntake), Poses.get(Poses.backUpPoint)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.backUpPoint).getHeading(), 0.25)
-                .addPath(new BezierLine(Poses.get(Poses.backUpPoint), Poses.get(Poses.humanPlayerIntake)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.backUpPoint).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
+                .addPath(new BezierLine(Poses.get(Poses.backUpPoint), Poses.get(Poses.humanPlayerIntakeRam)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.backUpPoint).getHeading(), Poses.get(Poses.humanPlayerIntakeRam).getHeading(), 0.25)
                 .build();
 
         travelBackToShoot1 = follower.pathBuilder()
@@ -198,7 +198,7 @@ public class FarZoneAuto extends OpMode {
         double headingDeg = Math.toDegrees(pose.getHeading());
 
         // Command shooter targets every loop in state
-        shooter.setTargetsByDistance(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, mannualHoodAdjust, false, 0);
+        shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, -29, mannualHoodAdjust, false, 0);
 
         if (veloReached) {
             flywheelLocked = true;

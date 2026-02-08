@@ -195,7 +195,7 @@ public class Poses {
     );
 
     public static final AlliancePose openGate = new AlliancePose(
-            new Pose(143, 85, Math.toRadians(180)),
+            new Pose(131, 84.5, Math.toRadians(180)),
             new Pose(21, 72.5, Math.toRadians(0)) // 144 - 143 = 1 ✅
     );
 
@@ -256,6 +256,10 @@ public class Poses {
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
             new Pose(137, 16.5, Math.toRadians(0)),
             new Pose(7, 16.5 , Math.toRadians(180))
+    );
+    public static final AlliancePose humanPlayerIntakeRam = new AlliancePose(
+            new Pose(137, 13.5, Math.toRadians(0)),
+            new Pose(7, 13.5 , Math.toRadians(180))
     );
     public static final AlliancePose backUpPoint = new AlliancePose(
             new Pose(129, 16.5, Math.toRadians(0)),
