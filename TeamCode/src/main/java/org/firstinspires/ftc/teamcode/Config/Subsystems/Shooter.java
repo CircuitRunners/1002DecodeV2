@@ -295,16 +295,16 @@ public class Shooter {
 
         // Standard atan2(y, x) for East = 0, North = 90
         double targetFieldYawRad = Math.atan2(-deltaY, deltaX);
-        double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
+        //double targetFieldYawRadBlue = Math.atan2(deltaX, -deltaY);
 
         double targetFieldYawDeg = Math.toDegrees(targetFieldYawRad);
         if (targetFieldYawDeg < 0) {
             targetFieldYawDeg += 360;
         }
-        double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
+       // double targetFieldYawDegBlue = Math.toDegrees(targetFieldYawRadBlue);
 
        //NEW
-        targetFieldYawDegBlue = targetFieldYawDeg +180;
+       double targetFieldYawDegBlue = targetFieldYawDeg +180;
         if (targetFieldYawDegBlue < 0) {
             targetFieldYawDegBlue += 360;
         }
