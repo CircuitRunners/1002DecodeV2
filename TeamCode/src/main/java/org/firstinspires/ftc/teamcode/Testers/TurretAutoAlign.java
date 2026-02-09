@@ -4,6 +4,7 @@ import android.hardware.Sensor;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 
 import java.util.Locale;
 
+@Disabled
 @TeleOp(name = "TurretAutoAlignBlue", group = "TEST")
 public class TurretAutoAlign extends OpMode {
     private Shooter turret;
