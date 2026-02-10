@@ -45,6 +45,13 @@ public class gateOpenerAuto extends OpMode {
     private final double GOAL_Y = 127.5;
 
     private boolean doTransfer = false;
+    private boolean intakeStoppedForShooting = false;
+    private boolean goForLaunch = false;
+    boolean veloReached = false;
+    boolean flywheelLocked = false;
+
+
+
 
     private PathChain travelToShoot, openGate, intakeGate,intake1, travelBackToShoot1, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, park;
 
@@ -78,7 +85,7 @@ public class gateOpenerAuto extends OpMode {
 
         // Path 6: Intake 2 back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle),Poses.get(Poses.shootPositionGoalSide2)))
+                .addPath(new BezierCurve(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
 
@@ -118,8 +125,11 @@ public class gateOpenerAuto extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                handleAutoShooting(currentPose, targetX, 4.5,0);
+                if (!goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
                 break;
 
@@ -176,8 +186,19 @@ public class gateOpenerAuto extends OpMode {
 
 
             case 8: // Shoot 3 Balls (Cycle 2)
-                if (!follower.isBusy()) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 25, 0);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
                 break;
 
@@ -197,8 +218,19 @@ public class gateOpenerAuto extends OpMode {
                 break;
 
             case 11: // Return to Shoot 1
-                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 25, 0);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
                 break;
 
@@ -218,8 +250,19 @@ public class gateOpenerAuto extends OpMode {
                 break;
 
             case 14: // Return to Shoot 1
-                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 25, 0);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
                 }
                 break;
 
@@ -235,42 +278,55 @@ public class gateOpenerAuto extends OpMode {
      * Logic for calculating ballistics, locking turret,
      * and counting exactly 3 shots based on beam break transitions.
      */
-    private void handleAutoShooting(Pose pose, double targetX, double timeout, double mannualHoodOffset) {
-        // Updated shooting command as requested
+    private void handleAutoShooting(
+            Pose pose,
+            double targetX,
+            double timeout,
+            double mannualHoodOffset
+    ) {
         double headingDeg = Math.toDegrees(pose.getHeading());
 
+        // Always command shooter targets
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,true,0);
+            shooter.setTargetsByDistanceAdjustable(
+                    pose.getX(), pose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg,
+                    false, 0,
+                    mannualHoodOffset,
+                    true, 0
+            );
+        } else {
+            shooter.setTargetsByDistanceAdjustable(
+                    pose.getX(), pose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg,
+                    false, -52,
+                    mannualHoodOffset ,
+                    false, 0
+            );
         }
-        else {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false,0, mannualHoodOffset,false,0);
+
+        //  Latch flywheel once it EVER reaches speed
+        if (veloReached) {
+            flywheelLocked = true;
         }
-        //shooter.flywheelVeloReached = false;
 
-
-        // Once RPM and Hood Angle are locked, engage the transfer
-        if (shooter.flywheelVeloReached  && pathTimer.getElapsedTimeSeconds() >=3) {
+        //  Only allow feeding when fully ready
+        if (flywheelLocked && goForLaunch) {
             doTransfer = true;
-
-//            boolean currentBeamState = shooter.isBeamBroken();
-//
-//            // Increment count on "Falling Edge" (Ball has fully cleared the shooter)
-//            if (lastBeamState && !currentBeamState) {
-//                ballsShotInState++;
-//            }
-//            lastBeamState = currentBeamState;
         }
 
-        if (doTransfer){
-            intake.doTransfer();
+        //  Feeding + shot counting
+        if (doTransfer) {
+            trackShotCount(shooter.isBeamBroken());
+            intake.doTestShooter();
         }
 
-
-        // Advance to next state if 3 balls fired OR the safety timer expires
-        if (pathTimer.getElapsedTimeSeconds() > timeout) {
-            doTransfer = false;
+        // ⏱ FAILSAFE EXIT (prevents sitting forever)
+        if (ballsShotInState >= 3 || pathTimer.getElapsedTimeSeconds() > timeout) {
+            resetShootingState();
             shooter.stopFlywheel();
-            ballsShotInState = 0;
             intake.doIntakeHalt();
             setPathState();
         }
@@ -283,6 +339,32 @@ public class gateOpenerAuto extends OpMode {
 
     public void setPathState() {
         pathState += 1;
+        pathTimer.resetTimer();
+    }
+    private void stopIntakeOnceAtT(double t) {
+        if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
+            intake.doIntakeHalt();          // ONE-TIME call
+            intakeStoppedForShooting = true;
+        }
+    }
+    private boolean beamWasCleared = true; // Track full cycle
+
+    private void trackShotCount(boolean currentBeamState) {
+        if (!currentBeamState) { // beam clear
+            beamWasCleared = true;
+        }
+
+        if (currentBeamState && beamWasCleared) { // beam broken after clearing
+            ballsShotInState++;
+            beamWasCleared = false; // reset until beam clears again
+        }
+    }
+    private void resetShootingState() {
+        ballsShotInState = 0;
+        doTransfer = false;
+        goForLaunch = false;
+        beamWasCleared = true;
+        lastBeamState = shooter.isBeamBroken();
         pathTimer.resetTimer();
     }
 

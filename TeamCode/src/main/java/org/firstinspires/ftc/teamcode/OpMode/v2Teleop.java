@@ -72,6 +72,8 @@ public class v2Teleop extends OpMode {
     boolean teleopShootApporval = false;
 
     public static  double[] turretCoefficientsTeleop = {0.12, 0.00, 0.003, 0.003};
+    public static double limelightTurretScale = 0.67;
+    public static double limelightTurretTolerance = 0.5; //degrees
 
     public static double turretDeadband = 0;
 
@@ -262,7 +264,7 @@ public class v2Teleop extends OpMode {
         }
         lastRightBumper = toggleBumper;
 
-        if (follower.getPose().getY() > 72.0 && (isRedAlliance ? follower.getPose().getX() > 72.0 : follower.getPose().getX() < 72.0)
+        if (follower.getPose().getY() > 72.0
                 && result.isValid() && result != null
                 && useAprilTagAim) {
             updateTurretWithAprilTag();
@@ -494,9 +496,10 @@ public class v2Teleop extends OpMode {
         LLResult result = limelight.getResult();
         if (result != null && result.isValid()) {
             double error = limelight.updateError();
+            if (Math.abs(error) < limelightTurretTolerance) return;
             double currentTurretAngle = shooter.getCurrentTurretPosition();
-            double newTarget = currentTurretAngle + error;
-            if (newTarget < 0) newTarget += 360;
+            double newTarget = currentTurretAngle + error * limelightTurretScale;
+            newTarget = (newTarget % 360 + 360) % 360;
             shooter.setTurretTargetPosition(newTarget);
 
         }
