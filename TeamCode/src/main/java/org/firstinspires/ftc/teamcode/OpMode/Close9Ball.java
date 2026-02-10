@@ -400,10 +400,10 @@ public class Close9Ball extends OpMode {
             telemetry.addLine("");
         }
 
-        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
-
-                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
-
+//        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+//
+//                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+//
 
 
 

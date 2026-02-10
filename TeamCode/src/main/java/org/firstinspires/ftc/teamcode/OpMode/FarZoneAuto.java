@@ -284,9 +284,9 @@ public class FarZoneAuto extends OpMode {
             telemetry.addLine("");
         }
 
-        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+    //    telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
 
-                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+      //          (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
 
 
 

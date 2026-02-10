@@ -82,8 +82,8 @@ public class Shooter {
     public static boolean turretReached = false;
     public static boolean hoodReached = false;
 
-    private double turretMinRange = -720;
-    private double turretMaxRange = 720;
+    private double turretMinRange = -515.54; //old was -720, 720
+    private double turretMaxRange = 515.54;
 
     //public static boolean isShotImpossible = false;
 

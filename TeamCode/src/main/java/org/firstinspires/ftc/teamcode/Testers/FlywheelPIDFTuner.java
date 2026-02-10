@@ -127,21 +127,21 @@ public class FlywheelPIDFTuner extends OpMode {
 
 // Continuously update status during the INIT phase to see hub readiness
 
-        if (sensors.isHubReady()) {
-
-            sensors.update();
-
-        }
+//        if (sensors.isHubReady()) {
+//
+//            sensors.update();
+//
+//        }
 
 
 
 // Using the new methods from your Sensors class
 
-        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
-
-                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
-
-        telemetry.addData("Instructions", "Press START to begin reading data.");
+//        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+//
+//                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+//
+//        telemetry.addData("Instructions", "Press START to begin reading data.");
 
         telemetry.update();
 
