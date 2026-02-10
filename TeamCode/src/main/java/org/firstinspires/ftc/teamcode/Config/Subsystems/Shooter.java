@@ -20,7 +20,7 @@ public class Shooter {
 
 
 
-    private static final double transferTimeSec = 0.0; //TUNE
+    private static final double transferTimeOffsetSec = 0.0; //TUNE
 
 //    public static double slotOneBLueAtan = 0;
 //    public static double slotTwoBLueAtan = 0;
@@ -38,8 +38,8 @@ public class Shooter {
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
     private static double targetTurretPosition = 0;
-    private double ticksPerRevolution = 145.1;
-    private double gearRatio = 149.0/15.0;// Degrees (0-360)
+//    private double ticksPerRevolution = 145.1;
+//    private double gearRatio = 149.0/15.0;// Degrees (0-360)
     private static double targetHoodAngle = 45;          // Degrees (0-90)
 
     private static double maxTurretPower = 0.8;
@@ -139,6 +139,37 @@ public class Shooter {
      * Contains only ballistics data (velocity, angle, time).
      * NOTE: Velocity is in Ticks/Sec.
      */
+
+    /**
+     * ShotTime lookup table
+     *
+     * distanceInches , shotTime
+     *
+     * MUST be sorted by distance (ascending)
+     *
+     * is also oassociated with velo cause velo is assocated in turn with distance
+     */
+    private static final double[][] SHOT_TIME_LUT = {
+            { 20.0,  1065},
+            { 30.0, 1125 },
+            { 40.0, 1175 },
+            { 50.0, 1175 },
+            { 60.0, 1219 },
+            { 70.0, 1260 },
+            { 80.0, 1297 },
+            { 90.0, 1355},
+            { 100.0, 1450 },
+            { 110.0, 1500 },
+            { 120.0, 1585 },
+            { 130.0, 1655 },
+            { 140.0, 1684 },
+            { 145.0, 1688 }
+    };
+
+    /**
+     * NOTE: Shot Time is in Ticks/Sec.
+     */
+
 
 
     public Shooter(HardwareMap hardwareMap, Telemetry telemetry, boolean isAuto) {
@@ -448,15 +479,15 @@ public class Shooter {
     /* ========================================================= */
 
     // --- Physical Constants (inches & Seconds) ---
-    private static final double TICKS_PER_REV_ENCODER = 4096.0;
-
-    private static final double GEAR_RATIO = 33.0 / 27.0;
+//    private static final double TICKS_PER_REV_ENCODER = 4096.0;
+//
+//    private static final double GEAR_RATIO = 33.0 / 27.0;
 
     // Variables outside the loop to persist "memory" between frames
-    private double persistentShotTime = 0.0;
-    private double finalAdjustedVeloTicks = 0;
-    private double finalAdjustedHoodDeg = 0;
-    private double finalAdjustedTurretFieldYaw = 0;
+//    private double persistentShotTime = 0.0;
+//    private double finalAdjustedVeloTicks = 0;
+//    private double finalAdjustedHoodDeg = 0;
+//    private double finalAdjustedTurretFieldYaw = 0;
 
 
     //pass in everything in inches and degrees (inch/sec for velo too)
@@ -510,29 +541,29 @@ public class Shooter {
 
 
 
-    private static double calculateTimeToGoalSeconds(
-            double exitVelocityInchesPerSec,
-            double hoodAngleDegrees, double currentDistance) {
-
-        // Convert angle to radians for trig
-        double hoodRad = Math.toRadians(hoodAngleDegrees);
-
-        double vX = exitVelocityInchesPerSec * Math.cos(hoodRad);
-        double vY = exitVelocityInchesPerSec * Math.sin(hoodRad);
-
-// Solve vertical motion for height constraint (as you already do)
-        double deltaHeightIn = EFFECTIVE_GOAL_HEIGHT_IN - LAUNCH_HEIGHT_IN;
-
-        double tHeight = (vY + Math.sqrt(vY*vY + 2*GRAVITY*deltaHeightIn)) / GRAVITY;
-
-// Solve horizontal motion for distance
-        double horizontalDistanceIn = currentDistance; // pass this in
-        double tHorizontal = horizontalDistanceIn / vX;
-
-// FINAL TOF = max of the two
-        return Math.max(tHeight, tHorizontal);
-    }
+//    private static double calculateTimeToGoalSeconds(
+//            double exitVelocityInchesPerSec,
+//            double hoodAngleDegrees, double currentDistance) {
 //
+//        // Convert angle to radians for trig
+//        double hoodRad = Math.toRadians(hoodAngleDegrees);
+//
+//        double vX = exitVelocityInchesPerSec * Math.cos(hoodRad);
+//        double vY = exitVelocityInchesPerSec * Math.sin(hoodRad);
+//
+//// Solve vertical motion for height constraint (as you already do)
+//        double deltaHeightIn = EFFECTIVE_GOAL_HEIGHT_IN - LAUNCH_HEIGHT_IN;
+//
+//        double tHeight = (vY + Math.sqrt(vY*vY + 2*GRAVITY*deltaHeightIn)) / GRAVITY;
+//
+//// Solve horizontal motion for distance
+//        double horizontalDistanceIn = currentDistance; // pass this in
+//        double tHorizontal = horizontalDistanceIn / vX;
+//
+//// FINAL TOF = max of the two
+//        return Math.max(tHeight, tHorizontal);
+//    }
+////
 
 
 
@@ -657,6 +688,44 @@ public class Shooter {
         // Should never hit
         return VELO_LUT[0][1];
     }
+
+
+    /**
+     * Returns interpolated shot time (inch/sec)
+     * for a given distance in inches.
+     */
+    public static double getShottimeFromDistanceLUT(double distanceInches) {
+
+        // --- Clamp below table ---
+        if (distanceInches <= SHOT_TIME_LUT[0][0]) {
+            return SHOT_TIME_LUT[0][1];
+        }
+
+        // --- Clamp above table ---
+        if (distanceInches >= SHOT_TIME_LUT[SHOT_TIME_LUT.length - 1][0]) {
+            return SHOT_TIME_LUT[SHOT_TIME_LUT.length - 1][1];
+        }
+
+        // --- Find the two surrounding points ---
+        for (int i = 0; i < SHOT_TIME_LUT.length - 1; i++) {
+            double d0 = SHOT_TIME_LUT[i][0];
+            double v0 = SHOT_TIME_LUT[i][1];
+
+            double d1 = SHOT_TIME_LUT[i + 1][0];
+            double v1 = SHOT_TIME_LUT[i + 1][1];
+
+            if (distanceInches >= d0 && distanceInches <= d1) {
+                // interpolation factor (0 → 1)
+                double t = (distanceInches - d0) / (d1 - d0);
+
+                // linear interpolation
+                return v0 + t * (v1 - v0);
+            }
+        }
+
+        // Should never hit
+        return SHOT_TIME_LUT[0][1];
+    }
     /**
      * Maps a desired hood angle to the required servo position [0.0, 1.0] using linear scaling.
      */
@@ -772,25 +841,25 @@ public class Shooter {
     static final double G = 386.0; // in/s^2
     public static double k = 0.4;
 
-    public static double calculateShotTime(
-            double ticksPerSec,
-            double hoodAngleRad,
-            double GOAL_X, double GOAL_Y,double robotX,double robotY
-    ) {
-
-
-
-        double distanceInches = Math.hypot(GOAL_X - robotX, GOAL_Y - robotY);
-
-
-        double v0 =
-                k *
-                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
-                        / TICKS_PER_REV;
-
-        double vx = v0 * Math.cos(hoodAngleRad);
-        return distanceInches / vx;
-    }
+//    public static double calculateShotTime(
+//            double ticksPerSec,
+//            double hoodAngleRad,
+//            double GOAL_X, double GOAL_Y,double robotX,double robotY
+//    ) {
+//
+//
+//
+//        double distanceInches = Math.hypot(GOAL_X - robotX, GOAL_Y - robotY);
+//
+//
+//        double v0 =
+//                k *
+//                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
+//                        / TICKS_PER_REV;
+//
+//        double vx = v0 * Math.cos(hoodAngleRad);
+//        return distanceInches / vx;
+//    }
     public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign, double hoodMannualAdjustment, boolean isRed, double turretAdjustment) {
         double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
 
@@ -867,6 +936,32 @@ public class Shooter {
                 turretMinRange, turretMaxRange,              // Input Range
                 -180, 180
         );// Outp// ut Range (CORRECTED)
+    }
+
+//pass in velo from follower
+   public double[] computeVelocityCompensatedPositionFirestorm(
+            double targetX,
+            double targetY,
+            double robotX,
+            double robotY,
+            double velX,
+            double velY
+    ) {
+        double correctedX = targetX;
+        double correctedY = targetY;
+
+        double distance = Math.hypot(targetX - robotX, targetY - robotY);
+        double timeOfFlight = getShottimeFromDistanceLUT(distance);
+
+        for (int i = 0; i < 20; i++) {
+            correctedX = targetX - velX * timeOfFlight;
+            correctedY = targetY - velY * timeOfFlight;
+
+            distance = Math.hypot(correctedX - robotX, correctedY - robotY);
+            timeOfFlight = getShottimeFromDistanceLUT(distance);
+        }
+
+        return new double[] { correctedX, correctedY };
     }
 
 
