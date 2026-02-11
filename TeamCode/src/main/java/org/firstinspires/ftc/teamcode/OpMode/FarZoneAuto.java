@@ -301,14 +301,14 @@ public class FarZoneAuto extends OpMode {
         telemetry.addData("Y Pos", follower.getPose().getY());
         telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
-        sensors.update();
+
         lastBeamState = shooter.isBeamBroken();
 
     }
 
     @Override
     public void start() {
-        sensors.start();
+        sensors.run();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -318,7 +318,7 @@ public class FarZoneAuto extends OpMode {
         loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
-        sensors.update();
+
         shooter.update(shooter.getCurrentTurretPosition());
 
         // Update sorting/intake (using default order as FarSide usually doesn't sort)

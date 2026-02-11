@@ -91,7 +91,7 @@ public class TurretPIDFTuner extends OpMode {
             hub.clearBulkCache();
         }
 
-        sensors.update();
+        //sensors.update();
 
         double currentAngle = shooter.getCurrentTurretPosition();
 

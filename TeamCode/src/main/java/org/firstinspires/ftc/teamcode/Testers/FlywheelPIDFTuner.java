@@ -36,7 +36,7 @@ public class FlywheelPIDFTuner extends OpMode {
     public static double targetVelocity = 1633; // desired speed (ticks/sec)
     public static double maxPower = 1.0;          // safety clamp
 
-    private Sensors sensors = new Sensors();
+   // private Sensors sensors = new Sensors();
 
     private boolean initializationFailed = false;
 
@@ -84,23 +84,23 @@ public class FlywheelPIDFTuner extends OpMode {
 
 
 
-        try {
-
-// The Sensors class handles finding and configuring the SRSHub itself
-
-            sensors.init(hardwareMap, HUB_NAME);
-
-            telemetry.addData("Status", "Initialization Successful!");
-
-        } catch (Exception e) {
-
-            telemetry.addData("Status", "FATAL ERROR during initialization!");
-
-            telemetry.addData("Error", e.getMessage());
-
-            initializationFailed = true;
-
-        }
+//        try {
+//
+//// The Sensors class handles finding and configuring the SRSHub itself
+//
+//            sensors.init(hardwareMap, HUB_NAME);
+//
+//            telemetry.addData("Status", "Initialization Successful!");
+//
+//        } catch (Exception e) {
+//
+//            telemetry.addData("Status", "FATAL ERROR during initialization!");
+//
+//            telemetry.addData("Error", e.getMessage());
+//
+//            initializationFailed = true;
+//
+//        }
 
         telemetry.update();
 
@@ -153,7 +153,7 @@ public class FlywheelPIDFTuner extends OpMode {
             hub.clearBulkCache();
         }
 
-        sensors.update();
+        //sensors.update();
 
         double rPM = Math.round((shooter1.getVelocity() + shooter2.getVelocity()) /2);
 

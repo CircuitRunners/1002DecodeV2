@@ -462,7 +462,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         telemetry.addData("Y Pos", follower.getPose().getY());
         telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
-        sensors.update();
+
         lastBeamState = shooter.isBeamBroken();
 
 
@@ -470,7 +470,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     @Override
     public void start() {
-        sensors.start();
+        sensors.run();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -481,7 +481,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
-        sensors.update();
+
         shooter.update(shooter.getCurrentTurretPosition());
         intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
                 sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),

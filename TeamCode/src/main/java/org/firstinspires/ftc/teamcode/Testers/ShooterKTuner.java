@@ -49,7 +49,7 @@ public class ShooterKTuner extends OpMode {
 
     private Follower follower;
 
-    private Sensors sensors;
+   // private Sensors sensors;
     private Shooter shooter;
     private Intake intake;
     private List<LynxModule> allHubs;
@@ -66,10 +66,10 @@ public class ShooterKTuner extends OpMode {
         }
 
         // 2. Initialize Subsystems
-        sensors = new Sensors();
-        sensors.init(hardwareMap, "SRSHub");
+//        sensors = new Sensors();
+//        sensors.init(hardwareMap, "SRSHub");
 
-        sensors.update();
+        //sensors.update();
 
         // Shooter constructor now handles PID initialization correctly
         shooter = new Shooter(hardwareMap, telemetry,false);
@@ -93,7 +93,7 @@ public class ShooterKTuner extends OpMode {
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();
         }
-        sensors.update();
+        //sensors.update();
 
         follower.update();
 
@@ -153,9 +153,7 @@ public class ShooterKTuner extends OpMode {
         // Write to hardware (Servos + Motors)
         shooter.update(currentTurret);
         intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+                null,null,null);
 
         // --- STEP 4: PHYSICS CALCULATIONS (K-FACTOR) ---
         double deltaY = GOAL_HEIGHT - LAUNCH_HEIGHT;

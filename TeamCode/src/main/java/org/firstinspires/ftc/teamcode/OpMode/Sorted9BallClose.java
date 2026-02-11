@@ -343,13 +343,13 @@ public class Sorted9BallClose extends OpMode {
         telemetry.addData("Y Pos", follower.getPose().getY());
         telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
-        sensors.update();
+
         lastBeamState = shooter.isBeamBroken();
     }
 
     @Override
     public void start() {
-        sensors.start();
+        sensors.run();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -360,7 +360,7 @@ public class Sorted9BallClose extends OpMode {
         loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
-        sensors.update();
+
         shooter.update(shooter.getCurrentTurretPosition());
 
         // Passing detected colors to intake for sorting

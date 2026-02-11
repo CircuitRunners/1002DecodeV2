@@ -44,7 +44,7 @@ public class KShooterTester extends OpMode {
         public static double desiredHoodAngle = 30.0;
         public static boolean enableShooter = false;
 
-        private Sensors sensors;
+       //private Sensors sensors;
         private Shooter shooter;
         private Intake intake;
         private List<LynxModule> allHubs;
@@ -62,8 +62,8 @@ public class KShooterTester extends OpMode {
                 hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
             }
 
-            sensors = new Sensors();
-            sensors.init(hardwareMap, "SRSHub");
+//            sensors = new Sensors();
+//            sensors.init(hardwareMap, "SRSHub");
 
             shooter = new Shooter(hardwareMap, telemetry,false);
             intake = new Intake(hardwareMap, telemetry);
@@ -79,7 +79,7 @@ public class KShooterTester extends OpMode {
         @Override
         public void loop() {
             for (LynxModule hub : allHubs) hub.clearBulkCache();
-            sensors.update();
+            //sensors.update();
             follower.update();
 
             // --- 1. SMART CONTROLS ---

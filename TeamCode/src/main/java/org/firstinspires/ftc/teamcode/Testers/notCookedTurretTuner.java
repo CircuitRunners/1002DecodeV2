@@ -43,7 +43,7 @@ public class notCookedTurretTuner extends OpMode {
     private double ticksPerRevolution = 145.1;
     private double gearRatio = 149.0/15.0;
     private PIDFController pidf;
-    private Sensors sensors = new Sensors();
+   // private Sensors sensors = new Sensors();
     private ElapsedTime loopTimer = new ElapsedTime();
 
     private Shooter shooter;
@@ -76,12 +76,12 @@ public class notCookedTurretTuner extends OpMode {
 
         shooter = new Shooter(hardwareMap,telemetry,false);
         // 4. Sensor Initialization
-        try {
-            sensors.init(hardwareMap, HUB_NAME);
-            telemetry.addData("Status", "SRS Hub Connected");
-        } catch (Exception e) {
-            telemetry.addData("Status", "SRS Hub Error: " + e.getMessage());
-        }
+//        try {
+//            sensors.init(hardwareMap, HUB_NAME);
+//            telemetry.addData("Status", "SRS Hub Connected");
+//        } catch (Exception e) {
+//            telemetry.addData("Status", "SRS Hub Error: " + e.getMessage());
+//        }
 
         // 5. PID Setup
         pidf = new PIDFController(kP, kI, kD, kF);
@@ -98,7 +98,7 @@ public class notCookedTurretTuner extends OpMode {
         }
 
         // Update sensor data
-        sensors.update();
+        //sensors.update();
 //        double currentTicks = turret.getCurrentPosition();
 //        double currentAngle = ((currentTicks / ticksPerRevolution) / gearRatio) * 360;
 

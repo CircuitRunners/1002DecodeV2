@@ -1,18 +1,11 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
-import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
-import org.firstinspires.ftc.teamcode.Config.Util.SRSHub;
 
 
 public class Sensors {
@@ -118,7 +111,7 @@ public class Sensors {
 //     */
 
 
-    public void start(){
+    public void run(){
         colorSensorThread = new Thread(() -> {
             while (!Thread.interrupted()) {
                 update();
@@ -133,7 +126,7 @@ public class Sensors {
         colorSensorThread.start();
 
     }
-    public void update() {
+    private void update() {
        sensor1Colors = colorSensor1.getNormalizedColors();
        sensor2Colors = colorSensor2.getNormalizedColors();
        sensor3Colors = colorSensor3.getNormalizedColors();

@@ -20,6 +20,8 @@ public class SigmaIntakeTest extends OpMode {
 
     private LimelightCamera.BallOrder ballOrder = LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE;
 
+
+
     @Override
     public void init() {
         player1 = new GamepadEx(gamepad1);
@@ -41,11 +43,16 @@ public class SigmaIntakeTest extends OpMode {
         telemetry.update();
     }
 //hi
+
+    @Override
+    public void start(){
+        sensors.run();
+    }
     @Override
     public void loop() {
         player1.readButtons();
 
-        sensors.update();
+
 
         DetectedColor ball1 = sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green());
         DetectedColor ball2 = sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green());
@@ -94,5 +101,9 @@ public class SigmaIntakeTest extends OpMode {
         intake.doSortingTelemetry(ball1,ball2,ball3,ballOrder, shooter.isBeamBroken());
 
         telemetry.update();
+    }
+    @Override
+    public void stop(){
+        sensors.stop();
     }
 }

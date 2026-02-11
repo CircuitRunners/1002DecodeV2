@@ -685,7 +685,7 @@ public class ShootingWhileMovingTester extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     private List<LynxModule> allHubs;
     private Shooter shooterLogic;
-    private Sensors sensors;
+    //private Sensors sensors;
     private Intake intake;
 
     private boolean enableShooter = false;
@@ -717,8 +717,8 @@ public class ShootingWhileMovingTester extends OpMode {
 
         player1 = new GamepadEx(gamepad1);
         shooterLogic = new Shooter(hardwareMap, telemetry,false);
-        sensors = new Sensors();
-        sensors.init(hardwareMap, "SRSHub");
+//        sensors = new Sensors();
+//        sensors.init(hardwareMap, "SRSHub");
 
         if (Poses.getAlliance() != null) isRedAlliance = (Poses.getAlliance() == Poses.Alliance.RED);
     }
@@ -730,16 +730,14 @@ public class ShootingWhileMovingTester extends OpMode {
         player1.readButtons();
         pinpoint.update();
         follower.update();
-        sensors.update();
+        //sensors.update();
         shooterLogic.update(shooterLogic.getCurrentTurretPosition());
 
         // --- Intake update ---
         intake.update(
                 shooterLogic.isBeamBroken(),
                 LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green())
+                null,null,null
         );
 
         // --- Relocalization button ---
