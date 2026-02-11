@@ -350,6 +350,7 @@ public class Sorted9BallCloseSussy extends OpMode {
 
     @Override
     public void start() {
+        sensors.start();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -399,6 +400,7 @@ public class Sorted9BallCloseSussy extends OpMode {
 
     @Override
     public void stop() {
+        sensors.stop();
         shooter.stopFlywheel();
         intake.resetState();
         limelight.limelightCamera.pause();

@@ -470,6 +470,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     @Override
     public void start() {
+        sensors.start();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -508,6 +509,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     @Override
     public void stop() {
+        sensors.stop();
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());

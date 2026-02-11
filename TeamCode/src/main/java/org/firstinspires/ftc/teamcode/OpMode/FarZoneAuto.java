@@ -308,6 +308,7 @@ public class FarZoneAuto extends OpMode {
 
     @Override
     public void start() {
+        sensors.start();
         pathTimer.resetTimer();
         setPathState(0);
     }

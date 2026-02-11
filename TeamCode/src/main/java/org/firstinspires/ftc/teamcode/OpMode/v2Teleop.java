@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
+import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -38,7 +39,7 @@ public class v2Teleop extends OpMode {
     private Intake intake;
     private Shooter shooter;
     private LimelightCamera limelight;
-    private Sensors sensors;
+   // private Sensors sensors;
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
     private GamepadEx player1;
@@ -100,8 +101,8 @@ public class v2Teleop extends OpMode {
         limelight = new LimelightCamera(hardwareMap);
         limelight.limelightCamera.start();
 
-        sensors = new Sensors();
-        sensors.init(hardwareMap, "SRSHub");
+//        sensors = new Sensors();
+//        sensors.init(hardwareMap, "SRSHub");
 
         player1 = new GamepadEx(gamepad1);
         player2 = new GamepadEx(gamepad2);
@@ -138,7 +139,7 @@ public class v2Teleop extends OpMode {
         // --- 1. HARDWARE UPDATES ---
         follower.update();
         pinpoint.update();
-        sensors.update();
+       // sensors.update();
         player1.readButtons();
         player2.readButtons();
 
@@ -219,9 +220,7 @@ public class v2Teleop extends OpMode {
         intake.setCanShoot(veloReached && shooter.turretReached && teleopShootApporval );
         shooter.update(currentTurretAngle);
         intake.update(isBeamBroken, activePattern,
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+                null,null,null);
 
         // --- 6. TELEMETRY ---
 

@@ -31,7 +31,6 @@ public class Shooter {
 //    private static final double[] turretCoefficients = {0.087, 0.000, 0.00399995, 0.0009};
     public static  double[] flywheelCoefficients = {1.1, 0.000001, 0.00465, 0.000071};
 
-    //public static  double[] turretCoefficientsTeleop = {0.9, 0.006, 0.035, 0.003};
     //public static  double[] turretCoefficientsTeleop = {0.12, 0.00, 0.003, 0.003};
     public static  double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
     private static final double[] turretCoefficientsAuto = {0.087, 0.000, 0.00399995, 0.0009};
@@ -978,12 +977,12 @@ public class Shooter {
         setTurretTarget(0,TurretMode.ROBOT_CENTRIC,getCurrentTurretPosition(),0);
     }
 
-    public void resetTurretPos(double currentFixedTurretPos){
-        double error = getCurrentTurretPosition() - currentFixedTurretPos;
-        double errorTicks = Range.scale(error,-180,180,turretMinRange,turretMaxRange);
-        turretMinRange += errorTicks;
-        turretMaxRange += errorTicks;
-    }
+//    public void resetTurretPos(double currentFixedTurretPos){
+//        double error = getCurrentTurretPosition() - currentFixedTurretPos;
+//        double errorTicks = Range.scale(error,-180,180,turretMinRange,turretMaxRange);
+//        turretMinRange += errorTicks;
+//        turretMaxRange += errorTicks;
+//    }
 
     public double getTargetFLywheelVelo(){
         return targetFlywheelVelocity;

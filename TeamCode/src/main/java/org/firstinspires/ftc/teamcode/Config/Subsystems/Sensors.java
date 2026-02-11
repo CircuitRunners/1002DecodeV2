@@ -260,6 +260,11 @@ public class Sensors {
 //
 //
 
+    public void stop(){
+        if (colorSensorThread != null) {
+            colorSensorThread.interrupt();
+        }
+    }
 
 
     public DetectedColor getDetectedColor(float red, float blue, float green) {
