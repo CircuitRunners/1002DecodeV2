@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.teamcode.Testers;
 
-import android.hardware.Sensor;
-
+import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
@@ -13,23 +13,36 @@ import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.Config.Util.Poses;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Locale;
 
-@Disabled
-@TeleOp(name = "TurretAutoAlignBlue", group = "TEST")
+@Configurable
+@TeleOp(name = "TurretAutoAlignLimelightTester", group = "TEST")
 public class TurretAutoAlign extends OpMode {
     private Shooter turret;
     private MecanumDrive drive;
     private Sensors sensors;
     private GamepadEx player1;
     private GoBildaPinpointDriver pinpoint;
+    private Follower follower;
+    private LimelightCamera limelight;
+    private static final double METERS_TO_INCH = 39.37;
+
     private static final Pose2D startingPose = new Pose2D(DistanceUnit.INCH, 36, 36, AngleUnit.DEGREES, 90);
-    private static double BLUE_GOAL_X = 12.0;
-    private static double BLUE_GOAL_Y = 137;
+    private static double RED_GOAL_X = 126;
+    private static double GOAL_Y = 137;
+    private boolean isRedAlliance = true;
+    private boolean preselectFromAuto = false;
+
+    public static double limelightTurretScale = 1.0;
+    public static double limelightTurretTolerance = 0.5; //deg
     private static final String HUB_NAME = "SRSHub";
 
     @Override
@@ -42,107 +55,130 @@ public class TurretAutoAlign extends OpMode {
         drive = new MecanumDrive();
         drive.init(hardwareMap);
 
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(Poses.getStartingPose());
+        follower.update();
+
+        limelight = new LimelightCamera(hardwareMap);
+        limelight.limelightCamera.start();
+
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         configurePinpoint();
 
-        sensors = new Sensors();
-        try {
-            // The Sensors class handles finding and configuring the SRSHub itself
-            sensors.init(hardwareMap, HUB_NAME);
-            telemetry.addData("Status", "Initialization Successful!");
-        } catch (Exception e) {
-            telemetry.addData("Status", "FATAL ERROR during initialization!");
-            telemetry.addData("Error", e.getMessage());
-
+        if(Poses.getAlliance() !=null){
+            if(Poses.getAlliance() == Poses.Alliance.RED){
+                isRedAlliance = true;
+                preselectFromAuto = true;
+            }
+            else {
+                isRedAlliance = false;
+                preselectFromAuto = true;
+            }
         }
-        telemetry.update();
+        else {
+            isRedAlliance = false;
+            preselectFromAuto = false;
+        }
 
+    }
+
+    public void init_loop() {
+        if (gamepad1.dpad_up || gamepad1.dpad_down) {
+            isRedAlliance = !isRedAlliance;
+        }
+        telemetry.addData("Alliance", isRedAlliance ? "RED" : "BLUE");
+        telemetry.addData("Auto Preselect", preselectFromAuto ? "YES" : "NO");
+        telemetry.update();
     }
 
     @Override
     public void loop() {
         player1.readButtons();
         pinpoint.update();
+        follower.update();
+        Pose currentPose = follower.getPose();
+        Pose2D currentPinpointPose = pinpoint.getPosition();
+        double currentHeadingDeg = Math.toDegrees(currentPose.getHeading());
+        double robotVelX = pinpoint.getVelX(DistanceUnit.METER);
+        double robotVelY = pinpoint.getVelY(DistanceUnit.METER);
+        double currentTurretAngle = turret.getCurrentTurretPosition();
+
+        turret.update(currentTurretAngle);
 
 
-        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
-
-            //pinpoint.recalibrateIMU();
-            Pose2D newPose = new Pose2D(DistanceUnit.INCH,
-                    72,72,
-                    AngleUnit.RADIANS, Math.toRadians(90));
-            //pinpoint.setPosition(newPose);
+        handleDriving(currentPose);
+        handleInputOverrides();
+        updateTurretWithAprilTag();
 
 
-            pinpoint.setPosition(newPose);
-            telemetry.addLine("Pinpoint Reset - Position now 72,72 (Middle)!");
-        }
-        Pose2D currentPose = pinpoint.getPosition();
-
-        double forward = player1.getLeftY();
-        double strafe = player1.getLeftX();
-        double rotate = player1.getRightX();
-
-        double robotHeading = Math.toRadians(currentPose.getHeading(AngleUnit.DEGREES));
-        //double turretHeadingDeg = sensors.getSketchTurretPosition();
-
-        double theta = Math.atan2(forward, strafe);
-        double r = Math.hypot(forward, strafe);
-        theta = AngleUnit.normalizeRadians(theta - robotHeading);
-
-        double newForward = r * Math.sin(theta);
-        double newStrafe  = r * Math.cos(theta);
-
-        drive.drive(newForward, newStrafe, rotate);
-
-
-//calc desired angle for turret
-        double deltaY = BLUE_GOAL_Y - currentPose.getY(DistanceUnit.INCH);
-        double deltaX = BLUE_GOAL_X - currentPose.getX(DistanceUnit.INCH);
-
-        // Use Math.atan2(deltaX, deltaY) to correctly map standard (X=East, Y=North)
-        // to the required FTC Yaw (0=North, 90=East)
-        double targetFieldYawRad = Math.atan2(deltaX,deltaY);
-
-
-
-        double targetFieldYaw = Math.toDegrees(targetFieldYawRad);
-
-
-        turret.setTurretTarget(
-                targetFieldYaw,
-                Shooter.TurretMode.FIELD_CENTRIC,
-                robotHeading,0
-        );
-
-       // turret.update(sensors.getFlywheelVelo(), shooter);
-
-
-        String data = String.format(Locale.US,
+        String followerData = String.format(Locale.US,
                 "{X: %.3f, Y: %.3f, H: %.3f}",
-                currentPose.getX(DistanceUnit.INCH),
-                currentPose.getY(DistanceUnit.INCH),
-                currentPose.getHeading(AngleUnit.DEGREES)
+                follower.getPose().getX(),
+                follower.getPose().getY(),
+                Math.toDegrees(follower.getPose().getHeading())
+
         );
 
-        telemetry.addData("Pinpoint Pos: ", data);
-        telemetry.addData("Field Pos: ", "X: %.3f, Y: %.3f", currentPose.getX(DistanceUnit.INCH),currentPose.getY(DistanceUnit.INCH));
+        telemetry.addData("Position", followerData);
+        telemetry.addData("Field Pos: ", "X: %.3f, Y: %.3f", currentPose.getX(),currentPose.getY());
+        telemetry.addData("Turret Angle: ", currentTurretAngle);
         //telemetry.addData("Turret Deg: ", turretHeadingDeg);
-        telemetry.addData("Turret Target Deg", targetFieldYaw);
 
     }
 
 
     //CONFIGURE PINPOINT FIRST
     private void configurePinpoint() {
-        pinpoint.setOffsets(1.91, -2.64, DistanceUnit.INCH);
+        pinpoint.setOffsets(136.603, 59.24, DistanceUnit.MM);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.REVERSED,
-                GoBildaPinpointDriver.EncoderDirection.REVERSED
-        );
-        pinpoint.recalibrateIMU();
-        pinpoint.setPosition(startingPose);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.resetPosAndIMU();
+    }
+    private void handleDriving(Pose pose) {
+        double forward = player1.getLeftY();
+        double strafe = player1.getLeftX();
+        double rotate = player1.getRightX();
+
+        if (!isRedAlliance) { forward = -forward; strafe = -strafe; }
+        double heading = pose.getHeading();
+        double theta = Math.atan2(forward, strafe) - heading;
+        double r = Math.hypot(forward, strafe);
+        drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
+    }
+
+    private void handleInputOverrides() {
+        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE))
+            follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
+    }
+    public void updateCoordinatesWithAprilTag() {
+        limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
+        limelight.limelightCamera.pipelineSwitch(3);
+        LLResult result = limelight.getResult();
+        if (result != null && result.isValid()) {
+            Pose3D mt1Pose = result.getBotpose();
+            if (mt1Pose != null) {
+                double finalX = (mt1Pose.getPosition().y * METERS_TO_INCH) + 72.0;
+                double finalY = (-mt1Pose.getPosition().x * METERS_TO_INCH) + 72.0;
+                follower.setPose(new Pose(finalX, finalY, follower.getHeading()));
+                gamepad1.rumble(500);
+            }
+        }
+    }
+
+    public void updateTurretWithAprilTag() {
+        limelight.limelightCamera.pipelineSwitch(5);
+        LLResult result = limelight.getResult();
+        if (result != null && result.isValid()) {
+            double error = limelight.updateError();
+            if (Math.abs(error) < limelightTurretTolerance) return;
+            double currentTurretAngle = turret.getCurrentTurretPosition();
+            double newTarget = currentTurretAngle + error * limelightTurretScale;
+            newTarget = (newTarget % 360 + 360) % 360;
+            turret.setTurretTargetPosition(newTarget);
+
+        }
+
     }
 
 }
