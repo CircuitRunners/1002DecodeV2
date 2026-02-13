@@ -50,7 +50,7 @@ public class Shooter {
     // --- PHYSICS CONSTANTS ---
     private static final double GRAVITY = 386.088; // in/s^2
 
-    public static double turretDeadband = 4;
+    public static double turretDeadband = 0;
 
     // Heights (meters)
     private static final double LAUNCH_HEIGHT_IN = 16; //11.6
