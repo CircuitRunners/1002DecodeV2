@@ -108,7 +108,7 @@ public class TurretAutoAlign extends OpMode {
 
         handleDriving(currentPose);
         handleInputOverrides();
-        updateTurretWithAprilTag();
+        //updateTurretWithAprilTag();
 
 
         String followerData = String.format(Locale.US,
@@ -122,6 +122,8 @@ public class TurretAutoAlign extends OpMode {
         telemetry.addData("Position", followerData);
         telemetry.addData("Field Pos: ", "X: %.3f, Y: %.3f", currentPose.getX(),currentPose.getY());
         telemetry.addData("Turret Angle: ", currentTurretAngle);
+        telemetry.addData("tx",limelight.limelightCamera.getLatestResult().getTx());
+        telemetry.addData("ty",limelight.limelightCamera.getLatestResult().getTy());
         //telemetry.addData("Turret Deg: ", turretHeadingDeg);
 
     }
@@ -173,7 +175,7 @@ public class TurretAutoAlign extends OpMode {
             double error = limelight.updateError();
             if (Math.abs(error) < limelightTurretTolerance) return;
             double currentTurretAngle = turret.getCurrentTurretPosition();
-            double newTarget = currentTurretAngle + error * limelightTurretScale;
+            double newTarget = currentTurretAngle +( error * limelightTurretScale);
             newTarget = (newTarget % 360 + 360) % 360;
             turret.setTurretTargetPosition(newTarget);
 

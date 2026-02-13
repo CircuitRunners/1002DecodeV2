@@ -41,7 +41,6 @@ public class v2Teleop extends OpMode {
     private LimelightCamera limelight;
    // private Sensors sensors;
     private Follower follower;
-    private GoBildaPinpointDriver pinpoint;
     private GamepadEx player1;
     private GamepadEx player2;
 
@@ -52,7 +51,7 @@ public class v2Teleop extends OpMode {
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
 
-    private final double RED_GOAL_X = 126;
+    private final double RED_GOAL_X = 127;
     private final double BLUE_GOAL_X = 13;
     private final double GOAL_Y = 132;
     private static final double METERS_TO_INCH = 39.37;
@@ -90,8 +89,8 @@ public class v2Teleop extends OpMode {
         follower.setStartingPose(Poses.getStartingPose());
         follower.update();
 
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        configurePinpoint();
+//        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+//        configurePinpoint();
 
         drive = new MecanumDrive();
         drive.init(hardwareMap);
@@ -138,7 +137,7 @@ public class v2Teleop extends OpMode {
         timer.reset();
         // --- 1. HARDWARE UPDATES ---
         follower.update();
-        pinpoint.update();
+        //pinpoint.update();
        // sensors.update();
         player1.readButtons();
         player2.readButtons();
@@ -153,10 +152,10 @@ public class v2Teleop extends OpMode {
 
         // --- 2. DATA SNAPSHOTS (Call once, reference variables) ---
         Pose currentPose = follower.getPose();
-        Pose2D currentPinpointPose = pinpoint.getPosition();
+       // Pose2D currentPinpointPose = pinpoint.getPosition();
         double currentHeadingDeg = Math.toDegrees(currentPose.getHeading());
-        double robotVelX = pinpoint.getVelX(DistanceUnit.METER);
-        double robotVelY = pinpoint.getVelY(DistanceUnit.METER);
+        double robotVelX = follower.getVelocity().getXComponent();
+        double robotVelY = follower.getVelocity().getYComponent();
 
         LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
                 ? Intake.targetPatternFromAuto
@@ -167,12 +166,12 @@ public class v2Teleop extends OpMode {
         boolean isBeamBroken = shooter.isBeamBroken();
 
 
-        String data = String.format(Locale.US,
-                "{X: %.3f, Y: %.3f, H: %.3f}",
-                currentPinpointPose.getX(DistanceUnit.INCH),
-                currentPinpointPose.getY(DistanceUnit.INCH),
-                currentPinpointPose.getHeading(AngleUnit.DEGREES)
-        );
+//        String data = String.format(Locale.US,
+//                "{X: %.3f, Y: %.3f, H: %.3f}",
+//                currentPinpointPose.getX(DistanceUnit.INCH),
+//                currentPinpointPose.getY(DistanceUnit.INCH),
+//                currentPinpointPose.getHeading(AngleUnit.DEGREES)
+//        );
 
         String followerData = String.format(Locale.US,
                 "{X: %.3f, Y: %.3f, H: %.3f}",
@@ -183,7 +182,7 @@ public class v2Teleop extends OpMode {
         );
 
         telemetry.addData("Position", followerData);
-        telemetry.addData("Pinpoint (BAD) Position", data);
+        //telemetry.addData("Pinpoint (BAD) Position", data);
         telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
         telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
         telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
@@ -263,8 +262,7 @@ public class v2Teleop extends OpMode {
         }
         lastRightBumper = toggleBumper;
 
-        if (follower.getPose().getY() > 72.0
-                && result.isValid() && result != null
+        if (result.isValid() && result != null
                 && useAprilTagAim) {
             updateTurretWithAprilTag();
             noAutoAlign = true;
@@ -334,15 +332,15 @@ public class v2Teleop extends OpMode {
       if (pose.getY() > 69) {
           if (isRedAlliance) {
               if (noAutoAlign) {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 0, 0, true, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -20, 0, true, turretMannualAdjust);
               } else {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 0, 0, true, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -20, 0, true, turretMannualAdjust);
               }
           } else {
               if (noAutoAlign) {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, 0, 0, false, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -20, 0, false, turretMannualAdjust);
               } else {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, 0, 0, false, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -20, 0, false, turretMannualAdjust);
               }
           }
       }
@@ -350,16 +348,16 @@ public class v2Teleop extends OpMode {
       else {
               if (isRedAlliance) {
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,-25, 0,true,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,-45, 0,true,turretMannualAdjust);
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -25,0,true,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -45,0,true,turretMannualAdjust);
                   }
               }
               else{
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -25,0,false,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -45,0,false,turretMannualAdjust);
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -25,0,false,turretMannualAdjust);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -45,0,false,turretMannualAdjust);
                   }
               }
           }
@@ -449,12 +447,12 @@ public class v2Teleop extends OpMode {
         else intake.doIntakeHalt();
     }
 
-    private void configurePinpoint() {
-        pinpoint.setOffsets(136.603, 59.24, DistanceUnit.MM);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        pinpoint.resetPosAndIMU();
-    }
+//    private void configurePinpoint() {
+//        pinpoint.setOffsets(136.603, 59.24, DistanceUnit.MM);
+//        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+//        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+//        pinpoint.resetPosAndIMU();
+//    }
 
 //    private void doTelemetry() {
 //
@@ -476,7 +474,7 @@ public class v2Teleop extends OpMode {
     }
 
     public void updateCoordinatesWithAprilTag() {
-        limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
+        limelight.limelightCamera.updateRobotOrientation(Math.toRadians(((shooter.getCurrentTurretPosition() - Math.toDegrees(follower.getHeading())) + 360) % 360 ));
         limelight.limelightCamera.pipelineSwitch(3);
         LLResult result = limelight.getResult();
         if (result != null && result.isValid()) {
@@ -491,7 +489,8 @@ public class v2Teleop extends OpMode {
     }
 
     public void updateTurretWithAprilTag() {
-        limelight.limelightCamera.pipelineSwitch(5);
+        //limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
+        limelight.limelightCamera.pipelineSwitch(3);
         LLResult result = limelight.getResult();
         if (result != null && result.isValid()) {
             double error = limelight.updateError();

@@ -16,6 +16,7 @@ public class LimelightCamera {
 
     public Limelight3A limelightCamera;
 
+
     public static double HEADING_KP_TX = 0.019; //0.02
     public static double HEADING_KI_TX = 0.0;
     public static double HEADING_KD_TX = 0.0001;
@@ -72,8 +73,12 @@ public class LimelightCamera {
     public double updateError() {
         LLResult result = getResult();
         if (result != null && result.isValid()) {
-            error = result.getTxNC();
+            error = -1* (result.getTyNC() );//+3.5
         } else {
+            error = 0;
+        }
+
+        if (error > 4.5){
             error = 0;
         }
         return error;
