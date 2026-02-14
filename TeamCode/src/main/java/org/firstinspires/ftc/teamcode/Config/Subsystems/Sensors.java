@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Config.Subsystems;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -10,6 +11,18 @@ import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
 
 public class Sensors {
 
+    //aarons funny indicator light stuff
+    public double lightValue = 0.0;
+    private Servo light;
+    public void lightInit(HardwareMap hwMap) {
+        light = hwMap.get(Servo.class, "light");
+    }
+    public void setLight(double value) {
+        if (lightValue != value) {
+            lightValue = value;
+            light.setPosition(value);
+        }
+    }
 
     // --- Core SRSHub Reference ---
    // private SRSHub hub;

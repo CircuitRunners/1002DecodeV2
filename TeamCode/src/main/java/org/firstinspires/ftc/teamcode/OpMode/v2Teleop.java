@@ -39,7 +39,7 @@ public class v2Teleop extends OpMode {
     private Intake intake;
     private Shooter shooter;
     private LimelightCamera limelight;
-   // private Sensors sensors;
+    private Sensors sensors;
     private Follower follower;
     private GamepadEx player1;
     private GamepadEx player2;
@@ -102,7 +102,8 @@ public class v2Teleop extends OpMode {
         limelight = new LimelightCamera(hardwareMap);
         limelight.limelightCamera.start();
 
-//        sensors = new Sensors();
+        sensors = new Sensors();
+        sensors.lightInit(hardwareMap);
 //        sensors.init(hardwareMap, "SRSHub");
 
         player1 = new GamepadEx(gamepad1);
@@ -156,6 +157,11 @@ public class v2Teleop extends OpMode {
         shooter.turretCoefficientsTeleop = turretCoefficientsTeleop;
         shooter.turretDeadband = turretDeadband;
 
+        if (veloReached) {
+            sensors.setLight(0.600);
+        } else {
+            sensors.setLight(0.5);
+        }
 
         // --- 2. DATA SNAPSHOTS (Call once, reference variables) ---
         Pose currentPose = follower.getPose();
