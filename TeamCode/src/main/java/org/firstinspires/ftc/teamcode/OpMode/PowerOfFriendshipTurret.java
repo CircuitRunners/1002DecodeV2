@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "GS 12 Ball ", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "GS 12 Ball - sussy turret ", group = "A", preselectTeleOp = "v2Teleop")
 public class PowerOfFriendshipTurret extends OpMode {
 
     private Follower follower;
@@ -47,8 +47,8 @@ public class PowerOfFriendshipTurret extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 126;
-    private final double BLUE_GOAL_X = 15;
+    private final double RED_GOAL_X = 127;
+    private final double BLUE_GOAL_X = 13;
     private final double GOAL_Y = 132;
 
     private boolean doTransfer = false;

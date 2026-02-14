@@ -106,8 +106,8 @@ public class Poses {
 //    );
 
     public static final AlliancePose shootPositionGoalSide2 = new AlliancePose(
-            new Pose(85.5, 92, Math.toRadians(37)),
-            new Pose(68.5, 95, Math.toRadians(143)) // 144 - 100.5 = 43.5
+            new Pose(95.5, 89, Math.toRadians(46)),
+            new Pose(58.5, 89, Math.toRadians(136.5)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide3 = new AlliancePose(
@@ -118,11 +118,14 @@ public class Poses {
 
 
     // CONTROL_POINT_LINE_1_FOR_SHOOT_POSE_2
+//    public static final AlliancePose controlPointLine1ForShootPose2 = new AlliancePose(
+//            new Pose(96, 67, Math.toRadians(0)),
+//            new Pose(48, 67, Math.toRadians(180))
+//    );
     public static final AlliancePose controlPointLine1ForShootPose2 = new AlliancePose(
-            new Pose(91.0, 75, Math.toRadians(0)),
-            new Pose(53, 75, Math.toRadians(180))
+            new Pose(93.4, 82.8, Math.toRadians(0)),
+            new Pose(50.6, 82.8, Math.toRadians(180))
     );
-
     // PICKUP_LINE_1
     public static final AlliancePose pickupLine1 = new AlliancePose(
             new Pose(129, 84, Math.toRadians(0)),
@@ -138,8 +141,8 @@ public class Poses {
 
     // LINE_2_CONTROL_POINT
     public static final AlliancePose line2ControlPoint = new AlliancePose(
-            new Pose(82.0, 42, Math.toRadians(0)),
-            new Pose(64, 42, Math.toRadians(180))
+            new Pose(114.4, 84, Math.toRadians(0)),
+            new Pose(29.6, 84, Math.toRadians(180))
     );
 
 
@@ -152,8 +155,8 @@ public class Poses {
 
     // LINE_3_CONTROL_POINT
     public static final AlliancePose line3ControlPoint = new AlliancePose(
-            new Pose(60, 25, Math.toRadians(0)),
-            new Pose(84, 25, Math.toRadians(180))
+            new Pose(82.5, 55.6, Math.toRadians(0)),
+            new Pose(61.5, 55.6, Math.toRadians(180))
     );
 
 //    // LINEUP_AT_GATE
@@ -197,6 +200,10 @@ public class Poses {
     public static final AlliancePose openGateHighCycle = new AlliancePose(
             new Pose(133, 60, Math.toRadians(45)),
             new Pose(11, 60, Math.toRadians(135)) // correct
+    );
+    public static final AlliancePose openGateTech = new AlliancePose(
+            new Pose(126, 47, Math.toRadians(26.3)),
+            new Pose(18, 47, Math.toRadians(153.7))
     );
 
     public static final AlliancePose openGateHighCycleControlPoint = new AlliancePose(

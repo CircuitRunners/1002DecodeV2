@@ -1,3 +1,4 @@
+
 package org.firstinspires.ftc.teamcode.OpMode;
 
 import com.bylazar.configurables.annotations.Configurable;
@@ -31,7 +32,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
     private Timer loopTimer;
     private Shooter shooter;
     private Intake intake;
-    private Sensors sensors;
+   // private Sensors sensors;
 
     private int pathState;
     private Poses.Alliance lastKnownAlliance = null;
@@ -139,7 +140,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 0: // Travel to Initial Shoot
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
-                    follower.followPath(travelToShoot, false);
+                    follower.followPath(travelToShoot, true);
 
                     setPathState();
                 }
@@ -175,7 +176,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.5  || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 )) {
 
-                    follower.followPath(travelBackToShoot1, false);
+                    follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
@@ -211,7 +212,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 7: // Return to Shoot 2
 
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    follower.followPath(travelBackToShoot2, false);
+                    follower.followPath(travelBackToShoot2, true);
                     setPathState();
                 }
                 break;
@@ -247,7 +248,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
 
-                    follower.followPath(travelBackToShoot3, false);
+                    follower.followPath(travelBackToShoot3, true);
                     setPathState();
                 }
                 break;
@@ -426,8 +427,8 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
         intake = new Intake(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry,true);
-        sensors = new Sensors();
-        sensors.init(hardwareMap, "SRSHub");
+//        sensors = new Sensors();
+//        sensors.init(hardwareMap, "SRSHub");
         goForLaunch = false;
     }
 
@@ -444,10 +445,6 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             telemetry.addData("STATUS", "Paths Rebuilt for " + lastKnownAlliance);
             telemetry.addLine("");
         }
-
-//        telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
-//
-//                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
 
 
 
@@ -470,7 +467,6 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     @Override
     public void start() {
-        sensors.run();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -484,9 +480,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
         shooter.update(shooter.getCurrentTurretPosition());
         intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+              null,null,null);
 
         autonomousPathUpdate();
 
@@ -509,7 +503,6 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     @Override
     public void stop() {
-        sensors.stop();
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());

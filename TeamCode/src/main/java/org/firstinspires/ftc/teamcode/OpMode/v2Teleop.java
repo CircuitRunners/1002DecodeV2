@@ -56,6 +56,8 @@ public class v2Teleop extends OpMode {
     private final double GOAL_Y = 132;
     private static final double METERS_TO_INCH = 39.37;
 
+    private double turretOffsetFar = 0;
+
 
     boolean veloReached = false;
 
@@ -63,7 +65,7 @@ public class v2Teleop extends OpMode {
     private boolean initiateTransfer = false;
 
     private boolean noAutoAlign = false;
-    boolean useAprilTagAim = false;
+    boolean useAprilTagAim = true;
 
 
     private final ElapsedTime timer = new ElapsedTime();
@@ -131,6 +133,11 @@ public class v2Teleop extends OpMode {
     }
 
     @Override
+    public void start(){
+        limelight.limelightCamera.pipelineSwitch(5);
+    }
+
+    @Override
     public void loop() {
 
         for (LynxModule hub : allHubs) hub.clearBulkCache();
@@ -164,6 +171,8 @@ public class v2Teleop extends OpMode {
         double currentFlywheelVelo = shooter.getFlywheelVelo();
         double currentTurretAngle = shooter.getCurrentTurretPosition();
         boolean isBeamBroken = shooter.isBeamBroken();
+
+
 
 
 //        String data = String.format(Locale.US,
@@ -330,34 +339,38 @@ public class v2Teleop extends OpMode {
        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
 
       if (pose.getY() > 69) {
+
+          turretOffsetFar = 0;
           if (isRedAlliance) {
               if (noAutoAlign) {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -20, 0, true, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -28, 0, true, turretMannualAdjust);
               } else {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -20, 0, true, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -28, 0, true, turretMannualAdjust);
               }
           } else {
               if (noAutoAlign) {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -20, 0, false, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -28, 0, false, turretMannualAdjust);
               } else {
-                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -20, 0, false, turretMannualAdjust);
+                  shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -28, 0, false, turretMannualAdjust);
               }
           }
       }
 
       else {
+
+          turretOffsetFar = -14;
               if (isRedAlliance) {
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,-50, 0,true,turretMannualAdjust - 2);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,-58, 0,true,turretMannualAdjust  );
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -50,0,true,turretMannualAdjust - 2);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -58,0,true,turretMannualAdjust  );
                   }
               }
               else{
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -50,0,false,turretMannualAdjust - 2);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -58,0,false,turretMannualAdjust );
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -50,0,false,turretMannualAdjust - 2);
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -58,0,false,turretMannualAdjust );
                   }
               }
           }
@@ -496,7 +509,7 @@ public class v2Teleop extends OpMode {
             double error = limelight.updateError();
             if (Math.abs(error) < limelightTurretTolerance) return;
             double currentTurretAngle = shooter.getCurrentTurretPosition();
-            double newTarget = currentTurretAngle + error * limelightTurretScale;
+            double newTarget = currentTurretAngle + (error * limelightTurretScale) + turretOffsetFar;
             newTarget = (newTarget % 360 + 360) % 360;
             shooter.setTurretTargetPosition(newTarget);
 

@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.Testers;
 
 
 
+import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
@@ -12,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
+@Configurable
 @Autonomous(name = "ONLY TURRET ALIGN", group = "Test")
 public class TurretTunerInAuto extends OpMode {
 
