@@ -57,9 +57,19 @@ public class Intake {
         TEST_SHOOTING
     }
 
+    public enum SimpleSortState {
+        IDLE,
+        CHECK_SLOTS,
+        ROTATING,
+        READY
+    }
+
     private IntakeState currentState = IntakeState.IDLE;
     public ElapsedTime stateTimer = new ElapsedTime();
-    public ElapsedTime sussyTimer = new ElapsedTime();
+
+    private SimpleSortState simpleSortState = SimpleSortState.IDLE;
+
+
 
     // Logic Latches (The "Memory" of the ball positions)
     private boolean ball1Latched = false;
@@ -476,6 +486,148 @@ public class Intake {
 //
 
 
+    ////////
+    //SIMPLE SORTING VARIABLES
+    ////////
+
+
+    private String simpleCurrentPattern = null;
+    private LimelightCamera.BallOrder simpleTargetPattern = null;
+
+    private int simpleRequiredRotations = 0;
+    private int simpleRotationCounter = 0;
+
+    private boolean simpleS1HadBallLast = false;
+    private boolean simpleS1LostAfterSeeing = false;
+
+    private static final double SIMPLE_ENTRY_DEBOUNCE_MS = 600;
+
+    private ElapsedTime simpleSortTimer = new ElapsedTime();
+
+
+
+    public void startSimpleSort(String currentPattern,
+                                LimelightCamera.BallOrder desiredPattern) {
+
+        this.simpleCurrentPattern = currentPattern;
+        this.simpleTargetPattern = desiredPattern;
+
+        simpleSortState = SimpleSortState.CHECK_SLOTS;
+    }
+
+    public void updateSimpleSorter(DetectedColor s1,
+                                    DetectedColor s2,
+                                    DetectedColor s3) {
+
+        switch (simpleSortState) {
+
+            case IDLE:
+                break;
+
+            case CHECK_SLOTS:
+
+                // Only sort if slot 1 and 2 have balls
+                if (s1 != null && s2 != null) {
+
+                    int currentIndex = patternIndexFromString(simpleCurrentPattern);
+                    int targetIndex = patternIndexFromEnum(simpleTargetPattern);
+
+                    simpleRequiredRotations =
+                            (targetIndex - currentIndex + 3) % 3;
+
+                    simpleRotationCounter = 0;
+                    simpleS1HadBallLast = true;
+                    simpleS1LostAfterSeeing = false;
+
+                    simpleSortTimer.reset();
+
+                    if (simpleRequiredRotations == 0) {
+                        simpleSortState = SimpleSortState.READY;
+                    } else {
+                        simpleSortState = SimpleSortState.ROTATING;
+                    }
+
+                } else {
+                    simpleSortState = SimpleSortState.READY;
+                }
+
+                break;
+
+            case ROTATING:
+
+                // Spin sorter
+                transferOn();
+                setDirectionCycle();
+                gateOpen();
+                intake.setPower(1);
+
+                updateSimpleRotationCounter(s1);
+
+                if (simpleRotationCounter >= simpleRequiredRotations) {
+                    intakeMotorHalt();
+                    gateClose();
+                    simpleSortState = SimpleSortState.READY;
+                }
+
+                // Safety timeout
+                if (simpleSortTimer.milliseconds() > 11000) {
+                    intakeMotorHalt();
+                    gateClose();
+                    simpleSortState = SimpleSortState.READY;
+                }
+
+                break;
+
+            case READY:
+
+                intakeMotorHalt();
+                gateClose();
+                break;
+        }
+    }
+
+
+    private void updateSimpleRotationCounter(DetectedColor s1) {
+
+        boolean s1HasBallNow = (s1 != null);
+        double now = simpleSortTimer.milliseconds();
+
+        if (simpleS1HadBallLast && !s1HasBallNow) {
+            simpleS1LostAfterSeeing = true;
+            simpleSortTimer.reset();
+        }
+
+        if (simpleS1LostAfterSeeing && s1HasBallNow) {
+            if (now > SIMPLE_ENTRY_DEBOUNCE_MS) {
+                simpleRotationCounter++;
+                simpleS1LostAfterSeeing = false;
+            }
+        }
+
+        simpleS1HadBallLast = s1HasBallNow;
+    }
+
+    private int patternIndexFromString(String pattern) {
+
+        switch (pattern) {
+            case "PGP": return 0;
+            case "GPP": return 1;
+            case "PPG": return 2;
+        }
+
+        throw new IllegalArgumentException("Invalid pattern string: " + pattern);
+    }
+
+    private int patternIndexFromEnum(LimelightCamera.BallOrder order) {
+
+        switch (order) {
+            case PURPLE_GREEN_PURPLE: return 0;
+            case GREEN_PURPLE_PURPLE: return 1;
+            case PURPLE_PURPLE_GREEN: return 2;
+        }
+
+        throw new IllegalArgumentException("Invalid BallOrder enum");
+    }
 
     // Resets the latches so we can look for the "next" set of balls
     private void resetLatches() {
@@ -709,9 +861,13 @@ public class Intake {
     public IntakeState getCurrentIntakeState() {
         return currentState;
     }
-    public SussyState getCurrentSussyState() {
-        return sussyState;
+
+    public SimpleSortState getSimpleSortState() {
+        return simpleSortState;
     }
+
+
+
 
 
     //BEFORE CALLING: RUN INTAKE BACKWARDS TO ENSURE ALL COLOR SENSORS GET A ACCURATE READING
@@ -925,106 +1081,6 @@ public class Intake {
         lastBeamState = currentBeamState;
     }
 
-//   private double numRequiredCycles = 0;
-//    public void sussySorting(LimelightCamera.BallOrder targetOrder, double cycleNum){
-//        sussyTimer.reset();
-//        DetectedColor s1 = one;
-//        DetectedColor s2 = two;
-//        DetectedColor s3 = three;
-//        if (targetOrder == LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN){
-//            if (cycleNum == 0 || cycleNum == 1){
-//                numRequiredCycles = 0;
-//            }
-//            else if (cycleNum == 2){
-//                numRequiredCycles = 2;
-//            }
-//            else if (cycleCount == 3){
-//                numRequiredCycles = 1;
-//            }
-//        }
-//        else if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE){
-//            if (cycleNum == 0 || cycleNum == 1){
-//                numRequiredCycles = 1;
-//            }
-//            else if (cycleNum == 2){
-//                numRequiredCycles = 0;
-//            }
-//            else if (cycleCount == 3){
-//                numRequiredCycles = 2;
-//            }
-//        }
-//        else if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE){
-//            if (cycleNum == 0 || cycleNum == 1){
-//                numRequiredCycles = 2;
-//            }
-//            else if (cycleNum == 2){
-//                numRequiredCycles = 2;
-//            }
-//            else if (cycleCount == 3){
-//                numRequiredCycles = 0;
-//            }
-//        }
-//
-//        if (numRequiredCycles == 0){
-//            numRequiredCycles = 0;
-//            s1HadBallLast = true;
-//            newState(IntakeState.READY_TO_FIRE);
-//        }
-//        else {
-//            if (cycleNum >= 1) {
-//                gateClose();
-//                transferOff();
-//                setDirectionCycle();
-//                intake.setPower(0.8); //0.9
-//
-//                if (stateTimer.milliseconds() > 2000) {
-//                    intakeMotorHalt();
-//                }
-//            }
-//
-//                greenInventory = 0;
-//                purpleInventory = 0;
-//                DetectedColor[] sensors = {s1, s2, s3};
-//                for (DetectedColor color : sensors) {
-//                    if (color == DetectedColor.GREEN) greenInventory++;
-//                    else if (color == DetectedColor.PURPLE) purpleInventory++;
-//                }
-//
-//                internalTotalBalls = greenInventory + purpleInventory;
-//                currentShot = 0;
-//                cycleCount = 0;
-//
-//                if (internalTotalBalls > 2) {
-//                    updateS1BallCounter(s1);
-//                    if (s1BallEntryCount == numRequiredCycles){
-//                        gateClose();
-//                        numRequiredCycles = 0;
-//                        s1HadBallLast = true;
-//                        newState(IntakeState.READY_TO_FIRE);
-//                    }
-//                    else {
-//                        transferOn();
-//                        setDirectionCycle();
-//                        intake.setPower(1);
-//                        gateOpen();
-//
-//                    }
-//                }
-//
-//                else {
-//                    numRequiredCycles = 0;
-//                    s1HadBallLast = true;
-//                    newState(IntakeState.READY_TO_FIRE);
-//                }
-//            }
-//
-//        }
-//
-
-
-
-
-
 
 
 
@@ -1060,6 +1116,18 @@ public class Intake {
         } else {
             telemetry.addLine("Detected Color slot 3 : NONE");
         }
+
+
+        telemetry.addLine("=== SIMPLE SORT DIAGNOSTICS ===");
+        telemetry.addData("Simple State", simpleSortState);
+        telemetry.addData("Current Pattern (String)", simpleCurrentPattern);
+        telemetry.addData("Target Pattern (Enum)", simpleTargetPattern);
+        telemetry.addData("Required Rotations", simpleRequiredRotations);
+        telemetry.addData("Rotation Counter", simpleRotationCounter);
+        telemetry.addData("S1 Had Ball Last", simpleS1HadBallLast);
+        telemetry.addData("S1 Lost After Seeing", simpleS1LostAfterSeeing);
+        telemetry.addData("Simple Timer (ms)", simpleSortTimer.milliseconds());
+
 
         telemetry.addLine("--- Internal State ---");
         telemetry.addData("Inventory", "T:%d | G:%d | P:%d", internalTotalBalls, greenInventory, purpleInventory);
@@ -1099,177 +1167,7 @@ public class Intake {
 
     // Sussy sorting state machine variables
 
-    public enum SussyState {
-        IDLE,
-        INIT,
-        CYCLE,
-        DONE
-    }
-    private SussyState sussyState = SussyState.IDLE;
-    private double numRequiredCycles = 0;
-    private int s1BallEntryCount = 0;
-    private boolean s1HadBallLast = true;
-    private boolean s1LostAfterHaving = false;
-    private double s1LossTime = 0;
-    private static final double ENTRY_DEBOUNCE_MS = 550;
 
-    private double sussyCycleNum = 0;
-    private LimelightCamera.BallOrder sussyTargetOrder = null;
-
-
-    public void startSussySorter(LimelightCamera.BallOrder targetOrder, int cycleNum, DetectedColor s1,DetectedColor s2,DetectedColor s3) {
-        this.sussyTargetOrder = targetOrder;
-        this.sussyCycleNum = cycleNum;
-
-        // determine required cycles based on target
-        if (targetOrder == LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN) {
-            if (cycleNum <= 1) numRequiredCycles = 0;
-            else if (cycleNum == 2) numRequiredCycles = 2;
-            else if (cycleNum == 3) numRequiredCycles = 1;
-        } else if (targetOrder == LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE) {
-            if (cycleNum <= 1) numRequiredCycles = 1;
-            else if (cycleNum == 2) numRequiredCycles = 0;
-            else if (cycleNum == 3) numRequiredCycles = 2;
-        } else if (targetOrder == LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE) {
-            if (cycleNum <= 1) numRequiredCycles = 2;
-            else if (cycleNum == 2) numRequiredCycles = 2;
-            else if (cycleNum == 3) numRequiredCycles = 0;
-        }
-
-        s1BallEntryCount = 0;
-        s1HadBallLast = true;
-        s1LostAfterHaving = false;
-
-        greenInventory = 0;
-        purpleInventory = 0;
-        DetectedColor[] sensorsArray = new DetectedColor[]{s1, s2, s3};
-        for (DetectedColor color : sensorsArray) {
-            if (color == DetectedColor.GREEN) greenInventory++;
-            else if (color == DetectedColor.PURPLE) purpleInventory++;
-        }
-        internalTotalBalls = greenInventory + purpleInventory;
-        sussyTimer.reset();
-
-        sussyState = (numRequiredCycles == 0) ? SussyState.DONE : SussyState.INIT;
-    }
-
-    public void updateSussySorter(DetectedColor s1, DetectedColor s2, DetectedColor s3) {
-        switch (sussyState) {
-            case INIT:
-                gateClose();
-                transferOff();
-                setDirectionCycle();
-                intake.setPower(0.8);
-
-                if (sussyTimer.milliseconds() > 2000) {
-                    intakeMotorHalt();
-
-                    // Count balls
-                    greenInventory = 0;
-                    purpleInventory = 0;
-                    DetectedColor[] sensors = {s1, s2, s3};
-                    for (DetectedColor color : sensors) {
-                        if (color == DetectedColor.GREEN) greenInventory++;
-                        else if (color == DetectedColor.PURPLE) purpleInventory++;
-                    }
-                    internalTotalBalls = greenInventory + purpleInventory;
-
-                    sussyTimer.reset();
-                    sussyState = SussyState.CYCLE;
-                }
-                break;
-
-            case CYCLE:
-                transferOn();
-                setDirectionCycle();
-                gateOpen();
-                intake.setPower(1);
-
-                updateS1BallCounter(s1);
-
-                if (s1BallEntryCount >= numRequiredCycles) {
-                    gateClose();
-                    intakeMotorHalt();
-                    sussyState = SussyState.DONE;
-                }
-                break;
-
-            case DONE:
-                gateClose();
-                intakeMotorHalt();
-
-                break;
-
-            case IDLE:
-            default:
-                break;
-        }
-    }
-
-
-    private void updateS1BallCounter(DetectedColor s1) {
-        boolean s1HasBallNow = (s1 != null);
-        double now = sussyTimer.milliseconds();
-
-        if (s1HadBallLast && !s1HasBallNow) {
-            s1LostAfterHaving = true;
-            s1LossTime = now;
-        }
-
-        if (s1LostAfterHaving && s1HasBallNow) {
-            if (now - s1LossTime >= ENTRY_DEBOUNCE_MS) {
-                s1BallEntryCount++;
-                s1LostAfterHaving = false;
-            }
-        }
-
-        s1HadBallLast = s1HasBallNow;
-    }
-
-    public void doSussySortingTelemetry(DetectedColor s1, DetectedColor s2, DetectedColor s3,
-                                        LimelightCamera.BallOrder targetOrder) {
-        telemetry.addLine("=== SUSSY SORTING DIAGNOSTICS ===");
-        telemetry.addData("State", "%s (%.1f ms)", currentState, stateTimer.milliseconds());
-        //telemetry.addData("Cycle Num", "%.0f", cycleNum);
-        telemetry.addData("Required Cycles", "%.0f", numRequiredCycles);
-
-        // Slot 1
-        telemetry.addData("Slot 1", s1 != null ? s1.toString() : "NONE");
-        // Slot 2
-        telemetry.addData("Slot 2", s2 != null ? s2.toString() : "NONE");
-        // Slot 3
-        telemetry.addData("Slot 3", s3 != null ? s3.toString() : "NONE");
-
-        // Internal counters
-        telemetry.addData("Internal Balls", "Total:%d | Green:%d | Purple:%d",
-                internalTotalBalls, greenInventory, purpleInventory);
-        telemetry.addData("Shots Taken", "%d", currentShot);
-        telemetry.addData("Cycle Count", "%d", cycleCount);
-        telemetry.addData("S1 Entry Count", "%d", s1BallEntryCount);
-        telemetry.addData("S1 Last State", s1HadBallLast);
-        telemetry.addData("S1 Lost After Having", s1LostAfterHaving);
-
-        // Target pattern
-        String[] target = getTargetArray(targetOrder);
-        telemetry.addData("Target Order", "[%s, %s, %s]", target[0], target[1], target[2]);
-
-        telemetry.update();
-    }
-
-
-    private DetectedColor one = null;
-    private DetectedColor two = null;
-    private DetectedColor three = null;
-
-    public void updates1(DetectedColor color) {
-        one = color;
-    }
-    public void updates2(DetectedColor color) {
-        two = color;
-    }
-    public void updates3(DetectedColor color) {
-        three = color;
-    }
 
 
 

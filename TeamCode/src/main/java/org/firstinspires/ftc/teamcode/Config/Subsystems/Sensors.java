@@ -116,7 +116,7 @@ public class Sensors {
             while (!Thread.interrupted()) {
                 update();
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(100);
                 } catch (Exception e) {
                     break;
                 }

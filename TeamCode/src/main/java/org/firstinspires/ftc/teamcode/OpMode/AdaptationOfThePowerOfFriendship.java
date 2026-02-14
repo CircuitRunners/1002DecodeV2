@@ -41,6 +41,8 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     double flywheelMannualOffset = 700;
 
+    private List<LynxModule> allHubs;
+
 
 
     // Shot Counting Variables
@@ -414,23 +416,27 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
         }
     }
 
-    @Override
-    public void init() {
-        // Bulk reading for loop speed
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
-        pathTimer = new Timer();
-        loopTimer = new Timer();
-        follower = Constants.createFollower(hardwareMap);
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+        @Override
+        public void init() {
 
-        intake = new Intake(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry,true);
-//        sensors = new Sensors();
-//        sensors.init(hardwareMap, "SRSHub");
-        goForLaunch = false;
-    }
+            // Manual Bulk Reading for stable loop timing
+            allHubs = hardwareMap.getAll(LynxModule.class);
+            for (LynxModule hub : allHubs) {
+                hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            }
+
+            pathTimer = new Timer();
+            loopTimer = new Timer();
+            follower = Constants.createFollower(hardwareMap);
+            pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+
+            intake = new Intake(hardwareMap, telemetry);
+            shooter = new Shooter(hardwareMap, telemetry,true);
+
+            goForLaunch = false;
+        }
+
 
     @Override
     public void init_loop() {
@@ -473,29 +479,49 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
     @Override
     public void loop() {
-        // Must update all hardware/sensors every loop
+
+        // Clear bulk cache ONCE per loop
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
+
         loopTimer.resetTimer();
+
         follower.update();
         pinpoint.update();
 
+        // Cache hardware reads ONCE
+        boolean beamBroken = shooter.isBeamBroken();
+        double flywheelVelo = shooter.getFlywheelVelo();
+        double targetFlywheelVelo = shooter.getTargetFLywheelVelo();
+
         shooter.update(shooter.getCurrentTurretPosition());
-        intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-              null,null,null);
+        intake.update(
+                beamBroken,
+                LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
+                null, null, null
+        );
 
         autonomousPathUpdate();
 
-        veloReached = (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (40)) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (40)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+        veloReached =
+                (Math.abs(flywheelVelo) >
+                        (Math.abs(targetFlywheelVelo) - 40)
+                        &&
+                        Math.abs(flywheelVelo) <
+                                (Math.abs(targetFlywheelVelo) + 40)
+                        &&
+                        Math.abs(targetFlywheelVelo) >= 1);
 
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
-        telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
-        telemetry.addData("is up to sped",veloReached);
-        telemetry.addData("Balls shot in state:",ballsShotInState);
-        telemetry.addData("Loop Time",loopTimer.getElapsedTime());
-        telemetry.addData("FLywheel Velo",shooter.getFlywheelVelo());
-        telemetry.addData("target velo",shooter.getTargetFLywheelVelo());
-        telemetry.addData("Go for launch?",goForLaunch);
+        telemetry.addData("Beam Status", beamBroken ? "BROKEN" : "CLEAR");
+        telemetry.addData("Shooter Velo", flywheelVelo);
+        telemetry.addData("is up to sped", veloReached);
+        telemetry.addData("Balls shot in state:", ballsShotInState);
+        telemetry.addData("Loop Time", loopTimer.getElapsedTime());
+        telemetry.addData("target velo", targetFlywheelVelo);
+        telemetry.addData("Go for launch?", goForLaunch);
         telemetry.addData("Path t", follower.getCurrentTValue());
         telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.update();

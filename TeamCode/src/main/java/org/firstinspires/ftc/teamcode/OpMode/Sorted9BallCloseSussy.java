@@ -132,7 +132,7 @@ public class Sorted9BallCloseSussy extends OpMode {
 
             case 2: // Shoot 3 Preloads
                 doSort(0);
-                if (intake.getCurrentSussyState() == Intake.SussyState.DONE || pathTimer.getElapsedTimeSeconds() > 9.5) {
+                if (intake.getSimpleSortState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 9.5) {
                     handleAutoShooting(currentPose, targetX, 20.0, 0);
                 }
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
@@ -169,7 +169,7 @@ public class Sorted9BallCloseSussy extends OpMode {
                     doSort(1);
                 }
 
-                if (intake.getCurrentSussyState() == Intake.SussyState.DONE || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                if (intake.getSimpleSortState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 7.5) {
                     handleAutoShooting(currentPose, targetX, 11.0, 0);
                 }
 
@@ -210,7 +210,7 @@ public class Sorted9BallCloseSussy extends OpMode {
                     doSort(2);
                 }
 
-                if (intake.getCurrentSussyState() == Intake.SussyState.DONE || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                if (intake.getSimpleSortState() == Intake.SimpleSortState.READY|| pathTimer.getElapsedTimeSeconds() > 7.5) {
                     handleAutoShooting(currentPose, targetX, 11.0, 0);
                 }
 
@@ -386,14 +386,11 @@ public class Sorted9BallCloseSussy extends OpMode {
         telemetry.addData("Intake State", intake.getCurrentIntakeState());
 
         telemetry.addData("loop time",loopTimer.getElapsedTime());
-        intake.doSussySortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder);
 
-        intake.updateSussySorter(
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
+
+        intake.doSortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
                 sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder,shooter.isBeamBroken());
 
         telemetry.update();
     }
@@ -427,10 +424,16 @@ public class Sorted9BallCloseSussy extends OpMode {
     }
 
     private void doSort(int cycleNum){
-        if (!sortStarted){
-            intake.startSussySorter(desiredOrder,cycleNum,sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                    sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                    sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+        if (!sortStarted && (cycleNum == 0 || cycleNum == 1)){
+            intake.startSimpleSort("PPG",desiredOrder);
+            sortStarted = true;
+        }
+        else if (!sortStarted && cycleNum == 2){
+            intake.startSimpleSort("PGP",desiredOrder);
+            sortStarted = true;
+        }
+        else if (!sortStarted && cycleNum == 3){
+            intake.startSimpleSort("GPP",desiredOrder);
             sortStarted = true;
         }
     }
