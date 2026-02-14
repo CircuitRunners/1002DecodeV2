@@ -25,15 +25,13 @@ public class Sensors {
     }
 
     // --- Core SRSHub Reference ---
-   // private SRSHub hub;
+    // private SRSHub hub;
     private final ElapsedTime runtime = new ElapsedTime();
 
     // --- Configured I2C Devices ---
 //    private SRSHub.APDS9151 colorSensor1;
 //    private SRSHub.APDS9151 colorSensor2;
 //    private SRSHub.APDS9151 colorSensor3;
-
-
 
 
     // --- CALIBRATION CONSTANTS ---
@@ -57,18 +55,14 @@ public class Sensors {
     public static float BRIGHTNESS_MIN_WHEN_PRESENT = 0.02f;
 
 
-
-
-
-
     /**
      * Initialize the SRSHub and attached devices.
      */
     public void init(HardwareMap hwMap, String hubName) {
 
-        colorSensor1 = hwMap.get(NormalizedColorSensor.class,"colorSensor1");
-        colorSensor2 = hwMap.get(NormalizedColorSensor.class,"colorSensor2");
-        colorSensor3 = hwMap.get(NormalizedColorSensor.class,"colorSensor3");
+        colorSensor1 = hwMap.get(NormalizedColorSensor.class, "colorSensor1");
+        colorSensor2 = hwMap.get(NormalizedColorSensor.class, "colorSensor2");
+        colorSensor3 = hwMap.get(NormalizedColorSensor.class, "colorSensor3");
 
 //        SRSHub.Config config = new SRSHub.Config();
 //
@@ -104,7 +98,6 @@ public class Sensors {
 //        colorSensor3 = hub.getI2CDevice(3, SRSHub.APDS9151.class);
 
 
-
     }
 
 //    /**
@@ -127,9 +120,9 @@ public class Sensors {
 //     */
 
     public void update() {
-       sensor1Colors = colorSensor1.getNormalizedColors();
-       sensor2Colors = colorSensor2.getNormalizedColors();
-       sensor3Colors = colorSensor3.getNormalizedColors();
+        sensor1Colors = colorSensor1.getNormalizedColors();
+        sensor2Colors = colorSensor2.getNormalizedColors();
+        sensor3Colors = colorSensor3.getNormalizedColors();
     }
 //
 //    public boolean isHubDisconnected() {
@@ -142,7 +135,7 @@ public class Sensors {
 //
 
 
-//    // --- APDS9151 Raw RGB ---
+    //    // --- APDS9151 Raw RGB ---
     public float getColor1Red() {
         return sensor1Colors.red;
     }
@@ -154,6 +147,7 @@ public class Sensors {
     public float getColor1Blue() {
         return sensor1Colors.blue;
     }
+
     public float getColor2Red() {
         return sensor2Colors.red;
     }
@@ -165,6 +159,7 @@ public class Sensors {
     public float getColor2Blue() {
         return sensor2Colors.blue;
     }
+
     public float getColor3Red() {
         return sensor3Colors.red;
     }
@@ -247,18 +242,17 @@ public class Sensors {
 ////    }
 //
 //    // flywheel velo in ticks/sec
-////    public double getFlywheelVelo() {
-////        return hub.readEncoder(5).velocity;
-////    }
+
+    /// /    public double getFlywheelVelo() {
+    /// /        return hub.readEncoder(5).velocity;
+    /// /    }
 //
 //
-
-
-    public DetectedColor getDetectedColorold(NormalizedColorSensor sensor) {
+    public DetectedColor getDetectedColor(NormalizedColorSensor sensor) {
         NormalizedRGBA rgba = sensor.getNormalizedColors();
-        float r = rgba.red;
-        float g = rgba.green;
-        float b = rgba.blue;
+        float r = rgba.red * 10000;
+        float g = rgba.green * 10000;
+        float b = rgba.blue * 10000;
         float greenDifferenceOffset = 95f;
 
         // --- NOTHING DETECTED ---
@@ -272,70 +266,69 @@ public class Sensors {
         }
 
         // --- PURPLE: both G and B > R ---
-        else if ( g + b > 350 && (g + b / 2) > r) {
+        else if (g + b > 125 && g > r && b > r) {
             return DetectedColor.PURPLE;
-        }
-
-        else if (g - 40 > r && g - 40 > b){
+        } else if (g > r && g > b && g > 27) {
             return DetectedColor.GREEN;
-        }
-        else if (b + 12 >= g && g - 25 > r ){
+
+        } else if (b + b > 80 && g > r && b > r) { //holes
             return DetectedColor.PURPLE;
         }
-
-        // --- everything else counts as NONE ---
-        return DetectedColor.NONE;
-    }
-
-    public DetectedColor getDetectedColor(NormalizedColorSensor sensor) {
-        NormalizedRGBA rgba = sensor.getNormalizedColors();
-        float r = rgba.red;
-        float g = rgba.green;
-        float b = rgba.blue;
-
-        float sum = r+g+b;
-        float greenDifferenceOffset = 95f;
-
-        float maxRB = Math.max(r,b);
-
-
-        if (sum < BRIGHTNESS_MIN_WHEN_PRESENT) return null;
-        if (g >= maxRB * GREEN_RATIO_MIN) return DetectedColor.GREEN;
-
-        float rb = r+b;
-        float blueShare = (sum > 1e-6f) ? (b/sum) : 0.0f;
-
-        if (rb >= g * PURPLE_BLUE_SHARE_MIN && blueShare >= PURPLE_BLUE_SHARE_MIN){
-            return DetectedColor.PURPLE;
-        }
-
-
-
-
-
-        // --- NOTHING DETECTED ---
-//        if (r < 120 && g < 120 && b < 120) {
-//            return null;
-//        }
-
-        // --- GREEN: green strongest ---
-//        if (g - greenDifferenceOffset > r && g - greenDifferenceOffset > b) {
-//            return DetectedColor.GREEN;
-//        }
-//
-//        // --- PURPLE: both G and B > R ---
-//        else if ( g + b > 350 && (g + b / 2) > r) {
-//            return DetectedColor.PURPLE;
-//        }
-//
-//        else if (g - 40 > r && g - 40 > b){
-//            return DetectedColor.GREEN;
-//        }
-//        else if (b + 12 >= g && g - 25 > r ){
-//            return DetectedColor.PURPLE;
-//        }
 
         // --- everything else counts as NONE ---
         return null;
     }
+
+//    public DetectedColor getDetectedColor(NormalizedColorSensor sensor) {
+//        NormalizedRGBA rgba = sensor.getNormalizedColors();
+//        float r = rgba.red;
+//        float g = rgba.green;
+//        float b = rgba.blue;
+//
+//        float sum = r+g+b;
+//        float greenDifferenceOffset = 95f;
+//
+//        float maxRB = Math.max(r,b);
+//
+//
+//        if (sum < BRIGHTNESS_MIN_WHEN_PRESENT) return null;
+//        if (g >= maxRB * GREEN_RATIO_MIN) return DetectedColor.GREEN;
+//
+//        float rb = r+b;
+//        float blueShare = (sum > 1e-6f) ? (b/sum) : 0.0f;
+//
+//        if (rb >= g * PURPLE_BLUE_SHARE_MIN && blueShare >= PURPLE_BLUE_SHARE_MIN){
+//            return DetectedColor.PURPLE;
+//        }
+//
+//
+//
+//
+//
+//        // --- NOTHING DETECTED ---
+////        if (r < 120 && g < 120 && b < 120) {
+////            return null;
+////        }
+//
+//        // --- GREEN: green strongest ---
+////        if (g - greenDifferenceOffset > r && g - greenDifferenceOffset > b) {
+////            return DetectedColor.GREEN;
+////        }
+////
+////        // --- PURPLE: both G and B > R ---
+////        else if ( g + b > 350 && (g + b / 2) > r) {
+////            return DetectedColor.PURPLE;
+////        }
+////
+////        else if (g - 40 > r && g - 40 > b){
+////            return DetectedColor.GREEN;
+////        }
+////        else if (b + 12 >= g && g - 25 > r ){
+////            return DetectedColor.PURPLE;
+////        }
+//
+//        // --- everything else counts as NONE ---
+//        return null;
+//    }
+//}
 }
