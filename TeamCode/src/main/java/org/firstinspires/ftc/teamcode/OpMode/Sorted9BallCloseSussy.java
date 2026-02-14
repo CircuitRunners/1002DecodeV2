@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -43,7 +44,7 @@ public class Sorted9BallCloseSussy extends OpMode {
     private LimelightCamera.BallOrder desiredOrder = null;
 
     boolean veloReached = false;
-    boolean flywheelLocked = false;
+    //boolean flywheelLocked = false;
     double flywheelMannualOffset = 700;
 
     // Shot Counting Variables
@@ -111,13 +112,13 @@ public class Sorted9BallCloseSussy extends OpMode {
         if (!isShootingState) {
             doTransfer = false;
             goForLaunch = false;
-            flywheelLocked = false;
+//            flywheelLocked = false;
         }
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
                 if (!follower.isBusy()) {
-                    follower.followPath(getBallOrder, true);
+                    follower.followPath(getBallOrder, false);
                     setPathState();
                 }
                 break;
@@ -125,7 +126,7 @@ public class Sorted9BallCloseSussy extends OpMode {
             case 1: // Limelight Detection (Sorted logic preserved)
                 desiredOrder = limelight.detectBallOrder();
                 if (desiredOrder != null && !follower.isBusy()) {
-                    follower.followPath(travelToShoot, true);
+                    follower.followPath(travelToShoot, false);
                     setPathState();
                 }
                 // Optional: add a timeout here if Limelight doesn't see anything
@@ -134,9 +135,9 @@ public class Sorted9BallCloseSussy extends OpMode {
             case 2: // Shoot 3 Preloads
                 doSort(0);
                 if (intake.getSimpleSortState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 9.5) {
-                    handleAutoShooting(currentPose, targetX, 20.0, 0);
+                    handleAutoShooting(currentPose, targetX, 8.5, 0);
                 }
-                if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
+                if (!goForLaunch  && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
                     beamWasCleared = !shooter.isBeamBroken();
                     goForLaunch = true;
                 }
@@ -171,7 +172,7 @@ public class Sorted9BallCloseSussy extends OpMode {
                 }
 
                 if (intake.getSimpleSortState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 7.5) {
-                    handleAutoShooting(currentPose, targetX, 11.0, 0);
+                    handleAutoShooting(currentPose, targetX, 8.5, 0);
                 }
 
 
@@ -212,7 +213,7 @@ public class Sorted9BallCloseSussy extends OpMode {
                 }
 
                 if (intake.getSimpleSortState() == Intake.SimpleSortState.READY|| pathTimer.getElapsedTimeSeconds() > 7.5) {
-                    handleAutoShooting(currentPose, targetX, 11.0, 0);
+                    handleAutoShooting(currentPose, targetX, 8.5, 0);
                 }
 
 
@@ -246,12 +247,12 @@ public class Sorted9BallCloseSussy extends OpMode {
         }
 
         // Latch flywheel (12-ball logic)
-        if (veloReached) {
-            flywheelLocked = true;
-        }
+//        if (veloReached) {
+//            flywheelLocked = true;
+//        }
 
         // Only allow feeding when ready (added intake state check from 9-ball)
-        if (flywheelLocked && goForLaunch && ((intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE) || pathTimer.getElapsedTimeSeconds() > 7.5)) {
+        if ((goForLaunch && veloReached) || pathTimer.getElapsedTimeSeconds() > 7.5) {
             doTransfer = true;
         }
 
@@ -288,7 +289,7 @@ public class Sorted9BallCloseSussy extends OpMode {
         doTransfer = false;
         goForLaunch = false;
         beamWasCleared = true;
-        flywheelLocked = false;
+        //flywheelLocked = false;
         lastBeamState = shooter.isBeamBroken();
         pathTimer.resetTimer();
     }
@@ -296,7 +297,7 @@ public class Sorted9BallCloseSussy extends OpMode {
     @Override
     public void init() {
         allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
         pathTimer = new Timer();
         loopTimer = new Timer();
@@ -315,8 +316,17 @@ public class Sorted9BallCloseSussy extends OpMode {
 
     @Override
     public void init_loop() {
-        for (LynxModule hub : allHubs) hub.clearBulkCache();
+
+
+        DetectedColor ball1 = sensors.getDetectedColor(sensors.colorSensor1);
+        DetectedColor ball2 = sensors.getDetectedColor(sensors.colorSensor2);
+        DetectedColor ball3 = sensors.getDetectedColor(sensors.colorSensor3);
+        telemetry.addData("Ball 1: ", ball1);
+        telemetry.addData("Ball 2: ", ball2);
+        telemetry.addData("Ball 3: ", ball3);
         Poses.updateAlliance(gamepad1, telemetry);
+
+
 
 
         if (Poses.getAlliance() != lastKnownAlliance) {
@@ -351,28 +361,29 @@ public class Sorted9BallCloseSussy extends OpMode {
 
     @Override
     public void start(){
-        colorSensorThread = new Thread(() -> {
-            while (!Thread.interrupted()) {
-                sensors.update();
-                try {
-                    Thread.sleep(100);
-                } catch (Exception e) {
-                    break;
-                }
-            }
-        });
+//        colorSensorThread = new Thread(() -> {
+//            while (!Thread.interrupted()) {
+//                sensors.update();
+//                try {
+//                    Thread.sleep(500);
+//                } catch (Exception e) {
+//                    break;
+//                }
+//            }
+//        });
 
-        colorSensorThread.start();
+       // colorSensorThread.start();
         pathTimer.resetTimer();
         setPathState(0);
     }
 
     @Override
     public void loop() {
-        for (LynxModule hub : allHubs) hub.clearBulkCache();
+
         loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
+        sensors.update();
 
         shooter.update(shooter.getCurrentTurretPosition());
 
@@ -383,6 +394,10 @@ public class Sorted9BallCloseSussy extends OpMode {
                         sensors.getDetectedColor(sensors.colorSensor2),
                         sensors.getDetectedColor(sensors.colorSensor3)
                 );
+
+        intake.update(shooter.isBeamBroken(),desiredOrder,sensors.getDetectedColor(sensors.colorSensor1),
+                sensors.getDetectedColor(sensors.colorSensor2),
+                sensors.getDetectedColor(sensors.colorSensor3));
 
         autonomousPathUpdate();
 
@@ -411,9 +426,9 @@ public class Sorted9BallCloseSussy extends OpMode {
 
     @Override
     public void stop() {
-        if (colorSensorThread != null) {
-            colorSensorThread.interrupt();
-        }
+//        if (colorSensorThread != null) {
+//            colorSensorThread.interrupt();
+//        }
         shooter.stopFlywheel();
         intake.resetState();
         limelight.limelightCamera.pause();
@@ -454,3 +469,4 @@ public class Sorted9BallCloseSussy extends OpMode {
         }
     }
 }
+

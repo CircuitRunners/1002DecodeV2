@@ -73,31 +73,31 @@ public class SigmaIntakeTest extends OpMode {
         telemetry.addData("Ball 3: ", ball3);
         telemetry.addLine("");
 
-        NormalizedRGBA rgba1 = sensors.colorSensor1.getNormalizedColors();
-        float r1 = rgba1.red * 10000;
-        float g1 = rgba1.green * 10000;
-        float b1 = rgba1.blue * 10000;
-        NormalizedRGBA rgba2 = sensors.colorSensor2.getNormalizedColors();
-        float r2 = rgba2.red * 10000;
-        float g2 = rgba2.green * 10000;
-        float b2 = rgba2.blue * 10000;
-        NormalizedRGBA rgba3 = sensors.colorSensor3.getNormalizedColors();
-        float r3 = rgba3.red * 10000;
-        float g3 = rgba3.green * 10000;
-        float b3 = rgba3.blue * 100000;
+//        NormalizedRGBA rgba1 = sensors.colorSensor1.getNormalizedColors();
+//        float r1 = rgba1.red * 10000;
+//        float g1 = rgba1.green * 10000;
+//        float b1 = rgba1.blue * 10000;
+//        NormalizedRGBA rgba2 = sensors.colorSensor2.getNormalizedColors();
+//        float r2 = rgba2.red * 10000;
+//        float g2 = rgba2.green * 10000;
+//        float b2 = rgba2.blue * 10000;
+//        NormalizedRGBA rgba3 = sensors.colorSensor3.getNormalizedColors();
+//        float r3 = rgba3.red * 10000;
+//        float g3 = rgba3.green * 10000;
+//        float b3 = rgba3.blue * 100000;
 
-        telemetry.addData("1r: ", r1);
-        telemetry.addData("1g: ", g1);
-        telemetry.addData("1b: ", b1);
-        telemetry.addLine("");
-        telemetry.addData("2r: ", r2);
-        telemetry.addData("2g: ", g2);
-        telemetry.addData("2b: ", b2);
-        telemetry.addLine("");
-
-        telemetry.addData("3r: ", r3);
-        telemetry.addData("3g: ", g3);
-        telemetry.addData("3b: ", b3);
+//        telemetry.addData("1r: ", r1);
+//        telemetry.addData("1g: ", g1);
+//        telemetry.addData("1b: ", b1);
+//        telemetry.addLine("");
+//        telemetry.addData("2r: ", r2);
+//        telemetry.addData("2g: ", g2);
+//        telemetry.addData("2b: ", b2);
+//        telemetry.addLine("");
+//
+//        telemetry.addData("3r: ", r3);
+//        telemetry.addData("3g: ", g3);
+//        telemetry.addData("3b: ", b3);
         telemetry.addLine("");
         telemetry.update();
 

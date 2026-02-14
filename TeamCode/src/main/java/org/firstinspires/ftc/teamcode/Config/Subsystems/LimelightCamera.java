@@ -209,6 +209,21 @@ public class LimelightCamera {
         return null;
     }
 
+    public int getTagId(){
+
+        limelightCamera.pipelineSwitch(5);
+
+        if (getResult() != null) {
+            for (LLResultTypes.FiducialResult fiducial : getResult().getFiducialResults()) {
+                int id = fiducial.getFiducialId();
+
+               return id;
+            }
+        }
+
+        return 0;
+    }
+
     public double[] getArtifactsOnRamp() {
         limelightCamera.pipelineSwitch(5); //idk we need a detector pipeline
         double[] totalResults = new double[3];

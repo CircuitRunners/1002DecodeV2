@@ -39,6 +39,8 @@ public class Intake {
     public static final double TRANSFER_ON = 0.59;
     public static final double TRANSFER_OFF = 0.67;
 
+    boolean isFirstTime = true;
+
     //SORTING STUFF//
     public enum IntakeState {
         IDLE,
@@ -500,7 +502,7 @@ public class Intake {
     private boolean simpleS1HadBallLast = false;
     private boolean simpleS1LostAfterSeeing = false;
 
-    private static final double SIMPLE_ENTRY_DEBOUNCE_MS = 600;
+    private static final double SIMPLE_ENTRY_DEBOUNCE_MS = 650;
 
     private ElapsedTime simpleSortTimer = new ElapsedTime();
 
@@ -525,9 +527,18 @@ public class Intake {
                 break;
 
             case CHECK_SLOTS:
+                boolean s1Valid = (s1 != null);
+                boolean s2Valid = (s2 != null);
+                boolean s3Valid = (s3 != null);
+
+                int valid = 0;
+                if (s1Valid) valid++;
+                if (s2Valid) valid++;
+                if (s3Valid) valid++;
+
 
                 // Only sort if slot 1 and 2 have balls
-                if (s1 != null && s2 != null) {
+                if (valid >=2) {
 
                     int currentIndex = patternIndexFromString(simpleCurrentPattern);
                     int targetIndex = patternIndexFromEnum(simpleTargetPattern);
@@ -538,6 +549,7 @@ public class Intake {
                     simpleRotationCounter = 0;
                     simpleS1HadBallLast = true;
                     simpleS1LostAfterSeeing = false;
+                    isFirstTime = true;
 
                     simpleSortTimer.reset();
 
@@ -559,7 +571,19 @@ public class Intake {
                 transferOn();
                 setDirectionCycle();
                 gateOpen();
-                intake.setPower(1);
+
+                if (isFirstTime && simpleSortTimer.milliseconds() >400){
+                    simpleSortTimer.reset();
+                    isFirstTime = false;
+                }
+
+                if (simpleSortTimer.milliseconds() <= 400 && isFirstTime){
+                    intake.setPower(-0.6);
+                }
+                else {
+                    intake.setPower(1);
+                }
+
 
                 updateSimpleRotationCounter(s1);
 
@@ -570,7 +594,7 @@ public class Intake {
                 }
 
                 // Safety timeout
-                if (simpleSortTimer.milliseconds() > 11000) {
+                if (simpleSortTimer.milliseconds() > 13000) {
                     intakeMotorHalt();
                     gateClose();
                     simpleSortState = SimpleSortState.READY;

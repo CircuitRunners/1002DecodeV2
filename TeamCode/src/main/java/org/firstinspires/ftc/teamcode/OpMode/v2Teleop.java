@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -152,7 +153,7 @@ public class v2Teleop extends OpMode {
 
         follower.getVelocity();
 
-        veloReached =  (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(shooter.getTargetFLywheelVelo()) - (1500 )) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(shooter.getTargetFLywheelVelo()) + (16000)) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+        veloReached =  (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(0.93 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(1.07 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
 
         shooter.turretCoefficientsTeleop = turretCoefficientsTeleop;
         shooter.turretDeadband = turretDeadband;
@@ -514,7 +515,8 @@ public class v2Teleop extends OpMode {
         //limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
         limelight.limelightCamera.pipelineSwitch(3);
         LLResult result = limelight.getResult();
-        if (result != null && result.isValid()) {
+        if (result != null && result.isValid() &&
+                (Poses.getAlliance() == Poses.Alliance.RED ? limelight.getTagId() == 24 : limelight.getTagId() == 20)) {
             double error = limelight.updateError();
             if (Math.abs(error) < limelightTurretTolerance) return;
             double currentTurretAngle = shooter.getCurrentTurretPosition();
