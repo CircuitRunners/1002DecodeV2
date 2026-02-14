@@ -139,7 +139,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 0: // Travel to Initial Shoot
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
-                    follower.followPath(travelToShoot, true);
+                    follower.followPath(travelToShoot, false);
 
                     setPathState();
                 }
@@ -175,7 +175,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.5  || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 )) {
 
-                    follower.followPath(travelBackToShoot1, true);
+                    follower.followPath(travelBackToShoot1, false);
                     setPathState();
                 }
                 break;
@@ -211,7 +211,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
             case 7: // Return to Shoot 2
 
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    follower.followPath(travelBackToShoot2, true);
+                    follower.followPath(travelBackToShoot2, false);
                     setPathState();
                 }
                 break;
@@ -247,7 +247,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
 
-                    follower.followPath(travelBackToShoot3, true);
+                    follower.followPath(travelBackToShoot3, false);
                     setPathState();
                 }
                 break;

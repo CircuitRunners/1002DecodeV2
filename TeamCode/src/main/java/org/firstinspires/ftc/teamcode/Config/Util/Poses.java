@@ -106,8 +106,8 @@ public class Poses {
 //    );
 
     public static final AlliancePose shootPositionGoalSide2 = new AlliancePose(
-            new Pose(100.5, 107, Math.toRadians(37)),
-            new Pose(43.5, 110, Math.toRadians(143)) // 144 - 100.5 = 43.5
+            new Pose(85.5, 92, Math.toRadians(37)),
+            new Pose(68.5, 95, Math.toRadians(143)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide3 = new AlliancePose(
