@@ -149,7 +149,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 4.5,0);
+                handleAutoShooting(currentPose, targetX, 6.7,0);
                 if (!goForLaunch
                         && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1) {
@@ -190,7 +190,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 5.3, 0);
+                    handleAutoShooting(currentPose, targetX, 6.7, 0);
                 }
 
                 // Allow feeding once fully settled
@@ -226,7 +226,7 @@ public class AdaptationOfThePowerOfFriendship extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 5.9, 0);
+                    handleAutoShooting(currentPose, targetX, 6.7, 0);
                 }
 
                 // Allow feeding once fully settled

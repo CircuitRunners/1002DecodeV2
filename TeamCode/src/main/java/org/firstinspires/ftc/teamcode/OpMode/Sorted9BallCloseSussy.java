@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-@Disabled
+//@Disabled
 @Configurable
 @Autonomous(name = "SUSSY GS 9 Ball SORT ", group = "A", preselectTeleOp = "v2Teleop")
 public class Sorted9BallCloseSussy extends OpMode {
@@ -65,6 +65,7 @@ public class Sorted9BallCloseSussy extends OpMode {
 
     private boolean sortStarted = false;
     private PathChain travelToShoot, getBallOrder, intake1, travelBackToShoot1, intake2, travelBackToShoot2;
+    private Thread colorSensorThread;
 
     public void buildPaths() {
 
@@ -349,8 +350,19 @@ public class Sorted9BallCloseSussy extends OpMode {
     }
 
     @Override
-    public void start() {
-        sensors.run();
+    public void start(){
+        colorSensorThread = new Thread(() -> {
+            while (!Thread.interrupted()) {
+                sensors.update();
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    break;
+                }
+            }
+        });
+
+        colorSensorThread.start();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -365,10 +377,12 @@ public class Sorted9BallCloseSussy extends OpMode {
         shooter.update(shooter.getCurrentTurretPosition());
 
         // Passing detected colors to intake for sorting
-        intake.update(shooter.isBeamBroken(), desiredOrder != null ? desiredOrder : LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+        intake.updateSimpleSorter(
+
+                        sensors.getDetectedColor(sensors.colorSensor1),
+                        sensors.getDetectedColor(sensors.colorSensor2),
+                        sensors.getDetectedColor(sensors.colorSensor3)
+                );
 
         autonomousPathUpdate();
 
@@ -388,16 +402,18 @@ public class Sorted9BallCloseSussy extends OpMode {
         telemetry.addData("loop time",loopTimer.getElapsedTime());
 
 
-        intake.doSortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder,shooter.isBeamBroken());
+        intake.doSortingTelemetry(sensors.getDetectedColor(sensors.colorSensor1),
+                sensors.getDetectedColor(sensors.colorSensor2),
+                sensors.getDetectedColor(sensors.colorSensor3),desiredOrder,shooter.isBeamBroken());
 
         telemetry.update();
     }
 
     @Override
     public void stop() {
-        sensors.stop();
+        if (colorSensorThread != null) {
+            colorSensorThread.interrupt();
+        }
         shooter.stopFlywheel();
         intake.resetState();
         limelight.limelightCamera.pause();

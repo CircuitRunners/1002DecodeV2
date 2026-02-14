@@ -75,7 +75,7 @@ public class v2Teleop extends OpMode {
 
     public static  double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
     public static double limelightTurretScale = 1.0;
-    public static double limelightTurretTolerance = 0.5; //degrees
+    public static double limelightTurretTolerance = 4; //degrees
 
     public static double turretDeadband = 0;
 
@@ -271,7 +271,8 @@ public class v2Teleop extends OpMode {
         }
         lastRightBumper = toggleBumper;
 
-        if (result.isValid() && result != null
+        if (follower.getPose().getY() > 69 &&
+                result.isValid() && result != null
                 && useAprilTagAim) {
             updateTurretWithAprilTag();
             noAutoAlign = true;
@@ -358,19 +359,21 @@ public class v2Teleop extends OpMode {
 
       else {
 
-          turretOffsetFar = -14;
+
               if (isRedAlliance) {
+                  turretOffsetFar = -12.5;
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,-58, 0,true,turretMannualAdjust  );
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,-88, 0,true,turretMannualAdjust  );
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -58,0,true,turretMannualAdjust  );
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -88,0,true,turretMannualAdjust  );
                   }
               }
               else{
+                  turretOffsetFar = 12.5;
                   if (noAutoAlign) {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -58,0,false,turretMannualAdjust );
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, -88,0,false,turretMannualAdjust );
                   } else {
-                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -58,0,false,turretMannualAdjust );
+                      shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, -88,0,false,turretMannualAdjust );
                   }
               }
           }
@@ -512,6 +515,9 @@ public class v2Teleop extends OpMode {
             double newTarget = currentTurretAngle + (error * limelightTurretScale) + turretOffsetFar;
             newTarget = (newTarget % 360 + 360) % 360;
             shooter.setTurretTargetPosition(newTarget);
+
+            telemetry.addData("Turret Limelight Error", error);
+            telemetry.update();
 
         }
 

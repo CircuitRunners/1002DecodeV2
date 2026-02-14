@@ -77,10 +77,6 @@ public class LimelightCamera {
         } else {
             error = 0;
         }
-
-        if (error > 4.5){
-            error = 0;
-        }
         return error;
     }
 

@@ -17,10 +17,8 @@ public class SigmaIntakeTest extends OpMode {
     private Intake intake;
     private Sensors sensors;
     private Shooter shooter;
-
+    private Thread colorSensorThread;
     private LimelightCamera.BallOrder ballOrder = LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE;
-
-
 
     @Override
     public void init() {
@@ -28,36 +26,51 @@ public class SigmaIntakeTest extends OpMode {
         intake = new Intake(hardwareMap, telemetry);
         sensors = new Sensors();
         shooter = new Shooter(hardwareMap,telemetry,false);
+        sensors.init(hardwareMap, "SRSHub");
 
-        try {
-            // The Sensors class handles finding and configuring the SRSHub itself
-            sensors.init(hardwareMap, "SRSHub");
-            telemetry.addData("Status", "Initialization Successful!");
-        } catch (Exception e) {
-            telemetry.addData("Status", "FATAL ERROR during initialization!");
-            telemetry.addData("Error", e.getMessage());
-
-        }
+//        try {
+//            // The Sensors class handles finding and configuring the SRSHub itself
+//
+//            telemetry.addData("Status", "Initialization Successful!");
+//        } catch (Exception e) {
+//            telemetry.addData("Status", "FATAL ERROR during initialization!");
+//            telemetry.addData("Error", e.getMessage());
+//
+//        }
 
         intake.setCanShoot(false);
+        telemetry.addLine("init done");
         telemetry.update();
     }
 //hi
 
     @Override
-    public void start(){
-        sensors.run();
+    public void start() {
+        colorSensorThread = new Thread(() -> {
+            while (!Thread.interrupted()) {
+                sensors.update();
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    break;
+                }
+            }
+        });
+
+        colorSensorThread.start();
     }
+
     @Override
     public void loop() {
         player1.readButtons();
 
-
-
-        DetectedColor ball1 = sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green());
-        DetectedColor ball2 = sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green());
-        DetectedColor ball3 = sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green());
+        DetectedColor ball1 = sensors.getDetectedColor(sensors.colorSensor1);
+        DetectedColor ball2 = sensors.getDetectedColor(sensors.colorSensor2);
+        DetectedColor ball3 = sensors.getDetectedColor(sensors.colorSensor3);
         // Hold Cross (A) to Intake
+//        telemetry.addData("Ball 1: ", ball1);
+//        telemetry.addData("Ball 2: ", ball2);
+//        telemetry.addData("Ball 3: ", ball3);
 
         intake.update(shooter.isBeamBroken(), ballOrder, ball1, ball2, ball3);
         if (gamepad1.square) {
@@ -102,8 +115,11 @@ public class SigmaIntakeTest extends OpMode {
 
         telemetry.update();
     }
+
     @Override
     public void stop(){
-        sensors.stop();
+        if (colorSensorThread != null) {
+            colorSensorThread.interrupt();
+        }
     }
 }

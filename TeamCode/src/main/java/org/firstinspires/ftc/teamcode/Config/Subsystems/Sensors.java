@@ -15,8 +15,6 @@ public class Sensors {
    // private SRSHub hub;
     private final ElapsedTime runtime = new ElapsedTime();
 
-    private Thread colorSensorThread;
-
     // --- Configured I2C Devices ---
 //    private SRSHub.APDS9151 colorSensor1;
 //    private SRSHub.APDS9151 colorSensor2;
@@ -31,14 +29,19 @@ public class Sensors {
 //    private double TURRET_SKIPPED_TICKS = 0;
 
 
-    private NormalizedColorSensor colorSensor1;
-    private NormalizedColorSensor colorSensor2;
-    private NormalizedColorSensor colorSensor3;
+    public NormalizedColorSensor colorSensor1;
+    public NormalizedColorSensor colorSensor2;
+    public NormalizedColorSensor colorSensor3;
 
     NormalizedRGBA sensor1Colors;
     NormalizedRGBA sensor2Colors;
     NormalizedRGBA sensor3Colors;
 
+
+    public static float GREEN_RATIO_MIN = 1.35f;
+    public static float PURPLE_RB_RATIO_MIN = 1.15f;
+    public static float PURPLE_BLUE_SHARE_MIN = 0.28f;
+    public static float BRIGHTNESS_MIN_WHEN_PRESENT = 0.02f;
 
 
 
@@ -110,23 +113,7 @@ public class Sensors {
 //     * Update all hub data — call once per loop.
 //     */
 
-
-    public void run(){
-        colorSensorThread = new Thread(() -> {
-            while (!Thread.interrupted()) {
-                update();
-                try {
-                    Thread.sleep(100);
-                } catch (Exception e) {
-                    break;
-                }
-            }
-        });
-
-        colorSensorThread.start();
-
-    }
-    private void update() {
+    public void update() {
        sensor1Colors = colorSensor1.getNormalizedColors();
        sensor2Colors = colorSensor2.getNormalizedColors();
        sensor3Colors = colorSensor3.getNormalizedColors();
@@ -253,18 +240,13 @@ public class Sensors {
 //
 //
 
-    public void stop(){
-        if (colorSensorThread != null) {
-            colorSensorThread.interrupt();
-        }
-    }
 
-
-    public DetectedColor getDetectedColor(float red, float blue, float green) {
-        float r = red;
-        float g = green;
-        float b = blue;
-        float greenDifferenceOffset = 95;
+    public DetectedColor getDetectedColorold(NormalizedColorSensor sensor) {
+        NormalizedRGBA rgba = sensor.getNormalizedColors();
+        float r = rgba.red;
+        float g = rgba.green;
+        float b = rgba.blue;
+        float greenDifferenceOffset = 95f;
 
         // --- NOTHING DETECTED ---
 //        if (r < 120 && g < 120 && b < 120) {
@@ -287,6 +269,58 @@ public class Sensors {
         else if (b + 12 >= g && g - 25 > r ){
             return DetectedColor.PURPLE;
         }
+
+        // --- everything else counts as NONE ---
+        return DetectedColor.NONE;
+    }
+
+    public DetectedColor getDetectedColor(NormalizedColorSensor sensor) {
+        NormalizedRGBA rgba = sensor.getNormalizedColors();
+        float r = rgba.red;
+        float g = rgba.green;
+        float b = rgba.blue;
+
+        float sum = r+g+b;
+        float greenDifferenceOffset = 95f;
+
+        float maxRB = Math.max(r,b);
+
+
+        if (sum < BRIGHTNESS_MIN_WHEN_PRESENT) return null;
+        if (g >= maxRB * GREEN_RATIO_MIN) return DetectedColor.GREEN;
+
+        float rb = r+b;
+        float blueShare = (sum > 1e-6f) ? (b/sum) : 0.0f;
+
+        if (rb >= g * PURPLE_BLUE_SHARE_MIN && blueShare >= PURPLE_BLUE_SHARE_MIN){
+            return DetectedColor.PURPLE;
+        }
+
+
+
+
+
+        // --- NOTHING DETECTED ---
+//        if (r < 120 && g < 120 && b < 120) {
+//            return null;
+//        }
+
+        // --- GREEN: green strongest ---
+//        if (g - greenDifferenceOffset > r && g - greenDifferenceOffset > b) {
+//            return DetectedColor.GREEN;
+//        }
+//
+//        // --- PURPLE: both G and B > R ---
+//        else if ( g + b > 350 && (g + b / 2) > r) {
+//            return DetectedColor.PURPLE;
+//        }
+//
+//        else if (g - 40 > r && g - 40 > b){
+//            return DetectedColor.GREEN;
+//        }
+//        else if (b + 12 >= g && g - 25 > r ){
+//            return DetectedColor.PURPLE;
+//        }
 
         // --- everything else counts as NONE ---
         return null;

@@ -349,7 +349,7 @@ public class Sorted9BallClose extends OpMode {
 
     @Override
     public void start() {
-        sensors.run();
+        //sensors.run();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -364,10 +364,11 @@ public class Sorted9BallClose extends OpMode {
         shooter.update(shooter.getCurrentTurretPosition());
 
         // Passing detected colors to intake for sorting
-        intake.update(shooter.isBeamBroken(), desiredOrder != null ? desiredOrder : LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-                sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()));
+        intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
+                sensors.getDetectedColor(sensors.colorSensor1),
+                sensors.getDetectedColor(sensors.colorSensor2),
+                sensors.getDetectedColor(sensors.colorSensor3)
+        );
 
         autonomousPathUpdate();
 
@@ -383,9 +384,9 @@ public class Sorted9BallClose extends OpMode {
         telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.addData("Velo Reached", veloReached);
         telemetry.addData("Intake State", intake.getCurrentIntakeState());
-        intake.doSortingTelemetry(sensors.getDetectedColor(sensors.getColor1Red(), sensors.getColor1Blue(), sensors.getColor1Green()),
-                sensors.getDetectedColor(sensors.getColor2Red(), sensors.getColor2Blue(), sensors.getColor2Green()),
-                sensors.getDetectedColor(sensors.getColor3Red(), sensors.getColor3Blue(), sensors.getColor3Green()),desiredOrder, shooter.isBeamBroken());
+        intake.doSortingTelemetry(sensors.getDetectedColor(sensors.colorSensor1),
+                sensors.getDetectedColor(sensors.colorSensor2),
+                sensors.getDetectedColor(sensors.colorSensor3),desiredOrder, shooter.isBeamBroken());
         telemetry.addData("loop time",loopTimer.getElapsedTime());
 
         telemetry.update();
@@ -393,7 +394,7 @@ public class Sorted9BallClose extends OpMode {
 
     @Override
     public void stop() {
-        sensors.stop();
+        //sensors.stop();
         shooter.stopFlywheel();
         intake.resetState();
         limelight.limelightCamera.pause();
