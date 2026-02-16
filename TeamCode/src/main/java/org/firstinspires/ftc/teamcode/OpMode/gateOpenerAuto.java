@@ -12,25 +12,31 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-@Disabled
+//@Disabled
 @Configurable
-@Autonomous(name = "GS 12 Ball - JAMES", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "GS Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
 public class gateOpenerAuto extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
     private Timer pathTimer;
+    private ElapsedTime intakeTimer;
     private Shooter shooter;
     private Intake intake;
     private Sensors sensors;
+
+    private List<LynxModule> allHubs;
+
 
     private int pathState;
     private Poses.Alliance lastKnownAlliance = null;
@@ -40,80 +46,86 @@ public class gateOpenerAuto extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 127.0;
-    private final double BLUE_GOAL_X = 17.0;
-    private final double GOAL_Y = 127.5;
+    private final double RED_GOAL_X = 127;
+    private final double BLUE_GOAL_X = 13;
+    private final double GOAL_Y = 132;
 
     private boolean doTransfer = false;
     private boolean intakeStoppedForShooting = false;
     private boolean goForLaunch = false;
     boolean veloReached = false;
-    boolean flywheelLocked = false;
+   // boolean flywheelLocked = false;
 
 
 
 
-    private PathChain travelToShoot, openGate, intakeGate,intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, superMegaTechGateCycle;
+    private PathChain travelToShoot, openGate,travelBackToShootFromGateLastTime,ramGate,intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, superMegaTechGateCycle;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
         // Path 2: Shoot to Intake 1
         intake2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.25)
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
+                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
         // Path 3: Travel back to shoot
         travelBackToShoot2 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLine2), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
         openGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
                 .build();
-        intakeGate = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
+
+        ramGate = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
                 .build();
 
         superMegaTechGateCycle = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
+               .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.openGateRamTech)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.openGateRamTech).getHeading())
                 .build();
 
         // Path 6: Intake 2 back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.openGateRamTech), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateRamTech).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
+                .build();
+
+        travelBackToShootFromGateLastTime = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.openGateRamTech), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateRamTech).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
         intake1 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.pickupLine1)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.45)
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLine1)))
+                .setConstantHeadingInterpolation( Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
         travelBackToShootFromIntake1 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine1), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
         intake3  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
                 .build();
 
         travelBackToShootFromIntake3 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
     }
@@ -126,16 +138,16 @@ public class gateOpenerAuto extends OpMode {
             case 0: // Travel to Initial Shoot
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
-                    follower.followPath(travelToShoot, true);
+                    shooter.setTurretTarget(targetX == RED_GOAL_X ? 315 : 45, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                    follower.followPath(travelToShoot, false);
                     setPathState();
                 }
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 4.5,0);
+                handleAutoShooting(currentPose, targetX, 7.1,0);
                 if (!goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
                 }
                 break;
@@ -143,7 +155,7 @@ public class gateOpenerAuto extends OpMode {
             case 2: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(intake2, true);
+                    follower.followPath(intake2, false);
                     setPathState();
                 }
                 break;
@@ -151,14 +163,25 @@ public class gateOpenerAuto extends OpMode {
             case 3: // Gate logic
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShoot2, true);
+                    follower.followPath(travelBackToShoot2, false);
                     setPathState();
                 }
                 break;
 
             case 4: // Return to Shoot 1
-                if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 0.05) {
-                    handleAutoShooting(currentPose, targetX, 4.5,0);
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 6, 0);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.8) {
+                    goForLaunch = true;
                 }
                 break;
 
@@ -166,8 +189,16 @@ public class gateOpenerAuto extends OpMode {
             case 5: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
                     intake.doIntake();
-                    follower.followPath(superMegaTechGateCycle, false);
-                    setPathState();
+                    follower.followPath(ramGate, false);
+                    setPathState(41);
+                }
+                break;
+
+            case 41:
+                if (!follower.isBusy()){
+                        follower.followPath(superMegaTechGateCycle,false);
+                        setPathState(6);
+
                 }
                 break;
 
@@ -175,15 +206,16 @@ public class gateOpenerAuto extends OpMode {
             case 6: // WAIT at Gate (2.5s)
                 intake.doIntake(); // keep intaking while stalled
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 4.5) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
                     setPathState();
                 }
                 break;
 
 
             case 7: // Return to Shoot 2
+                intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShootFromGate, true);
+                    follower.followPath(travelBackToShootFromGate, false);
                     setPathState();
                 }
                 break;
@@ -194,30 +226,50 @@ public class gateOpenerAuto extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 25, 0);
+                    handleAutoShooting(currentPose, targetX, 6, 0);
                 }
 
                 // Allow feeding once fully settled
                 if (intakeStoppedForShooting
                         && !goForLaunch
                         && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
+                        && follower.getVelocity().getMagnitude() < 1.3) {
                     goForLaunch = true;
                 }
                 break;
 
-            case 9:
-                intake.doIntake();
+            case 9: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
-                    follower.followPath(intake3, true);
-                    setPathState();
+                    intake.doIntake();
+                    follower.followPath(ramGate, false);
+                    setPathState(42);
                 }
                 break;
 
+            case 42:
+                if (!follower.isBusy()){
+
+                        follower.followPath(superMegaTechGateCycle,false);
+                        setPathState(67);
+
+                }
+                break;
+
+
+
+
+            case 67: // WAIT at Gate (2.5s)
+                intake.doIntake(); // keep intaking while stalled
+
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
+                    setPathState(10);
+                }
+                break;
             case 10:
+                intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShootFromIntake3, true);
-                    setPathState();
+                    follower.followPath(travelBackToShootFromGateLastTime, false);
+                   setPathState();
                 }
                 break;
 
@@ -226,14 +278,14 @@ public class gateOpenerAuto extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 25, 0);
+                    handleAutoShooting(currentPose, targetX, 6, 0);
                 }
 
                 // Allow feeding once fully settled
                 if (intakeStoppedForShooting
                         && !goForLaunch
                         && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1) {
+                        && follower.getVelocity().getMagnitude() < 1.3) {
                     goForLaunch = true;
                 }
                 break;
@@ -248,7 +300,7 @@ public class gateOpenerAuto extends OpMode {
 
             case 13:
                 if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShootFromIntake1, true);
+                    follower.followPath(travelBackToShootFromIntake1, false);
                     setPathState();
                 }
                 break;
@@ -264,13 +316,14 @@ public class gateOpenerAuto extends OpMode {
                 // Allow feeding once fully settled
                 if (intakeStoppedForShooting
                         && !goForLaunch
-                        && follower.atParametricEnd()
+
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
                 break;
 
             default:
+                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 shooter.stopFlywheel();
                 intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
@@ -305,19 +358,18 @@ public class gateOpenerAuto extends OpMode {
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, -52,
+                    false, -58,
                     mannualHoodOffset ,
                     false, 0
             );
         }
 
         //  Latch flywheel once it EVER reaches speed
-        if (veloReached) {
-            flywheelLocked = true;
-        }
+
+
 
         //  Only allow feeding when fully ready
-        if (flywheelLocked && goForLaunch) {
+        if (veloReached && goForLaunch) {
             doTransfer = true;
         }
 
@@ -332,6 +384,7 @@ public class gateOpenerAuto extends OpMode {
             resetShootingState();
             shooter.stopFlywheel();
             intake.doIntakeHalt();
+            intakeStoppedForShooting = false;
             setPathState();
         }
     }
@@ -375,10 +428,13 @@ public class gateOpenerAuto extends OpMode {
     @Override
     public void init() {
         // Bulk reading for loop speed
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
 
         pathTimer = new Timer();
+
         follower = Constants.createFollower(hardwareMap);
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
@@ -394,7 +450,7 @@ public class gateOpenerAuto extends OpMode {
 
 
         if (Poses.getAlliance() != lastKnownAlliance) {
-            follower.setStartingPose(Poses.get(Poses.startPoseGoalSide));
+            follower.setStartingPose(Poses.get(Poses.startPose15Ball));
             buildPaths();
 
             lastKnownAlliance = Poses.getAlliance();
@@ -413,7 +469,7 @@ public class gateOpenerAuto extends OpMode {
         telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
         telemetry.addLine("");
         telemetry.addData("Alliance Set", Poses.getAlliance());
-        telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
+        telemetry.addData("Start Pose", Poses.get(Poses.startPose15Ball));
 
         telemetry.addData("X Pos", follower.getPose().getX());
         telemetry.addData("Y Pos", follower.getPose().getY());
@@ -431,19 +487,53 @@ public class gateOpenerAuto extends OpMode {
 
     @Override
     public void loop() {
-        // Must update all hardware/sensors every loop
+
+        // Clear bulk cache ONCE per loop
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
+
+        //loopTimer.resetTimer();
+
         follower.update();
         pinpoint.update();
 
+
+
+        // Cache hardware reads ONCE
+        boolean beamBroken = shooter.isBeamBroken();
+        double flywheelVelo = shooter.getFlywheelVelo();
+        double targetFlywheelVelo = shooter.getTargetFLywheelVelo();
+
         shooter.update(shooter.getCurrentTurretPosition());
+        intake.update(
+                beamBroken,
+                LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
+                null, null, null
+        );
 
         autonomousPathUpdate();
 
+        veloReached =
+                (Math.abs(flywheelVelo) >
+                        (Math.abs(targetFlywheelVelo) - 40)
+                        &&
+                        Math.abs(flywheelVelo) <
+                                (Math.abs(targetFlywheelVelo) + 40)
+                        &&
+                        Math.abs(targetFlywheelVelo) >= 1);
+
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
-        telemetry.addData("Beam Status", shooter.isBeamBroken() ? "BROKEN" : "CLEAR");
-        telemetry.addData("Shooter Velo", shooter.getFlywheelVelo());
-        telemetry.addData("is up to sped",shooter.flywheelVeloReached);
+        telemetry.addData("Beam Status", beamBroken ? "BROKEN" : "CLEAR");
+        telemetry.addData("Shooter Velo", flywheelVelo);
+        telemetry.addData("is up to sped", veloReached);
+        telemetry.addData("Balls shot in state:", ballsShotInState);
+        //telemetry.addData("Loop Time", loopTimer.getElapsedTime());
+        telemetry.addData("target velo", targetFlywheelVelo);
+        telemetry.addData("Go for launch?", goForLaunch);
+        telemetry.addData("Path t", follower.getCurrentTValue());
+        telemetry.addData("IntakeStopped", intakeStoppedForShooting);
         telemetry.update();
     }
 
