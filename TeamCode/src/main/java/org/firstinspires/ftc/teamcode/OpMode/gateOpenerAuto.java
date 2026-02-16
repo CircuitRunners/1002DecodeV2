@@ -24,7 +24,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 //@Disabled
 @Configurable
-@Autonomous(name = "GS Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "GS 15 - 2 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
 public class gateOpenerAuto extends OpMode {
 
     private Follower follower;
@@ -109,12 +109,12 @@ public class gateOpenerAuto extends OpMode {
                 .build();
 
         intake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLine1)))
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLineOne15Ball)))
                 .setConstantHeadingInterpolation( Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
         travelBackToShootFromIntake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
@@ -145,7 +145,7 @@ public class gateOpenerAuto extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 7.1,0);
+                handleAutoShooting(currentPose, targetX, 5.5,0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -173,7 +173,7 @@ public class gateOpenerAuto extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 6, 0);
+                    handleAutoShooting(currentPose, targetX, 4, 0);
                 }
 
                 // Allow feeding once fully settled
@@ -206,7 +206,7 @@ public class gateOpenerAuto extends OpMode {
             case 6: // WAIT at Gate (2.5s)
                 intake.doIntake(); // keep intaking while stalled
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
+                if (!follower.isBusy()  || (pathTimer.getElapsedTimeSeconds() >= 0.8 && follower.getVelocity().getMagnitude() <= 1.4)) {
                     setPathState();
                 }
                 break;
@@ -226,7 +226,7 @@ public class gateOpenerAuto extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 6, 0);
+                    handleAutoShooting(currentPose, targetX, 4, 0);
                 }
 
                 // Allow feeding once fully settled
@@ -261,7 +261,7 @@ public class gateOpenerAuto extends OpMode {
             case 67: // WAIT at Gate (2.5s)
                 intake.doIntake(); // keep intaking while stalled
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
+                if (!follower.isBusy()  || (pathTimer.getElapsedTimeSeconds() >= 0.8 && follower.getVelocity().getMagnitude() <= 1.4)) {
                     setPathState(10);
                 }
                 break;
@@ -278,7 +278,7 @@ public class gateOpenerAuto extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 6, 0);
+                    handleAutoShooting(currentPose, targetX, 4, 0);
                 }
 
                 // Allow feeding once fully settled
@@ -293,7 +293,7 @@ public class gateOpenerAuto extends OpMode {
             case 12:
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(intake1, true);
+                    follower.followPath(intake1, false);
                     setPathState();
                 }
                 break;

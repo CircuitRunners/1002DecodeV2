@@ -235,7 +235,7 @@ public class Shooter {
 
 // Initialize targets
 
-        turretPIDF.setSetPoint(0);
+        turretPIDF.setSetPoint(targetTurretPosition);
         flywheelPIDF.setSetPoint(0);
 
 
