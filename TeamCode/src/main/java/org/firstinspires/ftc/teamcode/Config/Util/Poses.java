@@ -111,7 +111,7 @@ public class Poses {
     );
 
     public static final AlliancePose shootPositionGoalSide15Ball = new AlliancePose(
-            new Pose(128.5, 89, Math.toRadians(49.5)),
+            new Pose(92.5, 89, Math.toRadians(49.5)),
             new Pose(51.5, 89, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
     );
 
@@ -240,11 +240,11 @@ public class Poses {
 
     // FAR SIDE
     public static final AlliancePose startPoseFarSide = new AlliancePose(
-            new Pose(84, 3.5, Math.toRadians(90)),
-            new Pose(60, 3.5, Math.toRadians(90))
+            new Pose(84, 6, Math.toRadians(180)),
+            new Pose(60, 6, Math.toRadians(0))
     );
     public static final AlliancePose startPose15Ball = new AlliancePose(
-            new Pose(154.5, 118.5, Math.toRadians(38.5)),
+            new Pose(118.5, 118.5, Math.toRadians(38.5)),
             new Pose(25.5, 118.5, Math.toRadians(141.5))
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
@@ -252,16 +252,16 @@ public class Poses {
             new Pose(60, 16.5, Math.toRadians(113.5))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
-            new Pose(137, 16.5, Math.toRadians(0)),
-            new Pose(7, 16.5 , Math.toRadians(180))
+            new Pose(134, 6, Math.toRadians(0)),
+            new Pose(10, 6 , Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntakeRam = new AlliancePose(
-            new Pose(137, 13.5, Math.toRadians(0)),
-            new Pose(7, 13.5 , Math.toRadians(180))
+            new Pose(134, 8, Math.toRadians(-20)),
+            new Pose(10, 8, Math.toRadians(200))
     );
     public static final AlliancePose backUpPoint = new AlliancePose(
-            new Pose(129, 16.5, Math.toRadians(0)),
-            new Pose(15, 16.5, Math.toRadians(180))
+            new Pose(129, 7, Math.toRadians(0)),
+            new Pose(15, 7, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
             new Pose(96.3, 7.2),

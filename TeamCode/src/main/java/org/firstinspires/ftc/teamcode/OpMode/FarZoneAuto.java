@@ -88,6 +88,7 @@ public class FarZoneAuto extends OpMode {
     public void autonomousPathUpdate() {
         Pose currentPose = follower.getPose();
         double targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
+        shooter.setTurretTarget(targetX == RED_GOAL_X ? 295 : 65, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
 
         // Auto-kill transfer if not in a shooting state
         boolean isShootingState = (pathState == 1 || pathState == 6 || pathState == 9 || pathState == 14);
@@ -98,11 +99,9 @@ public class FarZoneAuto extends OpMode {
         }
 
         switch (pathState) {
-            case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ? 330 : 30, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
-                break;
 
-            case 1: // Shoot 3 Preloads
+
+            case 0: // Shoot 3 Preloads
                 handleAutoShooting(currentPose, targetX, 6.5, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
@@ -110,7 +109,7 @@ public class FarZoneAuto extends OpMode {
                 }
                 break;
 
-            case 2: // Drive to Intake
+            case 1: // Drive to Intake
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(humanPlayerIntake, true);
@@ -158,6 +157,7 @@ public class FarZoneAuto extends OpMode {
 
 
             default:
+                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 shooter.stopFlywheel();
                 intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
@@ -165,29 +165,58 @@ public class FarZoneAuto extends OpMode {
         }
     }
 
-    private void handleAutoShooting(Pose pose, double targetX, double timeout, double mannualHoodAdjust) {
+    private void handleAutoShooting(
+            Pose pose,
+            double targetX,
+            double timeout,
+            double mannualHoodOffset
+    ) {
         double headingDeg = Math.toDegrees(pose.getHeading());
 
-        // Command shooter targets every loop in state
-        shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, -40, mannualHoodAdjust, false, 0);
-
-        if (veloReached) {
-            flywheelLocked = true;
+        // Always command shooter targets
+        if (Poses.getAlliance() == Poses.Alliance.RED) {
+            shooter.setTargetsByDistanceAdjustable(
+                    pose.getX(), pose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg,
+                    false, 0,
+                    mannualHoodOffset,
+                    true, 0
+            );
+        } else {
+            shooter.setTargetsByDistanceAdjustable(
+                    pose.getX(), pose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg,
+                    false, -58,
+                    mannualHoodOffset ,
+                    false, 0
+            );
         }
 
-        if (flywheelLocked && goForLaunch) {
+        //  Latch flywheel once it EVER reaches speed
+
+
+
+        //  Only allow feeding when fully ready
+        if (veloReached && goForLaunch) {
             doTransfer = true;
         }
 
+        //  Feeding + shot counting
         if (doTransfer) {
-            trackShotCount(shooter.isBeamBroken());
+
+                trackShotCount(shooter.isBeamBroken());
+
             intake.doTestShooter();
         }
 
+        // ⏱ FAILSAFE EXIT (prevents sitting forever)
         if (ballsShotInState >= 3 || pathTimer.getElapsedTimeSeconds() > timeout) {
             resetShootingState();
             shooter.stopFlywheel();
             intake.doIntakeHalt();
+            intakeStoppedForShooting = false;
             setPathState();
         }
     }
@@ -266,7 +295,7 @@ public class FarZoneAuto extends OpMode {
         telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
         telemetry.addLine("");
         telemetry.addData("Alliance Set", Poses.getAlliance());
-        telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
+        telemetry.addData("Start Pose", Poses.get(Poses.startPoseFarSide));
 
         telemetry.addData("X Pos", follower.getPose().getX());
         telemetry.addData("Y Pos", follower.getPose().getY());

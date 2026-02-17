@@ -49,6 +49,9 @@ public class Fifteen3lines extends OpMode {
         private final double BLUE_GOAL_X = 13;
         private final double GOAL_Y = 132;
 
+        public static double startX = 0;
+        public static double startY = 0;
+
         private boolean doTransfer = false;
         private boolean intakeStoppedForShooting = false;
         private boolean goForLaunch = false;
@@ -66,6 +69,8 @@ public class Fifteen3lines extends OpMode {
                     .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
                     .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
                     .build();
+
+
 
             // Path 2: Shoot to Intake 1
             intake2 = follower.pathBuilder()
