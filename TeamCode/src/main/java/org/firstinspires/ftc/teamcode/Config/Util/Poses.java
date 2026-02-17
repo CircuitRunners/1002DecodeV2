@@ -159,14 +159,14 @@ public class Poses {
 
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
-            new Pose(139, 35, Math.toRadians(0)),
-            new Pose(5, 36, Math.toRadians(180))
+            new Pose(139, 34.5, Math.toRadians(0)),
+            new Pose(5, 34.5, Math.toRadians(180))
     );
 
     // LINE_3_CONTROL_POINT
     public static final AlliancePose line3ControlPoint = new AlliancePose(
-            new Pose(69.6, 30.5, Math.toRadians(0)),
-            new Pose(74.4, 30.5, Math.toRadians(180))
+            new Pose(69.6, 34.5, Math.toRadians(0)),
+            new Pose(74.4, 34.5, Math.toRadians(180))
     );
 
 //    // LINEUP_AT_GATE
@@ -212,7 +212,7 @@ public class Poses {
             new Pose(19.5, 58, Math.toRadians(135)) // correct
     );
     public static final AlliancePose openGateRamTech = new AlliancePose(
-            new Pose(123, 54.7, Math.toRadians(57)),
+            new Pose(122.5, 54.7, Math.toRadians(57)),
             new Pose(21.5, 54.7, Math.toRadians(123))
     );
 
@@ -222,7 +222,7 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(123, 52.5, Math.toRadians(57)),
+            new Pose(122.5, 52.5, Math.toRadians(57)),
             new Pose(21.5, 52.5, Math.toRadians(123)) // correct
     );
 

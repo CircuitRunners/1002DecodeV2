@@ -161,7 +161,7 @@ public class Fifteen3lines extends OpMode {
                     break;
 
                 case 1: // Shoot 3 Preloads
-                    handleAutoShooting(currentPose, targetX, 4.9,0);
+                    handleAutoShooting(currentPose, targetX, 4.9,0,false);
                     if (!goForLaunch
                             && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                         goForLaunch = true;
@@ -190,7 +190,7 @@ public class Fifteen3lines extends OpMode {
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
-                        handleAutoShooting(currentPose, targetX, 4, 0);
+                        handleAutoShooting(currentPose, targetX, 4, 0,false);
                     }
 
                     // Allow feeding once fully settled
@@ -210,6 +210,7 @@ public class Fifteen3lines extends OpMode {
 //                        follower.followPath(ramGate, false);
 //                        setPathState(41);
                         follower.followPath(sigmaCycle,true);
+                        setPathState();
                     }
 
 //                    if (!follower.isBusy()) {
@@ -232,7 +233,7 @@ public class Fifteen3lines extends OpMode {
                 case 6: // WAIT at Gate (2.5s)
                     intake.doIntake(); // keep intaking while stalled
 
-                    if (!follower.isBusy()  || (pathTimer.getElapsedTimeSeconds() >= 0.8 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                    if ((pathTimer.getElapsedTimeSeconds() >= 5 && follower.getVelocity().getMagnitude() <= 1.8)) {
                         setPathState();
                     }
                     break;
@@ -252,7 +253,7 @@ public class Fifteen3lines extends OpMode {
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
-                        handleAutoShooting(currentPose, targetX, 4, 0);
+                        handleAutoShooting(currentPose, targetX, 4, 0,false);
                     }
 
                     // Allow feeding once fully settled
@@ -284,7 +285,7 @@ public class Fifteen3lines extends OpMode {
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
-                        handleAutoShooting(currentPose, targetX, 4, 0);
+                        handleAutoShooting(currentPose, targetX, 4, 0,false);
                     }
 
                     // Allow feeding once fully settled
@@ -316,7 +317,7 @@ public class Fifteen3lines extends OpMode {
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
-                        handleAutoShooting(currentPose, targetX, 25, 0);
+                        handleAutoShooting(currentPose, targetX, 25, 0,true);
                     }
 
                     // Allow feeding once fully settled
@@ -345,7 +346,7 @@ public class Fifteen3lines extends OpMode {
                 Pose pose,
                 double targetX,
                 double timeout,
-                double mannualHoodOffset
+                double mannualHoodOffset,boolean lastTime
         ) {
             double headingDeg = Math.toDegrees(pose.getHeading());
 
@@ -381,7 +382,9 @@ public class Fifteen3lines extends OpMode {
 
             //  Feeding + shot counting
             if (doTransfer) {
-                trackShotCount(shooter.isBeamBroken());
+                if (!lastTime) {
+                    trackShotCount(shooter.isBeamBroken());
+                }
                 intake.doTestShooter();
             }
 
