@@ -22,9 +22,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
 @Configurable
-@Autonomous(name = "slightly modified 15", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "ultimate sus cookery 15", group = "A", preselectTeleOp = "v2Teleop")
 
-public class slightlymodifiedFifteen extends OpMode {
+public class veryModifiedFifteen extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -59,25 +59,23 @@ public class slightlymodifiedFifteen extends OpMode {
     // boolean flywheelLocked = false;
 
 
-
-
     private PathChain travelToShoot, intake2Sussy,openGate,travelBackToShootFromGateLastTime,sigmaCycle,ramGate,intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, superMegaTechGateCycle;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.susInitialShoot)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Math.toRadians(200))
                 .build();
 
 
 
         // Path 2: Shoot to Intake 1
         intake2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.susInitialShoot), Poses.get(Poses.susLine2ControlPoint), Poses.get(Poses.susPickupLine2)))
+                .setLinearHeadingInterpolation(Math.toRadians(200), Math.toRadians(180))
+                .addPath(new BezierCurve(Poses.get(Poses.susPickupLine2), Poses.get(Poses.susLine2ControlPoint), Poses.get(Poses.susInitialShoot)))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(200))
                 .build();
 
         intake2Sussy = follower.pathBuilder()
@@ -104,8 +102,8 @@ public class slightlymodifiedFifteen extends OpMode {
                 .build();
 
         sigmaCycle  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.susInitialShoot), Poses.get(Poses.susOpenGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .setLinearHeadingInterpolation(Math.toRadians(200), Poses.get(Poses.openGateHighCycle).getHeading())
                 .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
 //                    .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.openGateRamTech)))
@@ -122,8 +120,8 @@ public class slightlymodifiedFifteen extends OpMode {
 
         // Path 6: Intake 2 back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateRamTech).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.susPreLine1)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateRamTech).getHeading(), Math.toRadians(180))
                 .build();
 
         travelBackToShootFromGateLastTime = follower.pathBuilder()
@@ -132,10 +130,10 @@ public class slightlymodifiedFifteen extends OpMode {
                 .build();
 
         intake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLineOne15Ball)))
-                .setConstantHeadingInterpolation( Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.susPreLine1), Poses.get(Poses.pickupLineOne15Ball)))
+                .setTangentHeadingInterpolation()
+                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.susPostLine1)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(255))
                 .build();
 
 //        travelBackToShootFromIntake1 = follower.pathBuilder()
@@ -144,10 +142,11 @@ public class slightlymodifiedFifteen extends OpMode {
 //                .build();
 
         intake3  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.susPostLine1), Poses.get(Poses.susLine3ControlPoint), Poses.get(Poses.pickupLine3)))
+                .setLinearHeadingInterpolation(Math.toRadians(255), Math.toRadians(165))
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine3), Poses.get(Poses.susFinal)))
+                .setTangentHeadingInterpolation()
+                .setReversed()
                 .build();
 
 //        travelBackToShootFromIntake3 = follower.pathBuilder()
@@ -279,7 +278,7 @@ public class slightlymodifiedFifteen extends OpMode {
             case 8: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
                     intake.doIntake();
-                    follower.followPath(intake3, false);
+                    follower.followPath(intake1, false);
                     setPathState();
                 }
                 break;
@@ -311,7 +310,7 @@ public class slightlymodifiedFifteen extends OpMode {
             case 10:
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(intake1, false);
+                    follower.followPath(intake3, false);
                     setPathState();
                 }
                 break;

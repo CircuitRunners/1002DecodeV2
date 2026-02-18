@@ -295,6 +295,41 @@ public class Poses {
             new Pose(8.5, 8.5,Math.toRadians(270))
     );
 
+    //all of the sussy dillan stuff
+    public static final AlliancePose susInitialShoot = new AlliancePose(
+            new Pose(128.5, 89, Math.toRadians(49.5)),
+            new Pose(56.5, 86, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
+    );
+    public static final AlliancePose susPickupLine2 = new AlliancePose(
+            new Pose(140.5, 58, Math.toRadians(0)),
+            new Pose(3.5, 60, Math.toRadians(180))
+    );
+    public static final AlliancePose susLine2ControlPoint = new AlliancePose(
+            new Pose(84, 57, Math.toRadians(0)),
+            new Pose(45, 58, Math.toRadians(180))
+    );
+    public static final AlliancePose susOpenGateHighCycleControlPoint = new AlliancePose(
+            new Pose(83.5, 74, Math.toRadians(42)),
+            new Pose(40, 55, Math.toRadians(138)) // correct
+    );
+    public static final AlliancePose susPreLine1 = new AlliancePose(
+            new Pose(128.5, 89, Math.toRadians(49.5)),
+            new Pose(51.5, 84, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
+    );
+    public static final AlliancePose susPostLine1 = new AlliancePose(
+            new Pose(128.5, 89, Math.toRadians(49.5)),
+            new Pose(55, 85, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
+    );
+    public static final AlliancePose susLine3ControlPoint = new AlliancePose(
+            new Pose(69.6, 30.5, Math.toRadians(0)),
+            new Pose(64.7, 27.7, Math.toRadians(180))
+    );
+    public static final AlliancePose susFinal = new AlliancePose(
+            new Pose(69.6, 30.5, Math.toRadians(0)),
+            new Pose(55, 105, Math.toRadians(180))
+    );
+
+
     // =======================
     // Cross-OpMode pose storage
     // =======================
