@@ -256,16 +256,16 @@ public class Poses {
 
     // FAR SIDE
     public static final AlliancePose startPoseFarSide = new AlliancePose(
-            new Pose(84, 9, Math.toRadians(180)),
-            new Pose(60, 9, Math.toRadians(0))
+            new Pose(84, 9, Math.toRadians(0)),
+            new Pose(60, 9, Math.toRadians(180))
     );
     public static final AlliancePose startPose15Ball = new AlliancePose(
             new Pose(136.5, 121.5, Math.toRadians(38.51)), //118.5
             new Pose(25.5, 118.5, Math.toRadians(141.5))
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
-            new Pose(84, 9.5, Math.toRadians(180)),
-            new Pose(60, 9.5, Math.toRadians(0))
+            new Pose(84, 9.5, Math.toRadians(0)),
+            new Pose(60, 9.5, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
             new Pose(134, 9, Math.toRadians(0)),
