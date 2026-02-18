@@ -138,20 +138,20 @@ public class Poses {
     );
 
     public static final AlliancePose pickupLineOne15Ball = new AlliancePose(
-            new Pose(163, 84, Math.toRadians(0)),
+            new Pose(127, 84, Math.toRadians(0)),
             new Pose(17, 84, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
 
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
-            new Pose(142, 57, Math.toRadians(0)),
+            new Pose(140.5, 57, Math.toRadians(0)),
             new Pose(3.5, 57, Math.toRadians(180))
     );
 
     // LINE_2_CONTROL_POINT
     public static final AlliancePose line2ControlPoint = new AlliancePose(
-            new Pose(54, 54, Math.toRadians(0)),
+            new Pose(84, 54, Math.toRadians(0)),
             new Pose(60, 54, Math.toRadians(180))
     );
 
