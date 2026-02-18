@@ -59,9 +59,13 @@ public class FarZoneAuto extends OpMode {
     private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2;
 
     public void buildPaths() {
+        travelToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.startPoseFarSide), Poses.get(Poses.shootPositionFarSide)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseFarSide).getHeading(), Poses.get(Poses.shootPositionFarSide).getHeading())
+                .build();
 
         humanPlayerIntake = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.startPoseFarSide), Poses.get(Poses.humanPlayerControlPoint), Poses.get(Poses.humanPlayerIntake)))
+                .addPath(new BezierLine(Poses.get(Poses.startPoseFarSide), Poses.get(Poses.humanPlayerIntake)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.startPoseFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
                 .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntake), Poses.get(Poses.backUpPoint)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.backUpPoint).getHeading(), 0.25)
@@ -88,7 +92,6 @@ public class FarZoneAuto extends OpMode {
     public void autonomousPathUpdate() {
         Pose currentPose = follower.getPose();
         double targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
-        shooter.setTurretTarget(targetX == RED_GOAL_X ? 295 : 65, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
 
         // Auto-kill transfer if not in a shooting state
         boolean isShootingState = (pathState == 1 || pathState == 6 || pathState == 9 || pathState == 14);
@@ -99,9 +102,16 @@ public class FarZoneAuto extends OpMode {
         }
 
         switch (pathState) {
+            case 0: // Travel to Initial Shoot
+                shooter.setTurretTarget(targetX == RED_GOAL_X ? 310 : -70, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                if (!follower.isBusy()) {
+                    follower.followPath(travelToShoot, false);
+                    setPathState();
+                }
+                setPathState();
+                break;
 
-
-            case 0: // Shoot 3 Preloads
+            case 1: // Shoot 3 Preloads
                 handleAutoShooting(currentPose, targetX, 6.5, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
@@ -109,7 +119,7 @@ public class FarZoneAuto extends OpMode {
                 }
                 break;
 
-            case 1: // Drive to Intake
+            case 2: // Drive to Intake
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(humanPlayerIntake, true);
@@ -157,7 +167,6 @@ public class FarZoneAuto extends OpMode {
 
 
             default:
-                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 shooter.stopFlywheel();
                 intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
@@ -205,9 +214,7 @@ public class FarZoneAuto extends OpMode {
 
         //  Feeding + shot counting
         if (doTransfer) {
-
-                trackShotCount(shooter.isBeamBroken());
-
+            trackShotCount(shooter.isBeamBroken());
             intake.doTestShooter();
         }
 
@@ -295,7 +302,7 @@ public class FarZoneAuto extends OpMode {
         telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
         telemetry.addLine("");
         telemetry.addData("Alliance Set", Poses.getAlliance());
-        telemetry.addData("Start Pose", Poses.get(Poses.startPoseFarSide));
+        telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
 
         telemetry.addData("X Pos", follower.getPose().getX());
         telemetry.addData("Y Pos", follower.getPose().getY());
