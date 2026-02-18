@@ -86,10 +86,10 @@ public class veryModifiedFifteen extends OpMode {
                 .build();
 
         // Path 3: Travel back to shoot
-//        travelBackToShoot2 = follower.pathBuilder()
-//                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-//                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-//                .build();
+        travelBackToShoot2 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.susPickupLine2), Poses.get(Poses.susLine2ControlPoint), Poses.get(Poses.susInitialShoot)))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(200))
+                .build();
 
         openGate = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
@@ -132,27 +132,23 @@ public class veryModifiedFifteen extends OpMode {
         intake1 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.susPreLine1), Poses.get(Poses.pickupLineOne15Ball)))
                 .setTangentHeadingInterpolation()
+                .build();
+
+        travelBackToShootFromIntake1 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.susPostLine1)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(255))
                 .build();
 
-//        travelBackToShootFromIntake1 = follower.pathBuilder()
-//                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
-//                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-//                .build();
-
         intake3  = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.susPostLine1), Poses.get(Poses.susLine3ControlPoint), Poses.get(Poses.pickupLine3)))
                 .setLinearHeadingInterpolation(Math.toRadians(255), Math.toRadians(165))
+                .build();
+
+        travelBackToShootFromIntake3 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.pickupLine3), Poses.get(Poses.susFinal)))
                 .setTangentHeadingInterpolation()
                 .setReversed()
                 .build();
-
-//        travelBackToShootFromIntake3 = follower.pathBuilder()
-//                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-//                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-//                .build();
 
     }
 
@@ -187,15 +183,15 @@ public class veryModifiedFifteen extends OpMode {
                 }
                 break;
 
-//            case 3: // Gate logic
-//                intake.doIntake();
-//                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-//                    follower.followPath(travelBackToShoot2, false);
-//                    setPathState();
-//                }
-//                break;
+            case 3: // Gate logic
+                intake.doIntake();
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+                    follower.followPath(travelBackToShoot2, false);
+                    setPathState();
+                }
+                break;
 
-            case 3: // Return to Shoot 1
+            case 4: // Return to Shoot 1
                 stopIntakeOnceAtT(0.45);
 
                 // Shooter logic owns intake AFTER the stop
@@ -214,7 +210,7 @@ public class veryModifiedFifteen extends OpMode {
 
 
 
-            case 4: // Shoot 3 Balls (Cycle 1)
+            case 5: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
                     intake.doIntake();
 //                        follower.followPath(ramGate, false);
@@ -240,7 +236,7 @@ public class veryModifiedFifteen extends OpMode {
                 break;
 
 
-            case 5: // WAIT at Gate (2.5s)
+            case 6: // WAIT at Gate (2.5s)
                 intake.doIntake(); // keep intaking while stalled
 
                 if ((pathTimer.getElapsedTimeSeconds() >= 5 && follower.getVelocity().getMagnitude() <= 1.8)) {
@@ -249,7 +245,7 @@ public class veryModifiedFifteen extends OpMode {
                 break;
 
 
-            case 6: // Return to Shoot 2
+            case 7: // Return to Shoot 2
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShootFromGate, false);
@@ -258,7 +254,7 @@ public class veryModifiedFifteen extends OpMode {
                 break;
 
 
-            case 7: // Shoot 3 Balls (Cycle 2)
+            case 8: // Shoot 3 Balls (Cycle 2)
                 stopIntakeOnceAtT(0.45);
 
                 // Shooter logic owns intake AFTER the stop
@@ -275,22 +271,22 @@ public class veryModifiedFifteen extends OpMode {
                 }
                 break;
 
-            case 8: // Shoot 3 Balls (Cycle 1)
+            case 9: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
                     intake.doIntake();
                     follower.followPath(intake1, false);
                     setPathState();
                 }
                 break;
-//            case 10:
-//                intake.doIntake();
-//                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-//                    follower.followPath(travelBackToShootFromIntake3, false);
-//                    setPathState();
-//                }
-//                break;
+            case 10:
+                intake.doIntake();
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+                    follower.followPath(travelBackToShootFromIntake3, false);
+                    setPathState();
+                }
+                break;
 
-            case 9: // Return to Shoot 1
+            case 11: // Return to Shoot 1
                 stopIntakeOnceAtT(0.45);
 
                 // Shooter logic owns intake AFTER the stop
@@ -307,7 +303,7 @@ public class veryModifiedFifteen extends OpMode {
                 }
                 break;
 
-            case 10:
+            case 12:
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake3, false);
@@ -315,14 +311,14 @@ public class veryModifiedFifteen extends OpMode {
                 }
                 break;
 
-//            case 13:
-//                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-//                    follower.followPath(travelBackToShootFromIntake1, false);
-//                    setPathState();
-//                }
-//                break;
+            case 13:
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+                    follower.followPath(travelBackToShootFromIntake1, false);
+                    setPathState();
+                }
+                break;
 
-            case 11: // Return to Shoot 1
+            case 14: // Return to Shoot 1
                 stopIntakeOnceAtT(0.45);
 
                 // Shooter logic owns intake AFTER the stop

@@ -74,9 +74,9 @@ public class slightlyModifiedFifteen extends OpMode {
 
         // Path 2: Shoot to Intake 1
         intake2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.chainPickupLine2)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .addPath(new BezierCurve(Poses.get(Poses.chainPickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
@@ -132,9 +132,9 @@ public class slightlyModifiedFifteen extends OpMode {
                 .build();
 
         intake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLineOne15Ball)))
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.chainPickupLineOne15Ball)))
                 .setConstantHeadingInterpolation( Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .addPath(new BezierLine(Poses.get(Poses.chainPickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
@@ -144,9 +144,9 @@ public class slightlyModifiedFifteen extends OpMode {
 //                .build();
 
         intake3  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.chainPickupLine3)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .addPath(new BezierCurve(Poses.get(Poses.chainPickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 

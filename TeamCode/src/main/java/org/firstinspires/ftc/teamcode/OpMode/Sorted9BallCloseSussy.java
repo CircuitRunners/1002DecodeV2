@@ -104,6 +104,7 @@ public class Sorted9BallCloseSussy extends OpMode {
     }
 
     public void autonomousPathUpdate() {
+        follower.setMaxPower(0.7);
         Pose currentPose = follower.getPose();
         double targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
 

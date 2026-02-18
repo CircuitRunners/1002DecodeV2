@@ -191,7 +191,7 @@ public class Fifteen3lines extends OpMode {
                     break;
 
                 case 4: // Return to Shoot 1
-                    stopIntakeOnceAtT(0.45);
+                    stopIntakeOnceAtT(0.7);
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
@@ -254,7 +254,7 @@ public class Fifteen3lines extends OpMode {
 
 
                 case 8: // Shoot 3 Balls (Cycle 2)
-                    stopIntakeOnceAtT(0.45);
+                    stopIntakeOnceAtT(0.7);
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
@@ -286,7 +286,7 @@ public class Fifteen3lines extends OpMode {
                     break;
 
                 case 11: // Return to Shoot 1
-                    stopIntakeOnceAtT(0.45);
+                    stopIntakeOnceAtT(0.7);
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
@@ -318,7 +318,7 @@ public class Fifteen3lines extends OpMode {
                     break;
 
                 case 14: // Return to Shoot 1
-                    stopIntakeOnceAtT(0.45);
+                    stopIntakeOnceAtT(0.7);
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
@@ -548,6 +548,10 @@ public class Fifteen3lines extends OpMode {
             telemetry.addData("Go for launch?", goForLaunch);
             telemetry.addData("Path t", follower.getCurrentTValue());
             telemetry.addData("IntakeStopped", intakeStoppedForShooting);
+
+            telemetry.addData("X Pos", follower.getPose().getX());
+            telemetry.addData("Y Pos", follower.getPose().getY());
+            telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
             telemetry.update();
         }
 

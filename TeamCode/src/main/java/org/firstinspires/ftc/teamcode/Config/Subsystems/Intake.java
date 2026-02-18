@@ -502,7 +502,7 @@ public class Intake {
     private boolean simpleS1HadBallLast = false;
     private boolean simpleS1LostAfterSeeing = false;
 
-    private static final double SIMPLE_ENTRY_DEBOUNCE_MS = 650;
+    private static final double SIMPLE_ENTRY_DEBOUNCE_MS = 600;
 
     private ElapsedTime simpleSortTimer = new ElapsedTime();
 

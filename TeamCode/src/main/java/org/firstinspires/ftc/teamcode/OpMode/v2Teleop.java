@@ -76,7 +76,7 @@ public class v2Teleop extends OpMode {
 
     public static  double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
     public static double limelightTurretScale = 1.0;
-    public static double limelightTurretTolerance = 4; //degrees
+    public static double limelightTurretTolerance = 4.5; //degrees
 
     public static double turretDeadband = 0;
 

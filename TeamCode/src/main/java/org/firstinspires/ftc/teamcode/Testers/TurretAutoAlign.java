@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
@@ -30,6 +31,7 @@ public class TurretAutoAlign extends OpMode {
     private MecanumDrive drive;
     private Sensors sensors;
     private GamepadEx player1;
+    private Intake intake;
     private GoBildaPinpointDriver pinpoint;
     private Follower follower;
     private LimelightCamera limelight;
@@ -54,6 +56,8 @@ public class TurretAutoAlign extends OpMode {
 
         drive = new MecanumDrive();
         drive.init(hardwareMap);
+
+        intake = new Intake(hardwareMap, telemetry);
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Poses.getStartingPose());
@@ -108,7 +112,8 @@ public class TurretAutoAlign extends OpMode {
 
         handleDriving(currentPose);
         handleInputOverrides();
-        //updateTurretWithAprilTag();
+//        handleIntakeState();
+        updateTurretWithAprilTag();
 
 
         String followerData = String.format(Locale.US,
@@ -153,6 +158,19 @@ public class TurretAutoAlign extends OpMode {
             follower.setPose(new Pose(72, 72, Math.toRadians(90)));
         if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
     }
+//    private void handleIntakeState() {
+//
+//        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
+//        if (gamepad1.right_trigger > 0.2){
+//            intake.doIntake();
+//            if (!noAutoAlign){
+//                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), turretMannualAdjust);
+//            }
+//
+//        }
+//        else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
+//        else intake.doIntakeHalt();
+//    }
     public void updateCoordinatesWithAprilTag() {
         limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
         limelight.limelightCamera.pipelineSwitch(3);

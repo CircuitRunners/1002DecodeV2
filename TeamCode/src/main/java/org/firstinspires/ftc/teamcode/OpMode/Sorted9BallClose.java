@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-@Disabled
+//@Disabled
 @Configurable
 @Autonomous(name = "GS 9 Ball SORT ", group = "A", preselectTeleOp = "v2Teleop")
 public class Sorted9BallClose extends OpMode {
