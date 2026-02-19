@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "FarZoneAuto - 1 Line", group = "B", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "FS 9 Ball - 1 Line", group = "B", preselectTeleOp = "v2Teleop")
 public class FarZoneAuto1line extends OpMode {
 
     private Follower follower;
