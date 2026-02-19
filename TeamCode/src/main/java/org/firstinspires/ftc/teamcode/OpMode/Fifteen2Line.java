@@ -134,7 +134,7 @@ public class Fifteen2Line extends OpMode {
             case 0: // Travel to Initial Shoot
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
-                    shooter.setTurretTarget(targetX == RED_GOAL_X ? 315 : 45, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+
                     follower.followPath(travelToShoot, false);
                     setPathState();
                 }
@@ -257,7 +257,7 @@ public class Fifteen2Line extends OpMode {
                 break;
 
             case 12: // Shoot 3 Balls (Cycle 2)
-                stopIntakeOnceAtT(0.45);
+                stopIntakeOnceAtT(0.5);
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
@@ -291,7 +291,7 @@ public class Fifteen2Line extends OpMode {
                 break;
 
             case 14: // Return to Shoot 1
-                stopIntakeOnceAtT(0.7);
+                stopIntakeOnceAtT(0.5);
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
@@ -308,7 +308,7 @@ public class Fifteen2Line extends OpMode {
                 break;
 
             default:
-                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+
                 shooter.stopFlywheel();
                 intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
@@ -334,7 +334,7 @@ public class Fifteen2Line extends OpMode {
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, 0,
+                    true, -5,
                     mannualHoodOffset,
                     true, 0
             );
@@ -343,7 +343,7 @@ public class Fifteen2Line extends OpMode {
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, -58,
+                    true, -58,
                     mannualHoodOffset ,
                     false, 0
             );
@@ -527,7 +527,7 @@ public class Fifteen2Line extends OpMode {
     @Override
     public void stop() {
         shooter.stopFlywheel();
-        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+        shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
         intake.resetState();
         Poses.savePose(follower.getPose());
     }

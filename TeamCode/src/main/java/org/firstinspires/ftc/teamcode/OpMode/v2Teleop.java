@@ -126,6 +126,8 @@ public class v2Teleop extends OpMode {
             isRedAlliance = false;
             preselectFromAuto = false;
         }
+
+        turretMannualAdjust = -shooter.turretEndPosAuto;
     }
 
     @Override
@@ -285,7 +287,7 @@ public class v2Teleop extends OpMode {
         }
         lastRightBumper = toggleBumper;
 
-        if (follower.getPose().getY() < 69 &&
+        if (//follower.getPose().getY() < 69 &&
                 result.isValid() && result != null
                 && useAprilTagAim) {
             updateTurretWithAprilTag();

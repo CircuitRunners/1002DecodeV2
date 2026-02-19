@@ -115,6 +115,11 @@ public class Poses {
             new Pose(51.5, 89, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
     );
 
+    public static final AlliancePose shootPositionGoalSide15BallLastTime = new AlliancePose(
+            new Pose(95.5, 101, Math.toRadians(46)),
+            new Pose(58.5, 101, Math.toRadians(136.5)) // 144 - 100.5 = 43.5
+    );
+
     public static final AlliancePose shootPositionGoalSide3 = new AlliancePose(
             new Pose(105.5, 104.5, Math.toRadians(42)),
             new Pose(38.5, 104.5, Math.toRadians(138)) // 144 - 105.5 = 38.5
@@ -175,7 +180,7 @@ public class Poses {
             new Pose(5, 36, Math.toRadians(180))
     );
     public static final AlliancePose pickupLine3Far = new AlliancePose(
-            new Pose(139, 33, Math.toRadians(0)),
+            new Pose(139, 32, Math.toRadians(0)),
             new Pose(5, 34, Math.toRadians(180))
     );
 
@@ -186,9 +191,11 @@ public class Poses {
 
     // LINE_3_CONTROL_POINT
     public static final AlliancePose line3ControlPoint = new AlliancePose(
-            new Pose(64.5, 29.5, Math.toRadians(0)),
+            new Pose(64.5, 27.5, Math.toRadians(0)),
             new Pose(74.4, 30.5, Math.toRadians(180))
     );
+
+
 
 //    // LINEUP_AT_GATE
 //    public static final AlliancePose lineupAtGate = new AlliancePose(
@@ -244,7 +251,7 @@ public class Poses {
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
             new Pose(149.5, 56.5, Math.toRadians(65)),
-            new Pose(19, 47, Math.toRadians(115)) // correct
+            new Pose(22, 49, Math.toRadians(115)) // correct
     );
 
 

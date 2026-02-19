@@ -22,6 +22,9 @@ public class Shooter {
 
     private static final double transferTimeOffsetSec = 0.0; //TUNE
 
+
+    public static double turretEndPosAuto = 0;
+
 //    public static double slotOneBLueAtan = 0;
 //    public static double slotTwoBLueAtan = 0;
 
@@ -235,7 +238,7 @@ public class Shooter {
 
 // Initialize targets
 
-        turretPIDF.setSetPoint(targetTurretPosition);
+        turretPIDF.setSetPoint(0);
         flywheelPIDF.setSetPoint(0);
 
 

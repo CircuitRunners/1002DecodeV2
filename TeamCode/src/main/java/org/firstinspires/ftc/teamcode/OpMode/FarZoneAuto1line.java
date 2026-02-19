@@ -377,7 +377,7 @@ public class FarZoneAuto1line extends OpMode {
 
     @Override
     public void stop() {
-       // shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+        shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());

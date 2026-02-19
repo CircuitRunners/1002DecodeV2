@@ -49,6 +49,8 @@ public class Fifteen3lines extends OpMode {
         private final double BLUE_GOAL_X = 13;
         private final double GOAL_Y = 132;
 
+        double targetX = 0;
+
         public static double startX = 0;
         public static double startY = 0;
 
@@ -58,6 +60,8 @@ public class Fifteen3lines extends OpMode {
         boolean veloReached = false;
         // boolean flywheelLocked = false;
 
+
+        double turretOffset = 0;
 
 
 
@@ -112,8 +116,8 @@ public class Fifteen3lines extends OpMode {
                     .build();
 
             travelBackToShootFromIntake1 = follower.pathBuilder()
-                    .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                    .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
+                    .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallLastTime)))
+                    .setLinearHeadingInterpolation(Poses.get(Poses.pickupLineOne15Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallLastTime).getHeading())
                     .build();
 
             intake3  = follower.pathBuilder()
@@ -131,20 +135,22 @@ public class Fifteen3lines extends OpMode {
 
         public void autonomousPathUpdate() {
             Pose currentPose = follower.getPose();
-            double targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
+
+
 
             switch (pathState) {
                 case 0: // Travel to Initial Shoot
                     //intake.retainBalls();
                     if (!follower.isBusy()) {
-                        shooter.setTurretTarget(targetX == RED_GOAL_X ? 315 : 45, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                       //shooter.setTurretTargetPosition(targetX == RED_GOAL_X ? 315 : 45);
                         follower.followPath(travelToShoot, false);
                         setPathState();
                     }
                     break;
 
                 case 1: // Shoot 3 Preloads
-                    handleAutoShooting(currentPose, targetX, 4.5,0,false);
+                    handleAutoShooting(currentPose, targetX, 4.3,0,false);
                     if (!goForLaunch
                             && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                         goForLaunch = true;
@@ -223,7 +229,7 @@ public class Fifteen3lines extends OpMode {
 
 
                 case 8: // Shoot 3 Balls (Cycle 2)
-                    stopIntakeOnceAtT(0.7);
+                    stopIntakeOnceAtT(0.5);
 
                     // Shooter logic owns intake AFTER the stop
                     if (intakeStoppedForShooting) {
@@ -274,6 +280,7 @@ public class Fifteen3lines extends OpMode {
                 case 12:
                     intake.doIntake();
                     if (!follower.isBusy()) {
+                        turretOffset = targetX == RED_GOAL_X ? -315 : -45;
                         follower.followPath(intake1, false);
                         setPathState();
                     }
@@ -287,6 +294,7 @@ public class Fifteen3lines extends OpMode {
                     break;
 
                 case 14: // Return to Shoot 1
+                    //shooter.setTurretTargetPosition(0);
                     stopIntakeOnceAtT(0.7);
 
                     // Shooter logic owns intake AFTER the stop
@@ -304,7 +312,7 @@ public class Fifteen3lines extends OpMode {
                     break;
 
                 default:
-                    shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+
                     shooter.stopFlywheel();
                     intake.resetState();
                     if (!follower.isBusy()) requestOpModeStop();
@@ -330,7 +338,7 @@ public class Fifteen3lines extends OpMode {
                         pose.getX(), pose.getY(),
                         targetX, GOAL_Y,
                         headingDeg,
-                        false, -6,
+                        true, -6,
                         mannualHoodOffset,
                         true, 0
                 );
@@ -339,7 +347,7 @@ public class Fifteen3lines extends OpMode {
                         pose.getX(), pose.getY(),
                         targetX, GOAL_Y,
                         headingDeg,
-                        false, -58,
+                        true, -58,
                         mannualHoodOffset ,
                         false, 0
                 );
@@ -497,6 +505,12 @@ public class Fifteen3lines extends OpMode {
 
             autonomousPathUpdate();
 
+
+
+
+
+
+
             veloReached =
                     (Math.abs(flywheelVelo) >
                             (Math.abs(targetFlywheelVelo) - 40)
@@ -528,6 +542,7 @@ public class Fifteen3lines extends OpMode {
         public void stop() {
             //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
             shooter.stopFlywheel();
+            shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
             intake.resetState();
             Poses.savePose(follower.getPose());
         }
