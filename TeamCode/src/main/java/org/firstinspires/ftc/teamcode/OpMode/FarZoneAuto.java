@@ -45,7 +45,7 @@ public class FarZoneAuto extends OpMode {
     // Shot Counting Variables
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
-    private boolean beamWasCleared = true;
+
 
     // One-shot latch: stops intake exactly once before shooting
     private boolean intakeStoppedForShooting = false;
@@ -117,7 +117,7 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 6.5, 0);
+                handleAutoShooting(currentPose, targetX, 5.5, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -235,13 +235,16 @@ public class FarZoneAuto extends OpMode {
         }
     }
 
+    private boolean beamWasCleared = true; // Track full cycle
+
     private void trackShotCount(boolean currentBeamState) {
-        if (!currentBeamState) {
+        if (!currentBeamState) { // beam clear
             beamWasCleared = true;
         }
-        if (currentBeamState && beamWasCleared) {
+
+        if (currentBeamState && beamWasCleared) { // beam broken after clearing
             ballsShotInState++;
-            beamWasCleared = false;
+            beamWasCleared = false; // reset until beam clears again
         }
     }
 
