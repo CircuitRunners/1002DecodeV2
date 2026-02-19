@@ -22,8 +22,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "FarZoneAuto", group = "A", preselectTeleOp = "v2Teleop")
-public class FarZoneAuto extends OpMode {
+@Autonomous(name = "FarZoneAuto - 1 Line", group = "B", preselectTeleOp = "v2Teleop")
+public class FarZoneAuto1line extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -56,7 +56,7 @@ public class FarZoneAuto extends OpMode {
     private final double GOAL_Y = 132;
 
 
-    private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2;
+    private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2,park;
 
     public void buildPaths() {
         travelToShoot = follower.pathBuilder()
@@ -65,8 +65,8 @@ public class FarZoneAuto extends OpMode {
                 .build();
 
         humanPlayerIntake = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPoseFarSide), Poses.get(Poses.humanPlayerIntake)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.humanPlayerIntake)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
                 .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntake), Poses.get(Poses.backUpPoint)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.backUpPoint).getHeading(), 0.25)
                 .addPath(new BezierLine(Poses.get(Poses.backUpPoint), Poses.get(Poses.humanPlayerIntakeRam)))
@@ -91,6 +91,11 @@ public class FarZoneAuto extends OpMode {
         travelBackToShoot2 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.pickupLine3Far), Poses.get(Poses.shootPositionFarSide)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3Far).getHeading(), Poses.get(Poses.shootPositionFarSide).getHeading())
+                .build();
+
+        park  = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.humanPlayerIntake)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
                 .build();
     }
 
@@ -172,9 +177,17 @@ public class FarZoneAuto extends OpMode {
                 }
                 break;
 
+            case 10:
+                if (!follower.isBusy()) {
+                    follower.followPath(park, true);
+                    setPathState();
+                }
+                break;
+
 
             default:
                 shooter.stopFlywheel();
+                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
                 break;
@@ -364,6 +377,7 @@ public class FarZoneAuto extends OpMode {
 
     @Override
     public void stop() {
+        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());

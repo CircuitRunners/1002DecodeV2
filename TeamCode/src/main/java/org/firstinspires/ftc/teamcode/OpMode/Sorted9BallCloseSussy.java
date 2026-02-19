@@ -24,7 +24,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 //@Disabled
 @Configurable
-@Autonomous(name = "SUSSY GS 9 Ball SORT ", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "SUSSY GS 9 Ball SORT ", group = "C", preselectTeleOp = "v2Teleop")
 public class Sorted9BallCloseSussy extends OpMode {
 
     private Follower follower;
