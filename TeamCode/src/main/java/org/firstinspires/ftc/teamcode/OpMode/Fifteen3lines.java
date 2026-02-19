@@ -74,6 +74,7 @@ public class Fifteen3lines extends OpMode {
 
             // Path 2: Shoot to Intake 1
             intake2 = follower.pathBuilder()
+                    .setNoDeceleration()
                     .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
                     .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                     .build();
@@ -105,6 +106,7 @@ public class Fifteen3lines extends OpMode {
 
 
             intake1 = follower.pathBuilder()
+                    .setNoDeceleration()
                     .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLineOne15Ball)))
                     .setConstantHeadingInterpolation( Poses.get(Poses.pickupLine1).getHeading())
                     .build();
@@ -115,6 +117,7 @@ public class Fifteen3lines extends OpMode {
                     .build();
 
             intake3  = follower.pathBuilder()
+                    .setNoDeceleration()
                     .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
                     .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                     .build();
@@ -141,7 +144,7 @@ public class Fifteen3lines extends OpMode {
                     break;
 
                 case 1: // Shoot 3 Preloads
-                    handleAutoShooting(currentPose, targetX, 4.9,0,false);
+                    handleAutoShooting(currentPose, targetX, 4.5,0,false);
                     if (!goForLaunch
                             && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                         goForLaunch = true;
@@ -327,7 +330,7 @@ public class Fifteen3lines extends OpMode {
                         pose.getX(), pose.getY(),
                         targetX, GOAL_Y,
                         headingDeg,
-                        false, 0,
+                        false, -6,
                         mannualHoodOffset,
                         true, 0
                 );
@@ -523,7 +526,7 @@ public class Fifteen3lines extends OpMode {
 
         @Override
         public void stop() {
-            shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+            //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
             shooter.stopFlywheel();
             intake.resetState();
             Poses.savePose(follower.getPose());

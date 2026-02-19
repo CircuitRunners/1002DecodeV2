@@ -84,9 +84,9 @@ public class FarZoneAuto1LineCycle extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.shootPositionFarSide).getHeading())
                 .build();
 
-        intakeLine = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.intake3ControlPointFar), Poses.get(Poses.pickupLine3)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
+        intakeLine = follower.pathBuilder().setNoDeceleration()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.intake3ControlPointFar), Poses.get(Poses.pickupLine3Far)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.pickupLine3Far).getHeading(), 0.45)
                 .build();
 
         travelBackToShoot2 = follower.pathBuilder()
@@ -114,7 +114,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ? 301 : 59.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(targetX == RED_GOAL_X ? 298.5 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
                     setPathState();
@@ -220,7 +220,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, -200,
+                    false, -125,
                     mannualHoodOffset ,
                     false, 0
             );
@@ -381,7 +381,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
     @Override
     public void stop() {
         shooter.stopFlywheel();
-        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
         intake.resetState();
         Poses.savePose(follower.getPose());
     }

@@ -71,6 +71,7 @@ public class Fifteen2Line extends OpMode {
 
         // Path 2: Shoot to Intake 1
         intake2 = follower.pathBuilder()
+                .setNoDeceleration()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
@@ -102,6 +103,7 @@ public class Fifteen2Line extends OpMode {
 
 
         intake1 = follower.pathBuilder()
+                .setNoDeceleration()
                 .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLineOne15Ball)))
                 .setConstantHeadingInterpolation( Poses.get(Poses.pickupLine1).getHeading())
                 .build();
@@ -112,6 +114,7 @@ public class Fifteen2Line extends OpMode {
                 .build();
 
         intake3  = follower.pathBuilder()
+                .setNoDeceleration()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
@@ -253,20 +256,37 @@ public class Fifteen2Line extends OpMode {
                 }
                 break;
 
+            case 12: // Shoot 3 Balls (Cycle 2)
+                stopIntakeOnceAtT(0.45);
 
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                }
 
-            case 12:
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(intake1, false);
-                    setPathState();
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.3) {
+                    goForLaunch = true;
                 }
                 break;
 
+
+
             case 13:
+                intake.doIntake();
+                if (!follower.isBusy()) {
+                    follower.followPath(intake1, false);
+                    setPathState(67);
+                }
+                break;
+
+            case 67:
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShootFromIntake1, false);
-                    setPathState();
+                    setPathState(14);
                 }
                 break;
 
@@ -507,7 +527,7 @@ public class Fifteen2Line extends OpMode {
     @Override
     public void stop() {
         shooter.stopFlywheel();
-        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
         intake.resetState();
         Poses.savePose(follower.getPose());
     }

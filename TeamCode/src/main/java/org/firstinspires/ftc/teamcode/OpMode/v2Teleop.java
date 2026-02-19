@@ -68,6 +68,8 @@ public class v2Teleop extends OpMode {
     private boolean noAutoAlign = false;
     boolean useAprilTagAim = true;
 
+    double llError = 0;
+
 
     private final ElapsedTime timer = new ElapsedTime();
     private double turretMannualAdjust = 0;
@@ -158,6 +160,9 @@ public class v2Teleop extends OpMode {
         shooter.turretCoefficientsTeleop = turretCoefficientsTeleop;
         shooter.turretDeadband = turretDeadband;
 
+
+        llError = limelight.updateError();
+
         if (veloReached) {
             sensors.setLight(0.600);
         } else {
@@ -197,6 +202,7 @@ public class v2Teleop extends OpMode {
 
         );
 
+        telemetry.addLine("ZENITH TUFF AHH 67 67 CITY BOI");
         telemetry.addData("Position", followerData);
         //telemetry.addData("Pinpoint (BAD) Position", data);
         telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
@@ -212,6 +218,7 @@ public class v2Teleop extends OpMode {
         telemetry.addData("Flywheel Velo", currentFlywheelVelo);
         telemetry.addData("Beam Broken", isBeamBroken);
         telemetry.addData("Balls shot:", ballsShotInState);
+        telemetry.addData("Turret Limelight Error", llError);
 
 
        // telemetry.addData("Shot Possible", !shooter.isShotImpossible);
@@ -246,10 +253,10 @@ public class v2Teleop extends OpMode {
     private void handleManualTurretOverrides(double currentAngle) {
         // Manual control: move turret and stick PID to current position to prevent fighting
         if (gamepad1.dpad_right) {
-            turretMannualAdjust +=2.5;
+            turretMannualAdjust +=1;
         }
         else if (gamepad1.dpad_left) {
-            turretMannualAdjust -=2.5;
+            turretMannualAdjust -=1;
         }
 
         // Hardware re-zero
@@ -278,7 +285,7 @@ public class v2Teleop extends OpMode {
         }
         lastRightBumper = toggleBumper;
 
-        if (follower.getPose().getY() > 69 &&
+        if (follower.getPose().getY() < 69 &&
                 result.isValid() && result != null
                 && useAprilTagAim) {
             updateTurretWithAprilTag();
@@ -431,7 +438,15 @@ public class v2Teleop extends OpMode {
 
     private void handleInputOverrides() {
         if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) follower.setPose(new Pose(72, 72, Math.toRadians(90)));
-        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
+        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
+            if (isRedAlliance){
+                follower.setPose(new Pose(0, 17, Math.toRadians(180)));
+            }
+            else {
+                follower.setPose(new Pose(124,9,Math.toRadians(0)));
+            }
+        }
+        //if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
         if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
             LimelightCamera.BallOrder seen = limelight.detectBallOrder();
             if (seen != null) { Intake.targetPatternFromAuto = seen; gamepad1.rumble(500); }
@@ -524,7 +539,7 @@ public class v2Teleop extends OpMode {
             newTarget = (newTarget % 360 + 360) % 360;
             shooter.setTurretTargetPosition(newTarget);
 
-            telemetry.addData("Turret Limelight Error", error);
+//            telemetry.addData("Turret Limelight Error", error);
             telemetry.update();
 
         }
