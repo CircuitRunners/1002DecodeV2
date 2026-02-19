@@ -234,6 +234,16 @@ public class Poses {
             new Pose(131, 84.5, Math.toRadians(180)),
             new Pose(21, 72.5, Math.toRadians(0)) // 144 - 143 = 1 ✅
     );
+    public static final AlliancePose openGate12Ball = new AlliancePose(
+            new Pose(131.2, 69.2, Math.toRadians(0)),
+            new Pose(12.8, 69.2, Math.toRadians(180)) // 144 - 143 = 1 ✅
+    );
+    public static final AlliancePose openGate12BallControlPoint = new AlliancePose(
+            new Pose(91.3, 71.1, Math.toRadians(180)),
+            new Pose(52.7, 71.1, Math.toRadians(0)) // 144 - 143 = 1 ✅
+    );
+
+
 
     public static final AlliancePose openGateHighCycle = new AlliancePose(
             new Pose(142, 62, Math.toRadians(45)),
