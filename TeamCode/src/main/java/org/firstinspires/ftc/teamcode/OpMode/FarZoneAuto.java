@@ -71,21 +71,26 @@ public class FarZoneAuto extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.backUpPoint).getHeading(), 0.25)
                 .addPath(new BezierLine(Poses.get(Poses.backUpPoint), Poses.get(Poses.humanPlayerIntakeRam)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.backUpPoint).getHeading(), Poses.get(Poses.humanPlayerIntakeRam).getHeading(), 0.25)
+                .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntakeRam), Poses.get(Poses.backUpPoint)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.backUpPoint).getHeading(), 0.25)
+                .addPath(new BezierLine(Poses.get(Poses.backUpPoint), Poses.get(Poses.humanPlayerIntake)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.backUpPoint).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
+
                 .build();
 
         travelBackToShoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntake), Poses.get(Poses.startPoseFarSide)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.startPoseFarSide).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.humanPlayerIntake), Poses.get(Poses.shootPositionFarSide)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.shootPositionFarSide).getHeading())
                 .build();
 
         intakeLine = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.startPoseFarSide), Poses.get(Poses.intake3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseFarSide).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.intake3ControlPointFar), Poses.get(Poses.pickupLine3)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
                 .build();
 
         travelBackToShoot2 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLine3), Poses.get(Poses.startPoseFarSide)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.startPoseFarSide).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine3Far), Poses.get(Poses.shootPositionFarSide)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3Far).getHeading(), Poses.get(Poses.shootPositionFarSide).getHeading())
                 .build();
     }
 
@@ -103,12 +108,12 @@ public class FarZoneAuto extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ? 290 : 70, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(targetX == RED_GOAL_X ? 301 : 59.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
                     setPathState();
                 }
-                setPathState();
+
                 break;
 
             case 1: // Shoot 3 Preloads
@@ -122,6 +127,7 @@ public class FarZoneAuto extends OpMode {
             case 2: // Drive to Intake
                 intake.doIntake();
                 if (!follower.isBusy()) {
+                    follower.setMaxPower(0.7);
                     follower.followPath(humanPlayerIntake, true);
                     setPathState(5); // Skipping to 5 based on your original logic
                 }
@@ -129,13 +135,14 @@ public class FarZoneAuto extends OpMode {
 
             case 5: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                    follower.setMaxPower(1);
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
             case 6: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 6.5, 0);
+                handleAutoShooting(currentPose, targetX, 5, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -158,7 +165,7 @@ public class FarZoneAuto extends OpMode {
                 break;
 
             case 9: // Shoot 3 Balls (Cycle 2)
-                handleAutoShooting(currentPose, targetX, 6.5, 0);
+                handleAutoShooting(currentPose, targetX, 5, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -197,7 +204,7 @@ public class FarZoneAuto extends OpMode {
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, -58,
+                    false, -200,
                     mannualHoodOffset ,
                     false, 0
             );

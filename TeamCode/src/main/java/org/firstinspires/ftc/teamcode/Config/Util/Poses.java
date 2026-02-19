@@ -174,6 +174,10 @@ public class Poses {
             new Pose(139, 34, Math.toRadians(0)),
             new Pose(5, 36, Math.toRadians(180))
     );
+    public static final AlliancePose pickupLine3Far = new AlliancePose(
+            new Pose(139, 34, Math.toRadians(0)),
+            new Pose(5, 34, Math.toRadians(180))
+    );
 
     public static final AlliancePose chainPickupLine3 = new AlliancePose(
             new Pose(139, 35, Math.toRadians(0)),
@@ -264,20 +268,20 @@ public class Poses {
             new Pose(25.5, 118.5, Math.toRadians(141.5))
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
-            new Pose(84, 9.5, Math.toRadians(0)),
-            new Pose(60, 9.5, Math.toRadians(180))
+            new Pose(84, 11.5, Math.toRadians(0)),
+            new Pose(60, 11.5, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
-            new Pose(134, 9, Math.toRadians(0)),
-            new Pose(10, 9, Math.toRadians(180))
+            new Pose(134, 12, Math.toRadians(0)),
+            new Pose(9, 12, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntakeRam = new AlliancePose(
-            new Pose(134, 11, Math.toRadians(340)),
-            new Pose(10, 11, Math.toRadians(200))
+            new Pose(134, 15, Math.toRadians(0)),
+            new Pose(9, 15, Math.toRadians(180))
     );
     public static final AlliancePose backUpPoint = new AlliancePose(
-            new Pose(124, 6, Math.toRadians(0)),
-            new Pose(20, 6, Math.toRadians(180))
+            new Pose(124, 12, Math.toRadians(0)),
+            new Pose(15, 12, Math.toRadians(180))
     );
 //    public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
 //            new Pose(96.3, 7.2),
@@ -288,6 +292,11 @@ public class Poses {
             new Pose(82.9, 40)
     );
 
+
+    public static final AlliancePose intake3ControlPointFar = new AlliancePose(
+            new Pose(81.1, 40),
+            new Pose(62.9, 40)
+    );
 
 
     //15 ball shenanegans
