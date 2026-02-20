@@ -114,7 +114,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ? 298.5 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(targetX == RED_GOAL_X ? 293 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
                     setPathState();
@@ -142,6 +142,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
             case 5: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
                     follower.setMaxPower(1);
+                    intake.doOuttake();
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }

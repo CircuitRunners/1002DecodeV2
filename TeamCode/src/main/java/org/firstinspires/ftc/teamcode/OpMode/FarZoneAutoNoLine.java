@@ -112,7 +112,7 @@ public class FarZoneAutoNoLine extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ?  298.5 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(targetX == RED_GOAL_X ?  293 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
                     setPathState();
