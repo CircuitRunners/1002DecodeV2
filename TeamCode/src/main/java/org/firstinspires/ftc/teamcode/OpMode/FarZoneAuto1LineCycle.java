@@ -184,7 +184,33 @@ public class FarZoneAuto1LineCycle extends OpMode {
                 if (!follower.isBusy()) {
                     follower.setMaxPower(0.7);
                     follower.followPath(humanPlayerIntake, true);
-                    setPathState(5); // Skipping to 5 based on your original logic
+                    setPathState(); // Skipping to 5 based on your original logic
+                }
+                break;
+
+
+            case 11: // Return to Shoot 1
+                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                    follower.setMaxPower(1);
+                    intake.doOuttake();
+                    follower.followPath(travelBackToShoot1, true);
+                    setPathState();
+                }
+                break;
+
+            case 12: // Shoot 3 Balls (Cycle 1)
+                handleAutoShooting(currentPose, targetX, 4.1, 0);
+                if (!goForLaunch
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                    goForLaunch = true;
+                }
+                break;
+
+            case 13: // Drive to Intake 2
+                intake.doIntake();
+                if (!follower.isBusy()) {
+                    follower.followPath(intakeLine, false);
+                    setPathState();
                 }
                 break;
 
