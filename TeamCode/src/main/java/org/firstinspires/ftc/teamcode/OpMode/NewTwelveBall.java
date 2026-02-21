@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
 @Configurable
-@Autonomous(name = "GS 12 - 1 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "NEW GS 12 - 1 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
 
 public class NewTwelveBall extends OpMode {
 
