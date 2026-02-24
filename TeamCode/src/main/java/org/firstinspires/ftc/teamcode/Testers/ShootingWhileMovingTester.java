@@ -734,11 +734,14 @@ public class ShootingWhileMovingTester extends OpMode {
         shooterLogic.update(shooterLogic.getCurrentTurretPosition());
 
         // --- Intake update ---
-        intake.update(
-                shooterLogic.isBeamBroken(),
-                LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-                null,null,null
-        );
+        boolean isBeamBroken = shooterLogic.isBeamBroken();
+        LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
+                ? Intake.targetPatternFromAuto
+                : LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN;
+
+        intake.update(isBeamBroken, activePattern,
+                null,null,null);
+        handleDriveState();
 
         // --- Relocalization button ---
         if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
@@ -749,19 +752,11 @@ public class ShootingWhileMovingTester extends OpMode {
         if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) enableShooter = !enableShooter;
 
         // --- Intake test/shoot ---
-        if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
-        else intake.doIntakeHalt();
+//        if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
+//        else intake.doIntakeHalt();
 
         // --- Drive logic (field-centric) ---
-        double forward = player1.getLeftY();
-        double strafe = player1.getLeftX();
-        double rotate = player1.getRightX();
-        if (!isRedAlliance) { forward = -forward; strafe = -strafe; }
 
-        double heading = follower.getPose().getHeading();
-        double theta = Math.atan2(forward, strafe) - heading;
-        double r = Math.hypot(forward, strafe);
-        drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
 
 
         String followerData = String.format(Locale.US,
@@ -783,6 +778,9 @@ public class ShootingWhileMovingTester extends OpMode {
             newY = newGoalCoords[1];
             dist = Math.hypot(newX - robotPose.getX(),newY - robotPose.getY());
             shooterLogic.setTargetsByDistanceAdjustable(robotPose.getX(), robotPose.getY(), newX, newY, robotHeadingDeg, true, 0, 0, false, 0);
+            if (gamepad1.right_trigger > 0.2) {
+                intake.doTestShooter();
+            }
 
 
 
@@ -790,6 +788,7 @@ public class ShootingWhileMovingTester extends OpMode {
             dist = Math.hypot(BLUE_GOAL_X - robotPose.getX(),GOAL_Y - robotPose.getY());
             newX = BLUE_GOAL_X;
             newY = GOAL_Y;
+            handleIntakeState();
             shooterLogic.stopFlywheel();
             shooterLogic.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC, Math.toDegrees(follower.getPose().getHeading()), 0);
         }
@@ -812,6 +811,27 @@ public class ShootingWhileMovingTester extends OpMode {
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.resetPosAndIMU();
+    }
+    private void handleIntakeState() {
+
+        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
+        if (gamepad1.right_trigger > 0.2) {
+            intake.doIntake();
+        }
+        else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
+        else intake.doIntakeHalt();
+    }
+
+    private void handleDriveState() {
+        double forward = player1.getLeftY();
+        double strafe = player1.getLeftX();
+        double rotate = player1.getRightX();
+        if (!isRedAlliance) { forward = -forward; strafe = -strafe; }
+
+        double heading = follower.getPose().getHeading();
+        double theta = Math.atan2(forward, strafe) - heading;
+        double r = Math.hypot(forward, strafe);
+        drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
     }
 
     // --- Motion compensation with turret offset ---

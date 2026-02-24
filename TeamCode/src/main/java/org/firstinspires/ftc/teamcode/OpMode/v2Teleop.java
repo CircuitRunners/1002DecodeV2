@@ -84,6 +84,7 @@ public class v2Teleop extends OpMode {
     public static  double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
     public static double limelightTurretScale = 1.0;
     public static double limelightTurretTolerance = 3; //degrees
+    public static boolean turretOnlyFarZoned = true;
 
     public static double turretDeadband = 0;
 
@@ -313,7 +314,7 @@ public class v2Teleop extends OpMode {
         }
 
 
-        if (follower.getPose().getY() < 69 &&
+        if ((turretOnlyFarZoned ? pose.getPose().getY() < 69 : true) &&
                 result != null &&
                 result.isValid() &&
                 useAprilTagAim) {
