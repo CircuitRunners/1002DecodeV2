@@ -45,8 +45,8 @@ public class Fifteen3lines extends OpMode {
         private boolean lastBeamState = false;
 
         // Field Constants
-        private final double RED_GOAL_X = 127;
-        private final double BLUE_GOAL_X = 13;
+        private final double RED_GOAL_X = 134;
+        private final double BLUE_GOAL_X = 10.5;
         private final double GOAL_Y = 132;
 
         double targetX = 0;

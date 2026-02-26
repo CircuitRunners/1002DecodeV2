@@ -45,8 +45,8 @@ public class Fifteen2Line extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 127;
-    private final double BLUE_GOAL_X = 13;
+    private final double RED_GOAL_X = 134;
+    private final double BLUE_GOAL_X = 10.5;
     private final double GOAL_Y = 132;
 
     private boolean doTransfer = false;
@@ -109,8 +109,8 @@ public class Fifteen2Line extends OpMode {
                 .build();
 
         travelBackToShootFromIntake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallLastTime)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLineOne15Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallLastTime).getHeading())
                 .build();
 
         intake3  = follower.pathBuilder()

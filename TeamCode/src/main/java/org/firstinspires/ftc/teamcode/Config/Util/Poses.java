@@ -247,7 +247,7 @@ public class Poses {
 
     public static final AlliancePose openGateHighCycle = new AlliancePose(
             new Pose(142, 62, Math.toRadians(45)),
-            new Pose(19.5, 58.5, Math.toRadians(135)) // correct
+            new Pose(19.5, 60, Math.toRadians(135)) // correct
     );
     public static final AlliancePose openGateRamTech = new AlliancePose(
             new Pose(119, 52.7, Math.toRadians(70)),
