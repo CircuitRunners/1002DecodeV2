@@ -302,6 +302,7 @@
 
 package org.firstinspires.ftc.teamcode.Testers;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -658,14 +659,14 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 import java.util.Locale;
 
-@Configurable
+@Config
 @TeleOp(name = "Test Shooter With Motion Compensation", group = "TEST")
 public class ShootingWhileMovingTester extends OpMode {
 
     // --- CONFIGURABLES ---
-    public static double RED_GOAL_X = 127.0;
-    public static double BLUE_GOAL_X = 17.0;
-    public static double GOAL_Y = 130.5;
+    public static double RED_GOAL_X = 127;
+    public static double BLUE_GOAL_X = 13;
+    public static double GOAL_Y = 132;
 
     public static double VECTOR_TUNE_FACTOR = 2.54;
 
@@ -698,6 +699,9 @@ public class ShootingWhileMovingTester extends OpMode {
     private double newY = GOAL_Y;
 
     private double newGoalCoords[];
+
+    public static double targetRPM = 0;
+    public static double currentRPM = 0;
 
     @Override
     public void init() {
@@ -756,6 +760,9 @@ public class ShootingWhileMovingTester extends OpMode {
 //        else intake.doIntakeHalt();
 
         // --- Drive logic (field-centric) ---
+
+        currentRPM = shooterLogic.getFlywheelVelo();
+        targetRPM = shooterLogic.getTargetFLywheelVelo();
 
 
 
