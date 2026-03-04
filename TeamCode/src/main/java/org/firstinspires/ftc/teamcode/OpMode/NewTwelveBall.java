@@ -173,56 +173,56 @@ public class NewTwelveBall extends OpMode {
             case 4: // Gate logic
                 intake.doIntake();
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-                    follower.followPath(travelBackToShoot2, false);
-                    setPathState();
+                    follower.followPath(travelBackToShootFromGate, false);
+                    setPathState(8);
                 }
                 break;
 
-            case 5: // Return to Shoot 1
-                stopIntakeOnceAtT(0.7);
-
-                // Shooter logic owns intake AFTER the stop
-                if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
-                }
-
-                // Allow feeding once fully settled
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.8) {
-                    goForLaunch = true;
-                }
-                break;
-
-
-
-
-
-//                    if (!follower.isBusy()) {
-//                        intake.doIntake();
-//                        follower.followPath(sigmaCycle, false);
-//                        setPathState(6);
-//                    }
-
-
-
-//            case 6: // WAIT at Gate (2.5s)
-//                intake.doIntake(); // keep intaking while stalled
+//            case 5: // Return to Shoot 1
+//                stopIntakeOnceAtT(0.7);
 //
-//                if ((pathTimer.getElapsedTimeSeconds() >= 5 && follower.getVelocity().getMagnitude() <= 1.8)) {
-//                    setPathState();
+//                // Shooter logic owns intake AFTER the stop
+//                if (intakeStoppedForShooting) {
+//                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+//                }
+//
+//                // Allow feeding once fully settled
+//                if (intakeStoppedForShooting
+//                        && !goForLaunch
+//                        && follower.atParametricEnd()
+//                        && follower.getVelocity().getMagnitude() < 1.8) {
+//                    goForLaunch = true;
 //                }
 //                break;
-
-
-            case 7: // Return to Shoot 2
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(travelBackToShootFromGate, false);
-                    setPathState();
-                }
-                break;
+//
+//
+//
+//
+//
+////                    if (!follower.isBusy()) {
+////                        intake.doIntake();
+////                        follower.followPath(sigmaCycle, false);
+////                        setPathState(6);
+////                    }
+//
+//
+//
+////            case 6: // WAIT at Gate (2.5s)
+////                intake.doIntake(); // keep intaking while stalled
+////
+////                if ((pathTimer.getElapsedTimeSeconds() >= 5 && follower.getVelocity().getMagnitude() <= 1.8)) {
+////                    setPathState();
+////                }
+////                break;
+//
+//
+//            case 6: // Return to Shoot 2
+//                intake.doIntake();
+//                if (!follower.isBusy()) {
+//                    follower.followPath(intake1, false);
+//                    setPathState(8);
+//                }
+//                break;
 
 
             case 8: // Shoot 3 Balls (Cycle 2)
@@ -230,7 +230,7 @@ public class NewTwelveBall extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 6, 0,false);
                 }
 
                 // Allow feeding once fully settled
@@ -270,7 +270,7 @@ public class NewTwelveBall extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 6, 0,false);
                 }
 
                 // Allow feeding once fully settled
