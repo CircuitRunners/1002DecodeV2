@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Locale;
 
-@TeleOp(group = "Test")
+@TeleOp(name = "Configure Turret Servo", group = "Test")
 @Configurable
 public class turretServoConfigure extends OpMode {
 

@@ -13,13 +13,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
 
-import java.util.Timer;
-
 @Configurable
 public class Intake {
 
     private Telemetry telemetry;
-    private DcMotorEx intake;
+    private DcMotorEx intake1;
+    private DcMotorEx intake2;
     private Servo transferDirectionSwitcher;
     private Servo transferPowerTransmition;
     private Servo gateLeft;
@@ -103,11 +102,17 @@ public class Intake {
     public Intake(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
-        intake = hardwareMap.get(DcMotorEx.class, "intake");
-        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        intake1 = hardwareMap.get(DcMotorEx.class, "intake1");
+        intake1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake2 = hardwareMap.get(DcMotorEx.class, "intake1");
+        intake2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+        intake1.setDirection(DcMotorSimple.Direction.REVERSE);
+        //intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitch");
         transferDirectionSwitcher.setDirection(Servo.Direction.REVERSE);
@@ -152,7 +157,8 @@ public class Intake {
         gateClose();
         transferOff();
         setDirectionCycle();
-        intake.setPower(1);
+        intake1.setPower(1);
+        intake2.setPower(1);
         motorPower = 1;
     }
 
@@ -160,19 +166,22 @@ public class Intake {
         gateClose();
         transferOn();
         setDirectionCycle();
-        intake.setPower(-1);
+        intake1.setPower(-1);
+        intake2.setPower(1);
         motorPower = -1;
     }
 
     private void retainBalls(){
         gateClose();
         transferOff();
-        intake.setPower(0.75);
+        intake1.setPower(0.75);
+        intake2.setPower(0.75);
         motorPower = 0.5;
     }
 
     private void intakeMotorHalt(){
-        intake.setPower(0);
+        intake1.setPower(0);
+        intake2.setPower(0);
         motorPower = 0;
     }
 
@@ -221,14 +230,16 @@ public class Intake {
         gateOpen();
         transferOn();
         setDirectionCycle();
-        intake.setPower(0.9);
+        intake1.setPower(0.9);
+        intake2.setPower(0.9);
     }
 
     private void transfer(){
         transferOn();
         setDirectionTransfer();
         gateClose();
-        intake.setPower(1);
+        intake1.setPower(1);
+        intake2.setPower(1);
     }
 
     private void resetIndexer(){
@@ -578,10 +589,10 @@ public class Intake {
                 }
 
                 if (simpleSortTimer.milliseconds() <= 400 && isFirstTime){
-                    intake.setPower(-0.6);
+                    intake1.setPower(-0.6);
                 }
                 else {
-                    intake.setPower(1);
+                    intake1.setPower(1);
                 }
 
 
@@ -691,7 +702,8 @@ public class Intake {
                 gateClose();
                 transferOff();
                 setDirectionCycle();
-                intake.setPower(-0.8); //0.9
+                intake1.setPower(-0.8); //0.9
+                intake2.setPower(-0.8);
 
                 if (stateTimer.milliseconds() > 2000) {
                     intakeMotorHalt();
@@ -729,7 +741,7 @@ public class Intake {
                     setDirectionCycle();
                     transferOn();
                     gateClose();
-                    intake.setPower(1); //0.9
+                    intake1.setPower(1); //0.9
                 }
 
                 else if (s1 != null && (internalTotalBalls < 2 || s2 != null)) {
@@ -746,7 +758,8 @@ public class Intake {
                 gateClose();
                 transferOn();
                 setDirectionCycle();
-                intake.setPower(1); //0.9
+                intake1.setPower(1); //0.9
+                intake2.setPower(1);
 
                 if (stateTimer.milliseconds() > 4500) {
                     intakeMotorHalt();
@@ -1077,18 +1090,18 @@ public class Intake {
     }
 
     public double getCurrentRPM() {
-        return intake.getVelocity() * 60.0 / TICKS_PER_REV;
+        return intake1.getVelocity() * 60.0 / TICKS_PER_REV;
     }
 
     public double getCurrentVelocity(){
-        return intake.getVelocity();
+        return intake1.getVelocity();
     }
     public double getCurrentTargetRPM(){
         return targetRPM;
     }
 
     public double getIntakeMotorCurrent(){
-        return intake.getCurrent(CurrentUnit.MILLIAMPS);
+        return intake1.getCurrent(CurrentUnit.MILLIAMPS);
     }
 
     public double getCurrentTargetVelocity(){
