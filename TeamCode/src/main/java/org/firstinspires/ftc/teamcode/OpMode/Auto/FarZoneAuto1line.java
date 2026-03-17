@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpMode;
+package org.firstinspires.ftc.teamcode.OpMode.Auto;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -20,9 +20,10 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
+
 @Configurable
-@Autonomous(name = "FS 6 Ball - No Line", group = "B", preselectTeleOp = "v2Teleop")
-public class FarZoneAutoNoLine extends OpMode {
+@Autonomous(name = "FS 9 Ball - 1 Line", group = "B", preselectTeleOp = "v2Teleop")
+public class FarZoneAuto1line extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -55,7 +56,7 @@ public class FarZoneAutoNoLine extends OpMode {
     private final double GOAL_Y = 132;
 
 
-    private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2, park;
+    private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2,park;
 
     public void buildPaths() {
         travelToShoot = follower.pathBuilder()
@@ -154,13 +155,34 @@ public class FarZoneAutoNoLine extends OpMode {
                 break;
 
             case 7: // Drive to Intake 2
-
+                intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(park, false);
+                    follower.followPath(intakeLine, false);
                     setPathState();
                 }
                 break;
 
+            case 8: // Return to Shoot 2
+                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                    follower.followPath(travelBackToShoot2, true);
+                    setPathState();
+                }
+                break;
+
+            case 9: // Shoot 3 Balls (Cycle 2)
+                handleAutoShooting(currentPose, targetX, 5, 0);
+                if (!goForLaunch
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                    goForLaunch = true;
+                }
+                break;
+
+            case 10:
+                if (!follower.isBusy()) {
+                    follower.followPath(park, true);
+                    setPathState();
+                }
+                break;
 
 
             default:
@@ -292,9 +314,9 @@ public class FarZoneAutoNoLine extends OpMode {
             telemetry.addLine("");
         }
 
-        //    telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+    //    telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
 
-        //          (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+      //          (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
 
 
 
@@ -355,8 +377,8 @@ public class FarZoneAutoNoLine extends OpMode {
 
     @Override
     public void stop() {
-        shooter.stopFlywheel();
         shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
+        shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());
     }

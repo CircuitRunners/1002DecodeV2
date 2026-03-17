@@ -1,4 +1,5 @@
-package org.firstinspires.ftc.teamcode.OpMode;
+package org.firstinspires.ftc.teamcode.OpMode.Auto;
+
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -22,8 +23,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "FS 9 Ball - 1 Line", group = "B", preselectTeleOp = "v2Teleop")
-public class FarZoneAuto1line extends OpMode {
+@Autonomous(name = "FS High Cycle - 1 Line", group = "B", preselectTeleOp = "v2Teleop")
+public class FarZoneAuto1LineCycle extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -83,7 +84,7 @@ public class FarZoneAuto1line extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.shootPositionFarSide).getHeading())
                 .build();
 
-        intakeLine = follower.pathBuilder()
+        intakeLine = follower.pathBuilder().setNoDeceleration()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.intake3ControlPointFar), Poses.get(Poses.pickupLine3Far)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.pickupLine3Far).getHeading(), 0.45)
                 .build();
@@ -113,7 +114,7 @@ public class FarZoneAuto1line extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ?  293 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(targetX == RED_GOAL_X ? 293 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
                     setPathState();
@@ -122,7 +123,7 @@ public class FarZoneAuto1line extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 5.5, 0);
+                handleAutoShooting(currentPose, targetX, 5.1, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -141,13 +142,14 @@ public class FarZoneAuto1line extends OpMode {
             case 5: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
                     follower.setMaxPower(1);
+                    intake.doOuttake();
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
             case 6: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 5, 0);
+                handleAutoShooting(currentPose, targetX, 4.1, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -170,7 +172,7 @@ public class FarZoneAuto1line extends OpMode {
                 break;
 
             case 9: // Shoot 3 Balls (Cycle 2)
-                handleAutoShooting(currentPose, targetX, 5, 0);
+                handleAutoShooting(currentPose, targetX, 4.1, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -178,8 +180,36 @@ public class FarZoneAuto1line extends OpMode {
                 break;
 
             case 10:
+                intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(park, true);
+                    follower.setMaxPower(0.7);
+                    follower.followPath(humanPlayerIntake, true);
+                    setPathState(); // Skipping to 5 based on your original logic
+                }
+                break;
+
+
+            case 11: // Return to Shoot 1
+                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                    follower.setMaxPower(1);
+                    intake.doOuttake();
+                    follower.followPath(travelBackToShoot1, true);
+                    setPathState();
+                }
+                break;
+
+            case 12: // Shoot 3 Balls (Cycle 1)
+                handleAutoShooting(currentPose, targetX, 4.1, 0);
+                if (!goForLaunch
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                    goForLaunch = true;
+                }
+                break;
+
+            case 13: // Drive to Intake 2
+                intake.doIntake();
+                if (!follower.isBusy()) {
+                    follower.followPath(intakeLine, false);
                     setPathState();
                 }
                 break;
@@ -314,9 +344,9 @@ public class FarZoneAuto1line extends OpMode {
             telemetry.addLine("");
         }
 
-    //    telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
+        //    telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
 
-      //          (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
+        //          (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
 
 
 
@@ -377,8 +407,8 @@ public class FarZoneAuto1line extends OpMode {
 
     @Override
     public void stop() {
-        shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
         shooter.stopFlywheel();
+        shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
         intake.resetState();
         Poses.savePose(follower.getPose());
     }

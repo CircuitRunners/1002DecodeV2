@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpMode;
+package org.firstinspires.ftc.teamcode.OpMode.Auto;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -10,7 +10,6 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -22,11 +21,10 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-@Disabled
 @Configurable
-@Autonomous(name = "slightly modified 15", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "NEW GS 12 - 2 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
 
-public class slightlyModifiedFifteen extends OpMode {
+public class NewTwelveBall extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -63,7 +61,7 @@ public class slightlyModifiedFifteen extends OpMode {
 
 
 
-    private PathChain travelToShoot, intake2Sussy,openGate,travelBackToShootFromGateLastTime,sigmaCycle,ramGate,intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3, superMegaTechGateCycle;
+    private PathChain travelToShoot, gateCycleIntake2, intake1, gateCycleIntake1, travelBackToShoot2, intake2, travelBackToShootFromGate, intake3, gateCycleIntake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
@@ -76,18 +74,10 @@ public class slightlyModifiedFifteen extends OpMode {
 
         // Path 2: Shoot to Intake 1
         intake2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.chainPickupLine2)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierCurve(Poses.get(Poses.chainPickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
-        intake2Sussy = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), new Pose(40,54,180)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierLine (new Pose(40,54,180), Poses.get(Poses.pickupLine2)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .build();
 
         // Path 3: Travel back to shoot
 //        travelBackToShoot2 = follower.pathBuilder()
@@ -95,67 +85,49 @@ public class slightlyModifiedFifteen extends OpMode {
 //                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
 //                .build();
 
-        openGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
+        gateCycleIntake2 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.openGate12BallControlPoint),Poses.get(Poses.openGate12Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Poses.get(Poses.openGate12Ball).getHeading())
                 .build();
 
-        ramGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
-                .build();
 
-        sigmaCycle  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
-//                    .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.openGateRamTech)))
-//                    .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.openGateRamTech).getHeading())
-
-                .build();
-
-        superMegaTechGateCycle = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.openGateRamTech)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.openGateRamTech).getHeading())
-                .build();
 
         // Path 6: Intake 2 back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateRamTech).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.openGate12Ball), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGate12Ball).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
-        travelBackToShootFromGateLastTime = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.openGateRamTech), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateRamTech).getHeading(), Poses.get(Poses.pickupLine1).getHeading())
-                .build();
 
         intake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.chainPickupLineOne15Ball)))
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.pickupLineOne15Ball)))
                 .setConstantHeadingInterpolation( Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.chainPickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
-//        travelBackToShootFromIntake1 = follower.pathBuilder()
-//                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
-//                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-//                .build();
+        gateCycleIntake1 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine1), Poses.get(Poses.openGate12BallControlPoint),Poses.get(Poses.openGate12Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGate12Ball).getHeading())
+                .build();
+
+        travelBackToShootFromIntake1 = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.openGate12Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
+                .build();
 
         intake3  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.chainPickupLine3)))
-                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-                .addPath(new BezierCurve(Poses.get(Poses.chainPickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15Ball), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
                 .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
                 .build();
 
-//        travelBackToShootFromIntake3 = follower.pathBuilder()
-//                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
-//                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
-//                .build();
+        gateCycleIntake3 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.openGate12BallControlPoint),Poses.get(Poses.openGate12Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.openGate12Ball).getHeading())
+                .build();
+
+        travelBackToShootFromIntake3 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine3), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide15Ball)))
+                .setConstantHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading())
+                .build();
 
     }
 
@@ -189,84 +161,76 @@ public class slightlyModifiedFifteen extends OpMode {
                     setPathState();
                 }
                 break;
-
-//            case 3: // Gate logic
-//                intake.doIntake();
-//                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-//                    follower.followPath(travelBackToShoot2, false);
-//                    setPathState();
-//                }
-//                break;
-
-            case 3: // Return to Shoot 1
-                stopIntakeOnceAtT(0.45);
-
-                // Shooter logic owns intake AFTER the stop
-                if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
-                }
-
-                // Allow feeding once fully settled
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.8) {
-                    goForLaunch = true;
-                }
-                break;
-
-
-
-            case 4: // Shoot 3 Balls (Cycle 1)
+            case 3: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
                     intake.doIntake();
 //                        follower.followPath(ramGate, false);
 //                        setPathState(41);
-                    follower.followPath(sigmaCycle,true);
+                    follower.followPath(gateCycleIntake2,true);
                     setPathState();
                 }
 
-//                    if (!follower.isBusy()) {
-//                        intake.doIntake();
-//                        follower.followPath(sigmaCycle, false);
-//                        setPathState(6);
-//                    }
-                break;
-
-            case 41:
+            case 4: // Gate logic
                 intake.doIntake();
-                if (!follower.isBusy()){
-                    follower.followPath(superMegaTechGateCycle,false);
-                    setPathState(6);
-
-                }
-                break;
-
-
-            case 5: // WAIT at Gate (2.5s)
-                intake.doIntake(); // keep intaking while stalled
-
-                if ((pathTimer.getElapsedTimeSeconds() >= 5 && follower.getVelocity().getMagnitude() <= 1.8)) {
-                    setPathState();
-                }
-                break;
-
-
-            case 6: // Return to Shoot 2
-                intake.doIntake();
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShootFromGate, false);
-                    setPathState();
+                    setPathState(8);
                 }
                 break;
 
+//            case 5: // Return to Shoot 1
+//                stopIntakeOnceAtT(0.7);
+//
+//                // Shooter logic owns intake AFTER the stop
+//                if (intakeStoppedForShooting) {
+//                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+//                }
+//
+//                // Allow feeding once fully settled
+//                if (intakeStoppedForShooting
+//                        && !goForLaunch
+//                        && follower.atParametricEnd()
+//                        && follower.getVelocity().getMagnitude() < 1.8) {
+//                    goForLaunch = true;
+//                }
+//                break;
+//
+//
+//
+//
+//
+////                    if (!follower.isBusy()) {
+////                        intake.doIntake();
+////                        follower.followPath(sigmaCycle, false);
+////                        setPathState(6);
+////                    }
+//
+//
+//
+////            case 6: // WAIT at Gate (2.5s)
+////                intake.doIntake(); // keep intaking while stalled
+////
+////                if ((pathTimer.getElapsedTimeSeconds() >= 5 && follower.getVelocity().getMagnitude() <= 1.8)) {
+////                    setPathState();
+////                }
+////                break;
+//
+//
+//            case 6: // Return to Shoot 2
+//                intake.doIntake();
+//                if (!follower.isBusy()) {
+//                    follower.followPath(intake1, false);
+//                    setPathState(8);
+//                }
+//                break;
 
-            case 7: // Shoot 3 Balls (Cycle 2)
-                stopIntakeOnceAtT(0.45);
+
+            case 8: // Shoot 3 Balls (Cycle 2)
+                stopIntakeOnceAtT(0.7);
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 6, 0,false);
                 }
 
                 // Allow feeding once fully settled
@@ -278,55 +242,63 @@ public class slightlyModifiedFifteen extends OpMode {
                 }
                 break;
 
-            case 8: // Shoot 3 Balls (Cycle 1)
+            case 9: // Shoot 3 Balls (Cycle 1)
                 if (!follower.isBusy()) {
                     intake.doIntake();
+                    follower.followPath(intake1, false);
+                    setPathState(67);
+                }
+                break;
+            case 67: // Shoot 3 Balls (Cycle 1)
+                if (!follower.isBusy()) {
+                    intake.doIntake();
+//                        follower.followPath(ramGate, false);
+//                        setPathState(41);
+                    follower.followPath(gateCycleIntake1,true);
+                    setPathState(10);
+                }
+            case 10:
+                intake.doIntake();
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+                    follower.followPath(travelBackToShootFromIntake1, false);
+                    setPathState();
+                }
+                break;
+
+            case 11: // Return to Shoot 1
+                stopIntakeOnceAtT(0.7);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 6, 0,false);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.3) {
+                    goForLaunch = true;
+                }
+                break;
+
+            case 12:
+                intake.doIntake();
+                if (!follower.isBusy()) {
                     follower.followPath(intake3, false);
                     setPathState();
                 }
                 break;
-//            case 10:
-//                intake.doIntake();
-//                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-//                    follower.followPath(travelBackToShootFromIntake3, false);
-//                    setPathState();
-//                }
-//                break;
 
-            case 9: // Return to Shoot 1
-                stopIntakeOnceAtT(0.45);
-
-                // Shooter logic owns intake AFTER the stop
-                if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
-                }
-
-                // Allow feeding once fully settled
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.3) {
-                    goForLaunch = true;
-                }
-                break;
-
-            case 10:
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(intake1, false);
+            case 13:
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+                    follower.followPath(travelBackToShootFromIntake3, false);
                     setPathState();
                 }
                 break;
 
-//            case 13:
-//                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-//                    follower.followPath(travelBackToShootFromIntake1, false);
-//                    setPathState();
-//                }
-//                break;
-
-            case 11: // Return to Shoot 1
-                stopIntakeOnceAtT(0.45);
+            case 14: // Return to Shoot 1
+                stopIntakeOnceAtT(0.7);
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
@@ -556,11 +528,16 @@ public class slightlyModifiedFifteen extends OpMode {
         telemetry.addData("Go for launch?", goForLaunch);
         telemetry.addData("Path t", follower.getCurrentTValue());
         telemetry.addData("IntakeStopped", intakeStoppedForShooting);
+
+        telemetry.addData("X Pos", follower.getPose().getX());
+        telemetry.addData("Y Pos", follower.getPose().getY());
+        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
     }
 
     @Override
     public void stop() {
+        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());

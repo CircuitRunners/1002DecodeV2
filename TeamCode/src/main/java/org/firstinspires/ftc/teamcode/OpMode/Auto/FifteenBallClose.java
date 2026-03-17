@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpMode;
+package org.firstinspires.ftc.teamcode.OpMode.Auto;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -23,8 +23,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 @Disabled
 @Configurable
-@Autonomous(name = "GS 12 Ball - sussy turret ", group = "A", preselectTeleOp = "v2Teleop")
-public class PowerOfFriendshipTurret extends OpMode {
+@Autonomous(name = "GS 15 Ball ", group = "A", preselectTeleOp = "v2Teleop")
+public class FifteenBallClose extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -48,73 +48,82 @@ public class PowerOfFriendshipTurret extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 127;
-    private final double BLUE_GOAL_X = 13;
+    private final double RED_GOAL_X = 126;
+    private final double BLUE_GOAL_X = 15;
     private final double GOAL_Y = 132;
+
 
     private boolean doTransfer = false;
     private boolean goForLaunch = false;
-
+    // One-shot latch: stops intake exactly once before shooting
     private boolean intakeStoppedForShooting = false;
     boolean flywheelLocked = false;
 
-    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,park;
+    private PathChain travelToShoot, openGate, intake1, travelBackToShoot1, intake2, travelBackToShoot2, intake3, travelBackToShoot3,intake4,travelBackToShoot4;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.shootPositionGoalSide2)))
 
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225)
+                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
 
                 .build();
 
         // Path 2: Shoot to Intake 1
         intake1 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.pickupLine1)))
-                .setLinearHeadingInterpolation(Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225, Poses.get(Poses.pickupLine1).getHeading(), 0.25)
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.25)
                 .build();
 
-        // Path 3: Intake 1 to Gate
-        openGate = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.openGate)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Math.toRadians(90), 0.85)
-                .build();
 
-        // Path 4: Gate back to Shoot
         travelBackToShoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.openGate), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Math.toRadians(90), Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225)
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.25)
                 .build();
 
         // Path 5: Shoot to Intake 2
         intake2 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setLinearHeadingInterpolation(Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225, Poses.get(Poses.pickupLine2).getHeading(), 0.45)
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine2).getHeading(), 0.45)
                 .build();
+
+        openGate = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2),Poses.get(Poses.fifteenBallOpenGateControlPoint), Poses.get(Poses.openGate)))
+
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Math.toRadians(90), 0.55)
+                .build();
+
 
         // Path 6: Intake 2 back to Shoot
         travelBackToShoot2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225)
+                .addPath(new BezierLine(Poses.get(Poses.openGate), Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
 
         // Path 7: Shoot to Intake 3
         intake3 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setLinearHeadingInterpolation(Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225, Poses.get(Poses.pickupLine3).getHeading(), 0.45)
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine3).getHeading(), 0.45)
                 .build();
 
         // Path 8: Intake 3 back to final Shoot
         travelBackToShoot3 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.pickupLine3),Poses.get(Poses.line3ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225)
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine3).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
                 .build();
 
-        park  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setLinearHeadingInterpolation(Poses.getAlliance() == Poses.Alliance.RED ? -45 : 225, Poses.get(Poses.pickupLine2).getHeading(), 0.45)
+        intake4 = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.fifteenBallLine4ControlPoint1), Poses.get(Poses.fifteenBallLine4ControlPoint2),Poses.get(Poses.fifteenBallPickupLine4)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.fifteenBallPickupLine4).getHeading(), 0.5)
                 .build();
+
+        travelBackToShoot4 = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.fifteenBallPickupLine4),Poses.get(Poses.shootPositionGoalSide2)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.fifteenBallPickupLine4).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading(),0.75,0.35)
+                .build();
+
+
 
 
     }
@@ -125,16 +134,16 @@ public class PowerOfFriendshipTurret extends OpMode {
 
         boolean isShootingState =
                 pathState == 1 ||
-                        pathState == 5 ||
+                        pathState == 4 ||
                         pathState == 8 ||
-                        pathState == 11;
+                        pathState == 11 ||
+                        pathState == 14;
 
         if (!isShootingState) {
             doTransfer = false;
             goForLaunch = false;
             flywheelLocked = false;
         }
-
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
@@ -158,30 +167,22 @@ public class PowerOfFriendshipTurret extends OpMode {
             case 2: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    follower.followPath(intake1, false);
+                    follower.followPath(intake1, true);
                     setPathState();
                 }
 
                 break;
 
-            case 3: // Gate logic
-                intake.doIntake();
-                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 2)) {
-                    follower.followPath(openGate, false);
-                    setPathState();
-                }
-                break;
 
-            case 4: // Return to Shoot 1
+            case 3: // Return to Shoot 1
 
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.5  || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 )) {
-
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
-            case 5: // Final 3 Balls
+            case 4: // Final 3 Balls
 
                 // Stop intake once we're ~45% through the path
                 stopIntakeOnceAtT(0.45);
@@ -201,7 +202,7 @@ public class PowerOfFriendshipTurret extends OpMode {
 
                 break;
 
-            case 6: // Drive to Intake 2
+            case 5: // Drive to Intake 2
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(intake2, false);
@@ -209,9 +210,16 @@ public class PowerOfFriendshipTurret extends OpMode {
                 }
                 break;
 
+            case 6:
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 2)) {
+                    follower.followPath(openGate, false);
+                    setPathState();
+                }
+                break;
+
             case 7: // Return to Shoot 2
 
-                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 4.5  || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 )) {
                     follower.followPath(travelBackToShoot2, true);
                     setPathState();
                 }
@@ -224,7 +232,7 @@ public class PowerOfFriendshipTurret extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 5.9, 0);
+                    handleAutoShooting(currentPose, targetX, 5.3, 0);
                 }
 
                 // Allow feeding once fully settled
@@ -236,6 +244,7 @@ public class PowerOfFriendshipTurret extends OpMode {
                 }
 
                 break;
+
             case 9: // Drive to Intake 3
                 intake.doIntake();
                 if (!follower.isBusy()) {
@@ -261,6 +270,44 @@ public class PowerOfFriendshipTurret extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 5.3, 0);
+                }
+
+                // Allow feeding once fully settled
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1) {
+                    goForLaunch = true;
+                }
+
+                break;
+
+            case 12: // Drive to Intake 3
+                intake.doIntake();
+                if (!follower.isBusy()) {
+                    follower.followPath(intake4, false);
+                    setPathState();
+                }
+                break;
+
+            case 13: // Return to Shoot 3
+
+                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                    ;
+                    follower.followPath(travelBackToShoot4, true);
+                    setPathState();
+                }
+                break;
+
+
+            case 14: // Final 3 Balls
+
+                // Stop intake once we're ~45% through the path
+                stopIntakeOnceAtT(0.45);
+
+                // Shooter logic owns intake AFTER the stop
+                if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 25, 0);
                 }
 
@@ -271,14 +318,8 @@ public class PowerOfFriendshipTurret extends OpMode {
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
+
                 break;
-
-
-//            case 12: // Final 3 Balls
-//                if (!follower.isBusy()) {
-//                    follower.followPath(park,true);
-//                }
-//                break;
 
             default:
                 shooter.stopFlywheel();
@@ -351,7 +392,6 @@ public class PowerOfFriendshipTurret extends OpMode {
 
         // Always command shooter targets
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTurretTargetPosition(280);
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
@@ -361,13 +401,12 @@ public class PowerOfFriendshipTurret extends OpMode {
                     true, 0
             );
         } else {
-            shooter.setTurretTargetPosition(80);
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
                     targetX, GOAL_Y,
                     headingDeg,
-                    false, -52,
-                    mannualHoodOffset ,
+                    false, 0,
+                    mannualHoodOffset,
                     false, 0
             );
         }
@@ -407,13 +446,6 @@ public class PowerOfFriendshipTurret extends OpMode {
         pathState += 1;
         pathTimer.resetTimer();
         intakeStoppedForShooting = false;
-    }
-
-    private void stopIntakeOnceAtT(double t) {
-        if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
-            intake.doIntakeHalt();          // ONE-TIME call
-            intakeStoppedForShooting = true;
-        }
     }
 
     @Override
@@ -473,6 +505,7 @@ public class PowerOfFriendshipTurret extends OpMode {
 
     @Override
     public void start() {
+        //sensors.run();
         pathTimer.resetTimer();
         setPathState(0);
     }
@@ -512,6 +545,7 @@ public class PowerOfFriendshipTurret extends OpMode {
 
     @Override
     public void stop() {
+        //sensors.stop();
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());
@@ -538,7 +572,12 @@ public class PowerOfFriendshipTurret extends OpMode {
         }
     }
 
-
+    private void stopIntakeOnceAtT(double t) {
+        if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
+            intake.doIntakeHalt();          // ONE-TIME call
+            intakeStoppedForShooting = true;
+        }
+    }
 
 
     private void resetShootingState() {

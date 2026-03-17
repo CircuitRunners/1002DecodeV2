@@ -1,5 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpMode;
-
+package org.firstinspires.ftc.teamcode.OpMode.Auto;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -21,10 +20,9 @@ import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-
 @Configurable
-@Autonomous(name = "FS High Cycle - 1 Line", group = "B", preselectTeleOp = "v2Teleop")
-public class FarZoneAuto1LineCycle extends OpMode {
+@Autonomous(name = "FS 6 Ball - No Line", group = "B", preselectTeleOp = "v2Teleop")
+public class FarZoneAutoNoLine extends OpMode {
 
     private Follower follower;
     private GoBildaPinpointDriver pinpoint;
@@ -57,7 +55,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
     private final double GOAL_Y = 132;
 
 
-    private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2,park;
+    private PathChain travelToShoot, humanPlayerIntake, travelBackToShoot1, intakeLine, travelBackToShoot2, park;
 
     public void buildPaths() {
         travelToShoot = follower.pathBuilder()
@@ -84,7 +82,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.humanPlayerIntake).getHeading(), Poses.get(Poses.shootPositionFarSide).getHeading())
                 .build();
 
-        intakeLine = follower.pathBuilder().setNoDeceleration()
+        intakeLine = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.intake3ControlPointFar), Poses.get(Poses.pickupLine3Far)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.pickupLine3Far).getHeading(), 0.45)
                 .build();
@@ -114,7 +112,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ? 293 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(targetX == RED_GOAL_X ?  293 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
                     setPathState();
@@ -123,7 +121,7 @@ public class FarZoneAuto1LineCycle extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 5.1, 0);
+                handleAutoShooting(currentPose, targetX, 5.5, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -142,14 +140,13 @@ public class FarZoneAuto1LineCycle extends OpMode {
             case 5: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
                     follower.setMaxPower(1);
-                    intake.doOuttake();
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
             case 6: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 4.1, 0);
+                handleAutoShooting(currentPose, targetX, 5, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -157,62 +154,13 @@ public class FarZoneAuto1LineCycle extends OpMode {
                 break;
 
             case 7: // Drive to Intake 2
-                intake.doIntake();
+
                 if (!follower.isBusy()) {
-                    follower.followPath(intakeLine, false);
+                    follower.followPath(park, false);
                     setPathState();
                 }
                 break;
 
-            case 8: // Return to Shoot 2
-                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    follower.followPath(travelBackToShoot2, true);
-                    setPathState();
-                }
-                break;
-
-            case 9: // Shoot 3 Balls (Cycle 2)
-                handleAutoShooting(currentPose, targetX, 4.1, 0);
-                if (!goForLaunch
-                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
-                    goForLaunch = true;
-                }
-                break;
-
-            case 10:
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.setMaxPower(0.7);
-                    follower.followPath(humanPlayerIntake, true);
-                    setPathState(); // Skipping to 5 based on your original logic
-                }
-                break;
-
-
-            case 11: // Return to Shoot 1
-                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
-                    follower.setMaxPower(1);
-                    intake.doOuttake();
-                    follower.followPath(travelBackToShoot1, true);
-                    setPathState();
-                }
-                break;
-
-            case 12: // Shoot 3 Balls (Cycle 1)
-                handleAutoShooting(currentPose, targetX, 4.1, 0);
-                if (!goForLaunch
-                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
-                    goForLaunch = true;
-                }
-                break;
-
-            case 13: // Drive to Intake 2
-                intake.doIntake();
-                if (!follower.isBusy()) {
-                    follower.followPath(intakeLine, false);
-                    setPathState();
-                }
-                break;
 
 
             default:

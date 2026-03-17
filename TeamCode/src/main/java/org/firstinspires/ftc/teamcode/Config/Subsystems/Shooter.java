@@ -471,105 +471,6 @@ public class Shooter {
      */
 
 
-    // ------------------------------------
-    // ## ️ Set Target Wrapper
-    // ------------------------------------
-
-
-
-
-    /* ========================================================= */
-    /* ========== ROBOT VELOCITY ALONG SHOT DIRECTION ============ */
-    /* ========================================================= */
-
-    // --- Physical Constants (inches & Seconds) ---
-//    private static final double TICKS_PER_REV_ENCODER = 4096.0;
-//
-//    private static final double GEAR_RATIO = 33.0 / 27.0;
-
-    // Variables outside the loop to persist "memory" between frames
-//    private double persistentShotTime = 0.0;
-//    private double finalAdjustedVeloTicks = 0;
-//    private double finalAdjustedHoodDeg = 0;
-//    private double finalAdjustedTurretFieldYaw = 0;
-
-
-    //pass in everything in inches and degrees (inch/sec for velo too)
-//    public void calculateIterativeShot(
-//            double robotX, double robotY, double goalX, double goalY,
-//            double robotVeloX, double robotVeloY,double robotHeading, boolean isRed, double flywheelMannualOffset, double hoodMannualOffset, double turretManualOffset) {
-//
-//        // Start with the real goal position
-//        double virtualGoalX = goalX;
-//        double virtualGoalY = goalY;
-//
-//        // Run 5 iterations to converge on the moving target
-//        for (int i = 0; i < 1; i++) {
-//            // 1. Calculate distance to our "Virtual Goal"
-//            double dist = Math.hypot(virtualGoalX - robotX, virtualGoalY - robotY);
-//
-//            // 2. Get base Ticks and Hood from your Quartic curves for this distance
-//            double baseTicks = (v_a * Math.pow(dist, 4)) + (v_b * Math.pow(dist, 3)) +
-//                    (v_c * Math.pow(dist, 2)) + (v_d * dist) + v_e;
-//
-//            double baseHood = (h_a * Math.pow(dist, 4)) + (h_b * Math.pow(dist, 3)) +
-//                    (h_c * Math.pow(dist, 2)) + (h_d * dist) + h_e;
-//
-//            // 3. Convert Ticks to Inches/Sec to find Time of Flight
-//            // Formula: Ticks -> Inches/Sec -> calculateTimeToGoalSeconds
-//            double ticksToInches =
-//                    calcFlywheelSpeedInches(baseTicks);
-//            double muzzleVeloInches = baseTicks * ticksToInches;
-//
-//            persistentShotTime = calculateTimeToGoalSeconds(muzzleVeloInches, baseHood,dist);
-//
-//            // 4. Update the Virtual Goal position based on robot velocity
-//            // New Pos = Current Pos + (-Robot Velocity * Time)
-//            virtualGoalX = goalX - (robotVeloX * (persistentShotTime + transferTimeSec));
-//            virtualGoalY = goalY - (robotVeloY * (persistentShotTime + transferTimeSec));
-//
-//            // 5. Store the final results from this iteration
-//            finalAdjustedVeloTicks = baseTicks;
-//            finalAdjustedHoodDeg = baseHood;
-//            finalAdjustedTurretFieldYaw = calculateAutoAlignYaw(robotX, robotY, virtualGoalX, virtualGoalY, isRed);
-//        }
-//
-//        // After the loop, apply the results to the hardware
-//        setTargetVelocityTicks(finalAdjustedVeloTicks + flywheelMannualOffset);
-//        setHoodTargetAngle(Range.clip(finalAdjustedHoodDeg + hoodMannualOffset, 0, 45));
-//        // Turret uses the yaw calculated for the VIRTUAL goal
-//        setTurretTarget(finalAdjustedTurretFieldYaw, TurretMode.AUTO_ALIGN, robotHeading,turretManualOffset);
-//    }
-
-
-
-
-
-//    private static double calculateTimeToGoalSeconds(
-//            double exitVelocityInchesPerSec,
-//            double hoodAngleDegrees, double currentDistance) {
-//
-//        // Convert angle to radians for trig
-//        double hoodRad = Math.toRadians(hoodAngleDegrees);
-//
-//        double vX = exitVelocityInchesPerSec * Math.cos(hoodRad);
-//        double vY = exitVelocityInchesPerSec * Math.sin(hoodRad);
-//
-//// Solve vertical motion for height constraint (as you already do)
-//        double deltaHeightIn = EFFECTIVE_GOAL_HEIGHT_IN - LAUNCH_HEIGHT_IN;
-//
-//        double tHeight = (vY + Math.sqrt(vY*vY + 2*GRAVITY*deltaHeightIn)) / GRAVITY;
-//
-//// Solve horizontal motion for distance
-//        double horizontalDistanceIn = currentDistance; // pass this in
-//        double tHorizontal = horizontalDistanceIn / vX;
-//
-//// FINAL TOF = max of the two
-//        return Math.max(tHeight, tHorizontal);
-//    }
-////
-
-
 
 
     // ------------------------------------
@@ -755,20 +656,7 @@ public class Shooter {
     }
 
 
-//    private double getXVelocityOffset(double robotVeloX, double currentGoalX, double TOF){
-//        double finalGoalPos = (-robotVeloX * TOF) + currentGoalX;
-//        return finalGoalPos;
-//    }
-//
-//    private double getYVelocityOffset(double robotVeloY, double currentGoalY, double TOF){
-//        double finalGoalPos = (-robotVeloY * TOF) + currentGoalY;
-//        return finalGoalPos;
-//
-//    }
-//    private double getTurretAngle() {
-//        double currentTicks = turret.getCurrentPosition();
-//        return ((currentTicks / ticksPerRevolution) / gearRatio) * 360;
-//    }
+
 
     public void setHoodTargetAngle(double angle){
         targetHoodAngle = angle;
@@ -802,68 +690,8 @@ public class Shooter {
     }
 
 
-//   public double flywheelTicksFromDistance(double robotX, double robotY, double goalX, double goalY) {
-//        double distanceInches = Math.hypot(goalX - robotX, goalY - robotY);
-//        // --- constants (copied from your OpMode) ---
-//        // tune factor
-//
-//        // Prevent nonsense
-//        distanceInches = Math.max(distanceInches, 1.0);
-//
-//        // Initial physics angle
-//        double angle = Math.atan(
-//                2 * GOAL_HEIGHT / distanceInches
-//                        - Math.tan(Math.toRadians(ANGLE_BIAS_DEG))
-//        );
-//
-//        // Clamp to hood limits
-//        angle = MathFunctions.clamp(
-//                angle,
-//                Math.toRadians(10),
-//                Math.toRadians(85)
-//        );
-//
-//        double cos = Math.cos(angle);
-//        double denom = 2 * cos * cos *
-//                (distanceInches * Math.tan(angle) - GOAL_HEIGHT);
-//
-//        if (denom <= 0) return 0;
-//
-//        // Muzzle velocity (in/s)
-//        double velocity = Math.sqrt(
-//                G_INCHES * distanceInches * distanceInches / denom
-//        );
-//
-//        // Convert to ticks
-//        return calcFlywheelSpeedTicks(
-//                velocity * VECTOR_TUNE
-//        );
-//    }
 
-    static final double TICKS_PER_REV = 4096.0;
-    static final double WHEEL_RADIUS_IN = 1.4173; // 72mm / 2 -> inches
-    static final double G = 386.0; // in/s^2
-    public static double k = 0.4;
 
-//    public static double calculateShotTime(
-//            double ticksPerSec,
-//            double hoodAngleRad,
-//            double GOAL_X, double GOAL_Y,double robotX,double robotY
-//    ) {
-//
-//
-//
-//        double distanceInches = Math.hypot(GOAL_X - robotX, GOAL_Y - robotY);
-//
-//
-//        double v0 =
-//                k *
-//                        (2.0 * Math.PI * WHEEL_RADIUS_IN * ticksPerSec)
-//                        / TICKS_PER_REV;
-//
-//        double vx = v0 * Math.cos(hoodAngleRad);
-//        return distanceInches / vx;
-//    }
     public void setTargetsByDistance(double robotX, double robotY, double goalX, double goalY, double robotAngle, boolean autoAlign, double hoodMannualAdjustment, boolean isRed, double turretAdjustment) {
         double x = Math.hypot(goalX - robotX, goalY - robotY); // distance
 
