@@ -18,7 +18,7 @@ public class SigmaIntakeTest extends OpMode {
     private Intake intake;
     private Sensors sensors;
     private Shooter shooter;
-    private Thread colorSensorThread;
+    //private Thread colorSensorThread;
     private LimelightCamera.BallOrder ballOrder = LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE;
 
     @Override
@@ -47,18 +47,18 @@ public class SigmaIntakeTest extends OpMode {
 
     @Override
     public void start() {
-        colorSensorThread = new Thread(() -> {
-            while (!Thread.interrupted()) {
-                sensors.update();
-                try {
-                    Thread.sleep(100);
-                } catch (Exception e) {
-                    break;
-                }
-            }
-        });
-
-        colorSensorThread.start();
+//        colorSensorThread = new Thread(() -> {
+//            while (!Thread.interrupted()) {
+//                sensors.update();
+//                try {
+//                    Thread.sleep(100);
+//                } catch (Exception e) {
+//                    break;
+//                }
+//            }
+//        });
+//
+//        colorSensorThread.start();
     }
 
     @Override
@@ -71,6 +71,11 @@ public class SigmaIntakeTest extends OpMode {
         telemetry.addData("Ball 1: ", ball1);
         telemetry.addData("Ball 2: ", ball2);
         telemetry.addData("Ball 3: ", ball3);
+
+
+        telemetry.addData("Ball 1 proximity: ", sensors.getProximity(sensors.colorSensor1));
+        telemetry.addData("Ball 2 proximity: ", sensors.getProximity(sensors.colorSensor2));
+        telemetry.addData("Ball 3 proximity: ", sensors.getProximity(sensors.colorSensor1));
         telemetry.addLine("");
 
 //        NormalizedRGBA rgba1 = sensors.colorSensor1.getNormalizedColors();
@@ -152,8 +157,8 @@ public class SigmaIntakeTest extends OpMode {
 
     @Override
     public void stop(){
-        if (colorSensorThread != null) {
-            colorSensorThread.interrupt();
-        }
+//        if (colorSensorThread != null) {
+//            colorSensorThread.interrupt();
+//        }
     }
 }

@@ -232,6 +232,10 @@ public class Sensors {
 //    }
 
 
+    public double getProximity(SRSHub.APDS9151 sensor){
+        return sensor.proximity;
+    }
+
 
 
 
