@@ -190,7 +190,7 @@ public class NewShooter {
         hoodServo.setDirection(Servo.Direction.REVERSE);
 
         turretLeft = hardwareMap.get(Servo.class, "turretLeft");
-        turretLeft.setDirection(Servo.Direction.FORWARD);
+        turretLeft.setDirection(Servo.Direction.REVERSE);
 
         turretRight = hardwareMap.get(Servo.class, "turretRight");
         turretRight.setDirection(Servo.Direction.FORWARD);
@@ -789,6 +789,7 @@ public class NewShooter {
     }
 
     private void setTurretServoPos(double targetPos){
+        targetPos = (Range.scale(targetPos, -180, 180, 0, 1));
         turretLeft.setPosition(targetPos + 0);
         turretRight.setPosition(targetPos + 0);
     }

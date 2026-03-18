@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(find /c/Users/xiaoh/dev/1002DecodeV2/TeamCode/src -type f -name *.java)",
+      "Bash(find /c/Users/xiaoh/dev/1002DecodeV2/TeamCode/src -name *.java -type f)",
+      "Bash(find C:/Users/xiaoh/dev/1002DecodeV2 -name *.xml)"
+    ]
+  }
+}
