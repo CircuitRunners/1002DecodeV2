@@ -7,6 +7,7 @@ import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
@@ -17,7 +18,7 @@ public class SigmaIntakeTest extends OpMode {
     private GamepadEx player1;
     private Intake intake;
     private Sensors sensors;
-    private Shooter shooter;
+    private NewShooter shooter;
     //private Thread colorSensorThread;
     private LimelightCamera.BallOrder ballOrder = LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE;
 
@@ -26,7 +27,7 @@ public class SigmaIntakeTest extends OpMode {
         player1 = new GamepadEx(gamepad1);
         intake = new Intake(hardwareMap, telemetry);
         sensors = new Sensors();
-        shooter = new Shooter(hardwareMap,telemetry,false);
+        shooter = new NewShooter(hardwareMap,telemetry,false);
         sensors.init(hardwareMap, "SRSHub");
 
 //        try {
@@ -64,6 +65,7 @@ public class SigmaIntakeTest extends OpMode {
     @Override
     public void loop() {
         player1.readButtons();
+        sensors.update();
 
         DetectedColor ball1 = sensors.getDetectedColor(sensors.colorSensor1);
         DetectedColor ball2 = sensors.getDetectedColor(sensors.colorSensor2);
@@ -73,9 +75,21 @@ public class SigmaIntakeTest extends OpMode {
         telemetry.addData("Ball 3: ", ball3);
 
 
-        telemetry.addData("Ball 1 proximity: ", sensors.getProximity(sensors.colorSensor1));
-        telemetry.addData("Ball 2 proximity: ", sensors.getProximity(sensors.colorSensor2));
-        telemetry.addData("Ball 3 proximity: ", sensors.getProximity(sensors.colorSensor1));
+        telemetry.addData("Ball 1 proximity: ", sensors.getColor1Proximity());
+        telemetry.addData("Ball 2 proximity: ", sensors.getColor2Proximity());
+        telemetry.addData("Ball 3 proximity: ", sensors.getColor3Proximity());
+        telemetry.addLine("");
+        telemetry.addData("Ball 1 r: ", sensors.getColor1Red());
+        telemetry.addData("Ball 1 g: ", sensors.getColor1Green());
+        telemetry.addData("Ball 1 b: ", sensors.getColor1Blue());
+        telemetry.addLine("");
+        telemetry.addData("Ball 2 r: ", sensors.getColor2Red());
+        telemetry.addData("Ball 2 g: ", sensors.getColor2Green());
+        telemetry.addData("Ball 2 b: ", sensors.getColor2Blue());
+        telemetry.addLine("");
+        telemetry.addData("Ball 3 r: ", sensors.getColor3Red());
+        telemetry.addData("Ball 3 g: ", sensors.getColor3Green());
+        telemetry.addData("Ball 3 b: ", sensors.getColor3Blue());
         telemetry.addLine("");
 
 //        NormalizedRGBA rgba1 = sensors.colorSensor1.getNormalizedColors();
@@ -104,7 +118,6 @@ public class SigmaIntakeTest extends OpMode {
 //        telemetry.addData("3g: ", g3);
 //        telemetry.addData("3b: ", b3);
         telemetry.addLine("");
-        telemetry.update();
 
 
         // Hold Cross (A) to Intake
@@ -152,6 +165,8 @@ public class SigmaIntakeTest extends OpMode {
         }
 
         //intake.doSortingTelemetry(ball1,ball2,ball3,ballOrder, shooter.isBeamBroken());
+
+        telemetry.update();
 
     }
 

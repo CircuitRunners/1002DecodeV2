@@ -45,5 +45,8 @@ This is an FTC (FIRST Tech Challenge) robot control application based on the off
 - **FullPanels**: Runtime parameter adjustment via annotations.
 - **SolversLib**: Mathematical utilities for kinematics and control.
 
+## SRSHub Integration
+The `Sensors` class encapsulates all interactions with the SRSHub device, including initialization, configuration of I2C devices (e.g., APDS9151 color sensors), and data retrieval.
+
 Reference `FtcRobotController/src/main/java/org/firstinspires/ftc/robotcontroller/external/samples/sample_conventions.md` for detailed sample guidelines.</content>
 <parameter name="filePath">/Users/connorreddington/AndroidStudioProjects/1002DecodeV2/AGENTS.md

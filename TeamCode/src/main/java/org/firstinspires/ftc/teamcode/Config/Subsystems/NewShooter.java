@@ -793,6 +793,10 @@ public class NewShooter {
         turretRight.setPosition(targetPos + 0);
     }
 
+    public double getTargetTurretPosition(){
+        return targetTurretPosition;
+    }
+
 
 
 //    public double getFlywheelVelo(){

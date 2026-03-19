@@ -17,6 +17,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 
+@Disabled
+
+
+// Bro james what r u cooking
 /**
  * SensorTimingTester
  *

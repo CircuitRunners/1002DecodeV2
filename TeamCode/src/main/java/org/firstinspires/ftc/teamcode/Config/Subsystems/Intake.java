@@ -110,8 +110,8 @@ public class Intake {
         intake2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        intake1.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+//        intake1.setDirection(DcMotorSimple.Direction.REVERSE);
+//        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitch");

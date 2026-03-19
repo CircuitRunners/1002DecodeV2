@@ -82,7 +82,7 @@ public class TurretServoTester extends OpMode {
             turret.setTurretTarget(targetAngle, NewShooter.TurretMode.ROBOT_CENTRIC, currentHeading, 0);
         }
 
-        turret.update(turret.getCurrentTurretAngle());
+        //turret.update(turret.getCurrentTurretAngle());
 
         String followerData = String.format(Locale.US,
                 "{X: %.3f, Y: %.3f, H: %.3f}",
@@ -95,8 +95,8 @@ public class TurretServoTester extends OpMode {
         telemetry.addData("Current Pose", followerData);
         telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
         telemetry.addLine("");
-        telemetry.addData("Turret Angle", turret.getCurrentTurretAngle());
-        telemetry.addData("Turret Target", turret.getTurretTargetPosition());
+        telemetry.addData("Turret Angle", turret.getCurrentTurretPosition());
+        telemetry.addData("Turret Target", turret.getTargetTurretPosition());
         telemetry.addData("Turret On?", turretAutoAlign);
         telemetry.update();
 
