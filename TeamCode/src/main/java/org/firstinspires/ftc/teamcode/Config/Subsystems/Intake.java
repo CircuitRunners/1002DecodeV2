@@ -642,6 +642,97 @@ public class Intake {
         simpleS1HadBallLast = s1HasBallNow;
     }
 
+    // Proximity-based version — uses same falling-edge pattern as cycleShifted
+    public void updateSimpleSorterProx(double s1Prox, double s2Prox, double s3Prox) {
+
+        switch (simpleSortState) {
+
+            case IDLE:
+                break;
+
+            case CHECK_SLOTS:
+                // If s3 doesn't have a ball, slots aren't full — no point sorting
+                if (s3Prox <= 330) return;
+                int currentIndex = patternIndexFromString(simpleCurrentPattern);
+                int targetIndex = patternIndexFromEnum(simpleTargetPattern);
+
+                simpleRequiredRotations = (targetIndex - currentIndex + 3) % 3;
+
+                simpleRotationCounter = 0;
+                simpleS1HadBallLast = true;
+                simpleS1LostAfterSeeing = false;
+                isFirstTime = true;
+
+                simpleSortTimer.reset();
+
+                if (simpleRequiredRotations == 0) {
+                    simpleSortState = SimpleSortState.READY;
+                } else {
+                    simpleSortState = SimpleSortState.ROTATING;
+                }
+
+                break;
+
+            case ROTATING:
+
+                transferOn();
+                setDirectionCycle();
+                gateOpen();
+
+                if (isFirstTime && simpleSortTimer.milliseconds() > 400) {
+                    simpleSortTimer.reset();
+                    isFirstTime = false;
+                }
+
+                if (simpleSortTimer.milliseconds() <= 400 && isFirstTime) {
+                    intake1.setPower(-0.6);
+                } else {
+                    intake1.setPower(1);
+                }
+
+                cycleShifted(s3Prox);
+
+                if (simpleRotationCounter >= simpleRequiredRotations) {
+                    intakeMotorHalt();
+                    gateClose();
+                    simpleSortState = SimpleSortState.READY;
+                }
+
+                if (simpleSortTimer.milliseconds() > 13000) {
+                    intakeMotorHalt();
+                    gateClose();
+                    simpleSortState = SimpleSortState.READY;
+                }
+
+                break;
+
+            case READY:
+                intakeMotorHalt();
+                gateClose();
+                break;
+        }
+    }
+
+//    private void updateSimpleRotationCounterProx(double s3Prox) {
+//
+//        boolean s3HasBallNow = s3Prox > 330;
+//        double now = simpleSortTimer.milliseconds();
+//
+//        if (simpleS1HadBallLast && !s3HasBallNow) {
+//            simpleS1LostAfterSeeing = true;
+//            simpleSortTimer.reset();
+//        }
+//
+//        if (simpleS1LostAfterSeeing && s3HasBallNow) {
+//            if (now > SIMPLE_ENTRY_DEBOUNCE_MS) {
+//                simpleRotationCounter++;
+//                simpleS1LostAfterSeeing = false;
+//            }
+//        }
+//
+//        simpleS1HadBallLast = s3HasBallNow;
+//    }
+
     private int patternIndexFromString(String pattern) {
 
         switch (pattern) {
@@ -889,6 +980,16 @@ public class Intake {
         }
 
         telemetry.update();
+    }
+
+    boolean hasBall3 = false;
+    boolean lastHasBall3 = false;
+
+    private void cycleShifted(double ball3Prox) {
+        hasBall3 = ball3Prox > 330;
+        boolean shifted = !hasBall3 && lastHasBall3;
+        lastHasBall3 = hasBall3;
+        if (shifted){simpleRotationCounter++;}
     }
 
 //    public void initiateTransferNoSort(){
