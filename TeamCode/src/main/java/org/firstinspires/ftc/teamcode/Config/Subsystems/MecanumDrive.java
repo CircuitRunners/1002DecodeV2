@@ -12,8 +12,6 @@ public class MecanumDrive {
     public DcMotorEx frontRightMotor;
     public DcMotorEx backLeftMotor;
     public DcMotorEx backRightMotor;
-    public Servo ptoRight;
-    public Servo ptoLeft;
     private DcMotorEx[] motors;
 
     public void init(HardwareMap hardwareMap) {
@@ -22,14 +20,10 @@ public class MecanumDrive {
         backLeftMotor = hardwareMap.get(DcMotorEx.class, "bl");
         backRightMotor = hardwareMap.get(DcMotorEx.class, "br");
 
-        ptoLeft = hardwareMap.get(Servo.class,"ptoLeft");
-        ptoRight = hardwareMap.get(Servo.class,"ptoRight");
-
 
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        ptoRight.setDirection(Servo.Direction.REVERSE);
 
         motors = new DcMotorEx[]{frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor};
         for (DcMotorEx motor : motors) {
@@ -59,22 +53,6 @@ public class MecanumDrive {
         double backRightPower = forward + right - rotate;
 
         setPowers(frontLeftPower, frontRightPower, backLeftPower, backRightPower);
-    }
-
-    private void setPtoPos(double pos){
-        ptoLeft.setPosition(Range.clip(pos,0.0,1.0));
-        ptoRight.setPosition(Range.clip(pos,0.0,1.0));
-    }
-
-    public void engagePto(){
-        setPtoPos(0.71);
-        ptoLeft.setPosition(0.71);
-        ptoRight.setPosition(0.72);
-    }
-
-    public void disengagePto(){
-        ptoLeft.setPosition(0.85);
-        ptoRight.setPosition(0.6);
     }
 
 

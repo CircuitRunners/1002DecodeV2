@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Testers;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
@@ -16,7 +17,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.Locale;
 
 @TeleOp(name = "Turret Servo Tester", group = "Test")
-@Configurable
+@Disabled
 public class TurretServoTester extends OpMode {
 
     private GamepadEx player1;

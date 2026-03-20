@@ -33,8 +33,8 @@ public class Intake {
     public static double targetRPM = 0;  // default target speed
     public static final double TRANSFER_DIRECTION_TRANSFER_POS = 0.35;
     public static final double TRANSFER_DIRECTION_CYCLE_POS = 0.43;
-    public static final double GATE_OPEN = 0.15;
-    public static final double GATE_CLOSED = 0.81;
+    public static final double GATE_OPEN = 0.42;
+    public static final double GATE_CLOSED = 1.0;
     public static final double TRANSFER_ON = 0.59;
     public static final double TRANSFER_OFF = 0.67;
 
@@ -106,12 +106,12 @@ public class Intake {
         intake1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        intake2 = hardwareMap.get(DcMotorEx.class, "intake1");
+        intake2 = hardwareMap.get(DcMotorEx.class, "intake2");
         intake2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake2.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
 //        intake1.setDirection(DcMotorSimple.Direction.REVERSE);
-//        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         transferDirectionSwitcher = hardwareMap.get(Servo.class,"directionSwitch");
@@ -833,6 +833,7 @@ public class Intake {
                     transferOn();
                     gateClose();
                     intake1.setPower(1); //0.9
+                    intake2.setPower(1);
                 }
 
                 else if (s1 != null && (internalTotalBalls < 2 || s2 != null)) {
