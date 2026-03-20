@@ -483,14 +483,14 @@ public class Shooter {
 
         double averageVelo = (shooter1Velocity + shooter2Velocity) / 2;
 
-        if (averageVelo >= targetFlywheelVelocity - 300 || averageVelo <= targetFlywheelVelocity + 300) {
+        if (averageVelo >= targetFlywheelVelocity - 300 && averageVelo <= targetFlywheelVelocity + 300) {
             flywheelVeloReached = true;
         }
         else {
             flywheelVeloReached = false;
         }
 
-        if (currentTurretAngle0_360 >= targetTurretPosition - 0.7 || currentTurretAngle0_360 <= targetTurretPosition + 0.7) {
+        if (currentTurretAngle0_360 >= targetTurretPosition - 0.7 && currentTurretAngle0_360 <= targetTurretPosition + 0.7) {
             turretReached = true;
         }
         else {
