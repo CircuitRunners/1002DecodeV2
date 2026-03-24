@@ -190,10 +190,10 @@ public class NewShooter {
         hoodServo.setDirection(Servo.Direction.REVERSE);
 
         turretLeft = hardwareMap.get(Servo.class, "turretLeft");
-        turretLeft.setDirection(Servo.Direction.FORWARD);
+        turretLeft.setDirection(Servo.Direction.REVERSE);
 
         turretRight = hardwareMap.get(Servo.class, "turretRight");
-        turretRight.setDirection(Servo.Direction.FORWARD);
+        turretRight.setDirection(Servo.Direction.REVERSE);
 
         shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -462,6 +462,8 @@ public class NewShooter {
         double shooter1Velocity = shooter1.getVelocity();
         double shooter2Velocity = shooter2.getVelocity();
 
+        setTurretServoPos(targetTurretPosition);
+
         double averageVelo = (shooter1Velocity + shooter2Velocity) / 2;
 
         if (averageVelo >= targetFlywheelVelocity - 300 || averageVelo <= targetFlywheelVelocity + 300) {
@@ -715,7 +717,7 @@ public class NewShooter {
         if (autoAlign){
             double requiredFieldYaw;
             if (!isRed) {
-                requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY + 3, false);
+                requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, false);
             }
             else { requiredFieldYaw = calculateAutoAlignYaw(robotX, robotY, goalX, goalY, true);}
             // B. Pass to the turret setter
@@ -725,8 +727,8 @@ public class NewShooter {
 
     public double getCurrentTurretPosition(){
         return (
-                (Range.scale(turretLeft.getPosition(), 0, 1, -180, 180) +
-                        (Range.scale(turretRight.getPosition(), 0, 1, -180, 180)
+                (Range.scale(turretLeft.getPosition(), 0.05, 0.98, -180, 180) +
+                        (Range.scale(turretRight.getPosition(), 0.05, 0.98, -180, 180)
                         ) / 2)
         );// Outp// ut Range (CORRECTED)
     }
@@ -789,7 +791,7 @@ public class NewShooter {
     }
 
     private void setTurretServoPos(double targetPos){
-        targetPos = (Range.scale(targetPos, -180, 180, 0, 1));
+        targetPos = (Range.scale(targetPos, -180, 180, 0.05, 0.98));
         turretLeft.setPosition(targetPos + 0);
         turretRight.setPosition(targetPos + 0);
     }
