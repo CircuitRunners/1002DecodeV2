@@ -37,7 +37,7 @@ public class NewShooter {
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
-    private static double targetTurretPosition = 0;
+    private static double targetTurretPosition = 0.0;
     //    private double ticksPerRevolution = 145.1;
 //    private double gearRatio = 149.0/15.0;// Degrees (0-360)
     private static double targetHoodAngle = 45;          // Degrees (0-90)
@@ -190,7 +190,7 @@ public class NewShooter {
         hoodServo.setDirection(Servo.Direction.REVERSE);
 
         turretLeft = hardwareMap.get(Servo.class, "turretLeft");
-        turretLeft.setDirection(Servo.Direction.REVERSE);
+        turretLeft.setDirection(Servo.Direction.FORWARD);
 
         turretRight = hardwareMap.get(Servo.class, "turretRight");
         turretRight.setDirection(Servo.Direction.FORWARD);
@@ -503,7 +503,7 @@ public class NewShooter {
 //            setFlywheelPower(0);
 //        }
 
-       setTurretServoPos(targetTurretPosition);
+       //setTurretServoPos(targetTurretPosition);
 
         // Hood Control (No PIDF)
         hoodServo.setPosition(hoodAngleToServoPos(targetHoodAngle));

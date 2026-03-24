@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
+import com.seattlesolvers.solverslib.gamepad.GamepadEx;
+import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
 /**
  * Use this OpMode to find the raw servo positions (0.0–1.0) that correspond to
@@ -27,7 +29,9 @@ public class TurretServoRangeFinder extends OpMode {
 
     // When true, both servos track rawPosition together
     public static boolean lockTogether = true;
-    public static double rawPosition  = 0.5; // used when lockTogether = true
+    public static double rawPosition  = 0.0; // used when lockTogether = true
+    public static double rawPositionMin = 0.0;
+    public static double rawPositionMax = 0.98;
     public static double rawPosition1 = 0.5; // turret1 only, used when lockTogether = false
     public static double rawPosition2 = 0.5; // turret2 only, used when lockTogether = false
 
@@ -37,18 +41,19 @@ public class TurretServoRangeFinder extends OpMode {
     public static double hypotheticalMin2 = 0.0;
     public static double hypotheticalMax2 = 1.0;
     public static boolean powerToggle = true;
+    public GamepadEx player1;
 
     // ---
 
     private Servo turret1;
     private Servo turret2;
 
-    @Override
+    @Override//
     public void init() {
-        turret1 = hardwareMap.get(Servo.class, "turretServo1");
-        turret2 = hardwareMap.get(Servo.class, "turretServo2");
-        turret2.setDirection(Servo.Direction.REVERSE);
-
+        turret1 = hardwareMap.get(Servo.class, "turretLeft");
+        turret2 = hardwareMap.get(Servo.class, "turretRight");
+        //turret2.setDirection(Servo.Direction.REVERSE);
+        player1 = new GamepadEx(gamepad1);
 
         telemetry.addLine("Ready — adjust rawPosition on dashboard");
         telemetry.update();
@@ -56,9 +61,11 @@ public class TurretServoRangeFinder extends OpMode {
 
     @Override
     public void loop() {
+        player1.readButtons();
         double pos1 = lockTogether ? rawPosition : rawPosition1;
         double pos2 = lockTogether ? rawPosition : rawPosition2;
 
+        rawPosition = Range.clip(pos1, rawPositionMin, rawPositionMax);
         pos1 = Range.clip(pos1, 0.0, 1.0);
         pos2 = Range.clip(pos2, 0.0, 1.0);
 
@@ -67,6 +74,19 @@ public class TurretServoRangeFinder extends OpMode {
             turret2.setPosition(pos2);
         }
 
+        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+            powerToggle = !powerToggle;
+        }
+
+        if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+            lockTogether = !lockTogether;
+        }
+
+        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+            rawPosition += 0.01;
+        } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+            rawPosition -= 0.01;
+        }
 
         // Compute angle each servo maps to given the hypothetical min/max
         double angle1 = scale(pos1, hypotheticalMin1, hypotheticalMax1, -180, 180);
