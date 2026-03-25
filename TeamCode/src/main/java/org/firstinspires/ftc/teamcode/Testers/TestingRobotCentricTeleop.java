@@ -12,7 +12,7 @@ public class TestingRobotCentricTeleop extends OpMode{
 
         private MecanumDrive drive;
         private GamepadEx player1;
-        private double speedMultiply = 0.5;
+        private double speedMultiply = 0.7;
 
 
         @Override

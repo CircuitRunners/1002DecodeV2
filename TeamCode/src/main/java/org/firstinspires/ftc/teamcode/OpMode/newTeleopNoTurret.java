@@ -1,0 +1,749 @@
+package org.firstinspires.ftc.teamcode.OpMode;
+
+import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.seattlesolvers.solverslib.gamepad.GamepadEx;
+import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
+import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
+import org.firstinspires.ftc.teamcode.Config.Util.Poses;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+import java.util.List;
+import java.util.Locale;
+
+@TeleOp(name = "New Zenith Teleop No Turret", group = "A")
+@Configurable
+public class newTeleopNoTurret extends OpMode {
+
+    private List<LynxModule> allHubs;
+
+    private double mannualFlywheelAdj = 0;
+
+    private MecanumDrive drive;
+
+
+    private Intake intake;
+    private NewShooter shooter;
+    // private LimelightCamera limelight;
+    private Sensors sensors;
+    private Follower follower;
+    private GamepadEx player1;
+    private GamepadEx player2;
+
+    private int opState = 0;
+    private boolean isRedAlliance = true;
+    private boolean preselectFromAuto = false;
+
+    public Limelight3A limelight67;
+
+    private int ballsShotInState = 0;
+    private boolean lastBeamState = false;
+
+    private final double RED_GOAL_X = 127;
+    private final double BLUE_GOAL_X = 13;
+    private final double GOAL_Y = 132;
+
+    private double dist = 0;
+    private double newX = BLUE_GOAL_X;
+    private double newY = GOAL_Y;
+
+    private double newGoalCoords[];
+
+
+    private double turretOffsetFar = 0;
+
+
+    boolean veloReached = false;
+
+    private boolean vibratedYet = false;
+    private boolean initiateTransfer = false;
+
+    public static boolean shootOnDaMove = true;
+
+    private boolean noAutoAlign = false;
+    boolean useAprilTagAim = false;
+
+    private boolean lastRightBumper = false;
+
+    double llError = 0;
+
+
+    private final ElapsedTime timer = new ElapsedTime();
+    // private double turretMannualAdjust = 0; // Disabled
+
+    boolean teleopShootApporval = false;
+
+    public static  double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
+    public static double limelightTurretScale = 1.0;
+    public static double limelightTurretTolerance = 4.8; //degrees
+
+    public static double limelightFarZoneOffset = -2.2;
+    public static double limelightCloseZoneOffset = +1.5;
+
+
+    public static double turretDeadband = 0;
+
+    LLResult result = null;
+
+
+
+
+    @Override
+    public void init() {
+
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(Poses.getStartingPose());
+        follower.update();
+
+//        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+//        configurePinpoint();
+
+        drive = new MecanumDrive();
+        drive.init(hardwareMap);
+
+        intake = new Intake(hardwareMap, telemetry);
+        shooter = new NewShooter(hardwareMap, telemetry,false);
+//        limelight = new LimelightCamera(hardwareMap);
+//        limelight.limelightCamera.start();
+//        limelight.limelightCamera.pipelineSwitch(3);
+
+
+        limelight67 = hardwareMap.get(Limelight3A.class, "limelight");
+
+        telemetry.setMsTransmissionInterval(11);
+
+        limelight67.pipelineSwitch(3);
+        limelight67.start();
+
+
+
+        sensors = new Sensors();
+        sensors.lightInit(hardwareMap);
+//        sensors.init(hardwareMap, "SRSHub");
+
+        player1 = new GamepadEx(gamepad1);
+        player2 = new GamepadEx(gamepad2);
+
+        if(Poses.getAlliance() !=null){
+            if(Poses.getAlliance() == Poses.Alliance.RED){
+                isRedAlliance = true;
+                preselectFromAuto = true;
+            }
+            else {
+                isRedAlliance = false;
+                preselectFromAuto = true;
+            }
+        }
+        else{
+            isRedAlliance = false;
+            preselectFromAuto = false;
+        }
+
+        // turretMannualAdjust += (- shooter.turretEndPosAuto); // Disabled
+    }
+
+    @Override
+    public void init_loop() {
+        handleAllianceToggles();
+        telemetry.addData("Alliance", isRedAlliance ? "RED" : "BLUE");
+        telemetry.addData("Auto Preselect", preselectFromAuto ? "YES" : "NO");
+        telemetry.update();
+    }
+
+    @Override
+    public void start(){
+        // limelight.limelightCamera.pipelineSwitch(5);
+    }
+
+    @Override
+    public void loop() {
+
+        for (LynxModule hub : allHubs) hub.clearBulkCache();
+        timer.reset();
+        // --- 1. HARDWARE UPDATES ---
+        follower.update();
+        //pinpoint.update();
+        // sensors.update();
+        player1.readButtons();
+        player2.readButtons();
+
+        follower.getVelocity();
+
+        veloReached =  (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(0.88 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(1.09 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+
+
+
+
+        if (veloReached) {
+            sensors.setLight(0.600);
+        } else {
+            sensors.setLight(0.5);
+        }
+
+        // --- 2. DATA SNAPSHOTS (Call once, reference variables) ---
+        Pose currentPose = follower.getPose();
+        // Pose2D currentPinpointPose = pinpoint.getPosition();
+        double currentHeadingDeg = Math.toDegrees(currentPose.getHeading());
+        double robotVelX = follower.getVelocity().getXComponent();
+        double robotVelY = follower.getVelocity().getYComponent();
+
+        LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
+                ? Intake.targetPatternFromAuto
+                : LimelightCamera.BallOrder.PURPLE_PURPLE_GREEN;
+
+        double currentFlywheelVelo = shooter.getFlywheelVelo();
+        double currentTurretAngle = shooter.getCurrentTurretPosition();
+        boolean isBeamBroken = shooter.isBeamBroken();
+
+        result = limelight67.getLatestResult();
+
+
+
+        if (result != null && result.isValid()) {
+            llError = -result.getTy();
+        } else {
+            llError = 0;
+        }
+
+
+
+
+//        String data = String.format(Locale.US,
+//                "{X: %.3f, Y: %.3f, H: %.3f}",
+//                currentPinpointPose.getX(DistanceUnit.INCH),
+//                currentPinpointPose.getY(DistanceUnit.INCH),
+//                currentPinpointPose.getHeading(AngleUnit.DEGREES)
+//        );
+
+        String followerData = String.format(Locale.US,
+                "{X: %.3f, Y: %.3f, H: %.3f}",
+                follower.getPose().getX(),
+                follower.getPose().getY(),
+                Math.toDegrees(follower.getPose().getHeading())
+
+        );
+
+        telemetry.addLine("ZENITH TUFF AHH 67 67 CITY BOI");
+        telemetry.addData("Position", followerData);
+        //telemetry.addData("Pinpoint (BAD) Position", data);
+        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
+        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
+        telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
+        telemetry.addData("Flywheel Reached",veloReached );
+        telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
+        telemetry.addData("Turret Mode", "DISABLED"); // Changed
+
+        telemetry.addLine("--- DIAGNOSTICS ---");
+        telemetry.addData("Turret Ang", "%.2f", currentTurretAngle);
+        telemetry.addData("DESIRED VELO:",shooter.getTargetFLywheelVelo());
+        telemetry.addData("Flywheel Velo", currentFlywheelVelo);
+        telemetry.addData("Beam Broken", isBeamBroken);
+        telemetry.addData("Balls shot:", ballsShotInState);
+        telemetry.addData("Turret Limelight Error", llError);
+
+
+        // telemetry.addData("Shot Possible", !shooter.isShotImpossible);
+
+
+
+        // --- 3. LOGIC & OVERRIDES ---
+        // handleManualTurretOverrides(follower.getPose().getHeading()); // Disabled
+        handleAllianceToggles();
+        handleInputOverrides();
+        handleDriving(currentPose);
+
+        // --- 4. STATE MACHINE ---
+        switch (opState) {
+            case 0: handleIntakeState(); break;
+            case 1: handleScoringStateNoSort(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken); break;
+            case 2: handleScoringState(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken); break;
+        }
+
+        // --- 5. SUBSYSTEM UPDATES ---
+        intake.setCanShoot(veloReached && shooter.turretReached && teleopShootApporval );
+        shooter.update(currentTurretAngle);
+        intake.update(isBeamBroken, activePattern,
+                null,null,null);
+
+        // --- 6. TELEMETRY ---
+
+        telemetry.update();
+
+    }
+
+    // private void handleManualTurretOverrides(double currentAngle) { // Disabled
+    //     // Manual control: move turret and stick PID to current position to prevent fighting
+    //     // Use wasJustPressed for servo turret to avoid jitter from rapid position changes
+    //     if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
+    //         turretMannualAdjust += 2;
+    //
+    //     }
+    //     else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+    //         turretMannualAdjust -= 2;
+    //
+    //     }
+    //
+    //     // Hardware re-zero
+    //     if (player1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+    // //            shooter.rezeroTurretPosition();
+    // //            gamepad2.rumble(500);
+    //         mannualFlywheelAdj -= 3.5;
+    //         //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
+    //     }
+    //
+    //     if (player2.wasJustPressed(GamepadKeys.Button.CROSS)){
+    //         //shooter.setTurretTarget(limelight.updateError(), Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
+    //     }
+    //     if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)){
+    //         mannualFlywheelAdj += 3.5;
+    //         //shooter.resetTurretPID();
+    //     }
+    //
+    //     //square turns it off
+    // }
+
+//    private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
+//
+//        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+//            useAprilTagAim = !useAprilTagAim;
+//        }
+//
+//
+//        if (//follower.getPose().getY() < 69 &&
+//                result != null &&
+//                result.isValid() &&
+//                useAprilTagAim) {
+//            updateTurretWithAprilTag();
+//            noAutoAlign = true;
+//        }
+//
+//        else {
+//            noAutoAlign = false;
+//        }
+//        applyShooterTargets(pose, vx, vy, head);
+//
+//        if (veloReached  && !vibratedYet) {
+//            gamepad1.rumble(250);
+//            vibratedYet = true;
+//        }
+//        else if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+//            initiateTransfer = true;
+//        }
+//
+//
+//
+//        if (initiateTransfer){
+//            trackShotCount(beam);
+//        }
+//        if (initiateTransfer && veloReached && (pose.getY() > 80 )){
+//            teleopShootApporval = true;
+//            intake.doTestShooter();
+//        }
+//        else if (initiateTransfer && veloReached && (pose.getY() <= 80 && gamepad1.right_trigger > 0.2)){
+//            teleopShootApporval = true;
+//            intake.doTestShooter();
+//        }
+////        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
+////            intake.doIntakeHalt();
+////        }
+//        else{
+//            intake.doIntakeHalt();
+//        }
+//
+//        //if (ballsShotInState >= 3) resetToIntake();
+//    }
+
+
+
+    private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
+
+//        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+//            useAprilTagAim = !useAprilTagAim;
+//        }
+
+
+        if (follower.getPose().getY() < 69 &&
+                result != null &&
+                result.isValid() &&
+                useAprilTagAim) {
+            //updateTurretWithAprilTag(); // Disabled
+            noAutoAlign = true;
+        }
+
+        else {
+            noAutoAlign = false;
+        }
+        applyShooterTargets(pose, vx, vy, head);
+
+        if (veloReached  && !vibratedYet) {
+            gamepad1.rumble(250);
+            vibratedYet = true;
+        }
+        else if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+            initiateTransfer = true;
+        }
+
+
+
+        if (initiateTransfer){
+            trackShotCount(beam);
+        }
+        if (initiateTransfer && veloReached && (pose.getY() > 80 )){
+            teleopShootApporval = true;
+            intake.doTestShooter();
+        }
+        else if (initiateTransfer && veloReached && (pose.getY() <= 80 && gamepad1.right_trigger > 0.2)){
+            teleopShootApporval = true;
+            intake.doTestShooter();
+        }
+//        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
+//            intake.doIntakeHalt();
+//        }
+        else{
+            intake.doIntakeHalt();
+        }
+
+        //if (ballsShotInState >= 3) resetToIntake();
+    }
+
+    private void handleScoringState(Pose pose, double vx, double vy, double head, boolean beam) {
+        applyShooterTargets(pose, vx, vy, head);
+
+
+        if (veloReached  && !vibratedYet) {
+            gamepad1.rumble(250);
+            vibratedYet = true;
+        }
+        else if (!intake.canShoot){
+            vibratedYet = false;
+        }
+        if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+            initiateTransfer = true;
+        }
+
+        if (initiateTransfer){
+            teleopShootApporval = true;
+            trackShotCount(beam);
+        }
+
+        if (ballsShotInState >= 3) resetToIntake();
+    }
+
+    private void applyShooterTargets(Pose pose, double vx, double vy, double headingDeg) {
+        double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
+        // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
+
+        if (pose.getY() > 69) {
+
+
+
+            turretOffsetFar = 0;
+
+
+            if (isRedAlliance) {
+
+                if (shootOnDaMove){
+
+                    newGoalCoords = shooter.computeVelocityCompensatedPositionFirestorm(targetX,GOAL_Y,pose.getX(),pose.getY(),follower.getVelocity().getXComponent(),follower.getVelocity().getYComponent());
+                    newX = newGoalCoords[0];
+                    newY = newGoalCoords[1];
+                    dist = Math.hypot(newX - pose.getX(),newY - pose.getY());
+                    shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX, newY, headingDeg, false, -22, 0, false, 0); // Turret disabled
+                    if (gamepad1.right_trigger > 0.2) {
+                        intake.doTestShooter();
+                    }
+                }
+                else {
+                    dist = Math.hypot(targetX - pose.getX(),GOAL_Y - pose.getY());
+                    newX = targetX;
+                    newY = GOAL_Y;
+                    if (noAutoAlign) {
+                        shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj + 9.5, 0, false, 0); // Turret disabled
+                    } else {
+                        shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj + 9.5, 0, false, 0); // Turret disabled
+                    }
+
+                }
+            } else {
+
+                if (shootOnDaMove){
+                    newGoalCoords = shooter.computeVelocityCompensatedPositionFirestorm(targetX,GOAL_Y,pose.getX(),pose.getY(),follower.getVelocity().getXComponent(),follower.getVelocity().getYComponent());
+                    newX = newGoalCoords[0];
+                    newY = newGoalCoords[1];
+                    dist = Math.hypot(newX - pose.getX(),newY - pose.getY());
+                    shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX, newY, headingDeg, false, -22, 0, false, 0); // Turret disabled
+                    if (gamepad1.right_trigger > 0.2) {
+                        intake.doTestShooter();
+                    }
+                }
+                else {
+
+                    dist = Math.hypot(targetX - pose.getX(),GOAL_Y - pose.getY());
+                    newX = targetX;
+                    newY = GOAL_Y;
+                    if (noAutoAlign) {
+                        shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj + 9.5, 0, false, 0); // Turret disabled
+                    } else {
+                        shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj + 9.5, 0, false, 0); // Turret disabled
+                    }
+                }
+            }
+
+        }
+
+        else {
+
+            dist = Math.hypot(targetX - pose.getX(),GOAL_Y - pose.getY());
+            newX = targetX;
+            newY = GOAL_Y;
+
+
+            if (isRedAlliance) {
+                turretOffsetFar = -12.5;
+                if (noAutoAlign) {
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false,mannualFlywheelAdj+5, 0,false,0  ); // Turret disabled
+                } else {
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj+5,0,false,0  ); // Turret disabled
+                }
+            }
+            else{
+                turretOffsetFar = 12.5;
+                if (noAutoAlign) {
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj+5,0,false,0 ); // Turret disabled
+                } else {
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj+5,0,false,0 ); // Turret disabled
+                }
+            }
+        }
+
+    }
+
+    private void handleDriving(Pose pose) {
+        double forward = player1.getLeftY();
+        double strafe = player1.getLeftX();
+        double rotate = player1.getRightX();
+
+        if (!isRedAlliance) { forward = -forward; strafe = -strafe; }
+        double heading = pose.getHeading();
+        double theta = Math.atan2(forward, strafe) - heading;
+        double r = Math.hypot(forward, strafe);
+        drive.drive(r * Math.sin(theta), r * Math.cos(theta), rotate);
+    }
+
+    private void trackShotCount(boolean currentBeamState) {
+        if (lastBeamState && !currentBeamState) {
+            ballsShotInState++;
+        }
+        lastBeamState = currentBeamState;
+    }
+
+    private void resetToIntake() {
+        opState = 0;
+        ballsShotInState = 0;
+        teleopShootApporval = false;
+        initiateTransfer = false;
+        vibratedYet = false;
+        shooter.stopFlywheel();
+        //intake.sortManualOverride();
+        intake.resetState();
+        gamepad1.rumble(150);
+    }
+
+    private void handleAllianceToggles() {
+
+        if (player1.wasJustPressed(GamepadKeys.Button.SHARE)) {
+            if (isRedAlliance){
+                isRedAlliance = false; gamepad1.rumble(100); }
+            else {
+                isRedAlliance = true; gamepad1.rumble(100);
+            }
+        }
+    }
+
+    private void handleInputOverrides() {
+        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
+            if (isRedAlliance){
+                follower.setPose(new Pose(0, 17, Math.toRadians(180)));
+            }
+            else {
+                follower.setPose(new Pose(124,9,Math.toRadians(0)));
+            }
+        }
+        //if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
+        if (player1.wasJustPressed(GamepadKeys.Button.CIRCLE)) {
+            //LimelightCamera.BallOrder seen = limelight.detectBallOrder();
+            //if (seen != null) { Intake.targetPatternFromAuto = seen; gamepad1.rumble(500); }
+        }
+        if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+            if (opState ==0) { ballsShotInState = 0; opState = 1; } else resetToIntake();
+        }
+
+        if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) {
+            noAutoAlign = true;
+        }
+        /* not till tuned sry lil bro
+        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+            if (opState == 0) { ballsShotInState = 0; opState = 2;
+             intake.prepareAndStartSort();
+             }
+             else {
+             resetToIntake();
+             }
+        }
+        */
+
+    }
+
+    private void handleIntakeState() {
+
+        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
+        if (gamepad1.right_trigger > 0.2){
+            intake.doIntake();
+            // Turret disabled, no setTurretTarget call
+        }
+        else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
+        else intake.doIntakeHalt();
+    }
+
+//    private void configurePinpoint() {
+//        pinpoint.setOffsets(136.603, 59.24, DistanceUnit.MM);
+//        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+//        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+//        pinpoint.resetPosAndIMU();
+//    }
+
+//    private void doTelemetry() {
+//
+//        telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
+//        telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
+//        telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
+//        telemetry.addData("Flywheel Reached",shooter.flywheelVeloReached ? "YEA": "NAH");
+//        telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
+//        telemetry.update();
+//    }
+
+    private void extraTelemetryForTesting(double fVelo, double tAng, boolean beam) {
+        telemetry.addLine("--- DIAGNOSTICS ---");
+        telemetry.addData("Turret Ang", "%.2f", tAng);
+        telemetry.addData("Flywheel Velo", fVelo);
+        telemetry.addData("Beam Broken", beam);
+        //telemetry.addData("Shot Possible", !shooter.isShotImpossible);
+        telemetry.update();
+    }
+
+//    public void updateCoordinatesWithAprilTag() {
+//        limelight67.updateRobotOrientation(Math.toRadians(((shooter.getCurrentTurretPosition() - Math.toDegrees(follower.getHeading())) + 360) % 360 ));
+//        limelight.limelightCamera.pipelineSwitch(3);
+//        LLResult result = limelight.getResult();
+//        if (result != null && result.isValid()) {
+//            Pose3D mt1Pose = result.getBotpose();
+//            if (mt1Pose != null) {
+//                double finalX = (mt1Pose.getPosition().y * METERS_TO_INCH) + 72.0;
+//                double finalY = (-mt1Pose.getPosition().x * METERS_TO_INCH) + 72.0;
+//                follower.setPose(new Pose(finalX, finalY, follower.getHeading()));
+//                gamepad1.rumble(500);
+//            }
+//        }
+//    }
+
+    // public void updateTurretWithAprilTag() { // Disabled
+    //     //limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
+    //     //limelight67.pipelineSwitch(3);
+    //     //LLResult result = limelight.getResult();
+    //
+    //     Poses.Alliance alliance = Poses.getAlliance();
+    //     if (alliance != null &&
+    //             result != null &&
+    //             result.isValid() &&
+    //             (alliance == Poses.Alliance.RED ? getTagId() == 24 : getTagId() == 20))
+    //     {
+    //         double error = (-result.getTy());
+    //         if (Math.abs(error) < limelightTurretTolerance) return;
+    //         double currentTurretAngle = shooter.getCurrentTurretPosition();
+    // //            double newTarget = currentTurretAngle + (error * limelightTurretScale);
+    // //            newTarget = (newTarget % 360 + 360) % 360;
+    // //            shooter.setTurretTargetPosition(newTarget);
+    //
+    //         if (follower.getPose().getY() < 50){
+    //             shooter.setTurretTargetPosition(currentTurretAngle += (error + limelightFarZoneOffset));
+    //         }
+    //         else {
+    //             shooter.setTurretTargetPosition(currentTurretAngle += (error + limelightCloseZoneOffset) );
+    //         }
+    //         // turretMannualAdjust += error;
+    //
+    // //            telemetry.addData("Turret Limelight Error", error);
+    //         //telemetry.update();
+    //
+    //     }
+    //
+    // }
+
+    @Override public void stop() { //limelight.limelightCamera.stop();
+    }
+
+//    public void calculateIterativeShot(){
+//        double x = Math.hypot(isRedAlliance?RED_GOAL_X:BLUE_GOAL_X - follower.getPose().getX(), GOAL_Y - follower.getPose().getY());
+//        Vector robotVelocity = new Vector(follower.getPose());
+//        Vector robotToGoalVector = new Vector(isRedAlliance ? RED_GOAL_X: BLUE_GOAL_X, GOAL_Y);
+//
+//        double coordinateTheta =
+//                robotVelocity.getTheta() - robotToGoalVector.getTheta();
+//
+//        double parallelComponent =
+//                -Math.cos(coordinateTheta) * robotVelocity.getMagnitude();
+//
+//        double perpendicularComponent =
+//                -Math.sin(coordinateTheta) * robotVelocity.getMagnitude();
+//
+//// velocity compensation variables
+//        double vz = shooter.calcFlywheelSpeedInches(shooter.getCurrentRequiredFlywheelTicks()) * Math.sin(shooter.getCurrentRequiredHoodAngle());
+//        double time = x / (shooter.calcFlywheelSpeedInches(shooter.getCurrentRequiredFlywheelTicks())) * Math.cos(shooter.getCurrentRequiredHoodAngle());
+//        double ivr = x / time + parallelComponent;
+//        double nvr = Math.sqrt(
+//                ivr * ivr + perpendicularComponent * perpendicularComponent
+//        );
+//        double ndr = nvr * time;
+//    }
+
+
+    public int getTagId(){
+
+
+
+        if (result != null) {
+            for (LLResultTypes.FiducialResult fiducial : result.getFiducialResults()) {
+                int id = fiducial.getFiducialId();
+
+                return id;
+            }
+        }
+
+        return 0;
+    }
+
+}
