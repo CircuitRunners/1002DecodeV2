@@ -643,7 +643,14 @@ public class Intake {
     }
 
     // Proximity-based version — uses same falling-edge pattern as cycleShifted
-    public void updateSimpleSorterProx(double s1Prox, double s2Prox, double s3Prox) {
+    // Proximity threshold — ball is present if sensor reads above this value
+    public static double PROX_THRESHOLD = 330;
+
+    /**
+     * Proximity-based sort. Call startSimpleSort() first to set current/target pattern.
+     * Mirrors updateSimpleSorter but uses proximity thresholds instead of color sensors.
+     */
+    public void updateProx(double s1Prox, double s2Prox, double s3Prox) {
 
         switch (simpleSortState) {
 
@@ -651,30 +658,35 @@ public class Intake {
                 break;
 
             case CHECK_SLOTS:
-                // If s3 doesn't have a ball, slots aren't full — no point sorting
-                if (s3Prox <= 330) return;
-                int currentIndex = patternIndexFromString(simpleCurrentPattern);
-                int targetIndex = patternIndexFromEnum(simpleTargetPattern);
+                int validProx = 0;
+                if (s1Prox > PROX_THRESHOLD) validProx++;
+                if (s2Prox > PROX_THRESHOLD) validProx++;
+                if (s3Prox > PROX_THRESHOLD) validProx++;
 
-                simpleRequiredRotations = (targetIndex - currentIndex + 3) % 3;
+                if (validProx >= 2) {
+                    int currentIndex = patternIndexFromString(simpleCurrentPattern);
+                    int targetIndex = patternIndexFromEnum(simpleTargetPattern);
 
-                simpleRotationCounter = 0;
-                simpleS1HadBallLast = true;
-                simpleS1LostAfterSeeing = false;
-                isFirstTime = true;
+                    simpleRequiredRotations = (targetIndex - currentIndex + 3) % 3;
 
-                simpleSortTimer.reset();
+                    simpleRotationCounter = 0;
+                    simpleS1HadBallLast = true;
+                    simpleS1LostAfterSeeing = false;
+                    isFirstTime = true;
 
-                if (simpleRequiredRotations == 0) {
-                    simpleSortState = SimpleSortState.READY;
+                    simpleSortTimer.reset();
+
+                    if (simpleRequiredRotations == 0) {
+                        simpleSortState = SimpleSortState.READY;
+                    } else {
+                        simpleSortState = SimpleSortState.ROTATING;
+                    }
                 } else {
-                    simpleSortState = SimpleSortState.ROTATING;
+                    simpleSortState = SimpleSortState.READY;
                 }
-
                 break;
 
             case ROTATING:
-
                 transferOn();
                 setDirectionCycle();
                 gateOpen();
@@ -690,7 +702,7 @@ public class Intake {
                     intake1.setPower(1);
                 }
 
-                cycleShifted(s3Prox);
+                updateProxRotationCounter(s1Prox);
 
                 if (simpleRotationCounter >= simpleRequiredRotations) {
                     intakeMotorHalt();
@@ -703,7 +715,6 @@ public class Intake {
                     gateClose();
                     simpleSortState = SimpleSortState.READY;
                 }
-
                 break;
 
             case READY:
@@ -713,25 +724,23 @@ public class Intake {
         }
     }
 
-//    private void updateSimpleRotationCounterProx(double s3Prox) {
-//
-//        boolean s3HasBallNow = s3Prox > 330;
-//        double now = simpleSortTimer.milliseconds();
-//
-//        if (simpleS1HadBallLast && !s3HasBallNow) {
-//            simpleS1LostAfterSeeing = true;
-//            simpleSortTimer.reset();
-//        }
-//
-//        if (simpleS1LostAfterSeeing && s3HasBallNow) {
-//            if (now > SIMPLE_ENTRY_DEBOUNCE_MS) {
-//                simpleRotationCounter++;
-//                simpleS1LostAfterSeeing = false;
-//            }
-//        }
-//
-//        simpleS1HadBallLast = s3HasBallNow;
-//    }
+    private void updateProxRotationCounter(double s1Prox) {
+        boolean s1HasBallNow = s1Prox > PROX_THRESHOLD;
+
+        if (simpleS1HadBallLast && !s1HasBallNow) {
+            simpleS1LostAfterSeeing = true;
+            simpleSortTimer.reset();
+        }
+
+        if (simpleS1LostAfterSeeing && s1HasBallNow) {
+            if (simpleSortTimer.milliseconds() > SIMPLE_ENTRY_DEBOUNCE_MS) {
+                simpleRotationCounter++;
+                simpleS1LostAfterSeeing = false;
+            }
+        }
+
+        simpleS1HadBallLast = s1HasBallNow;
+    }
 
     private int patternIndexFromString(String pattern) {
 
@@ -1219,7 +1228,6 @@ public class Intake {
         }
         lastBeamState = currentBeamState;
     }
-
 
 
 

@@ -395,39 +395,17 @@ public class NewShooter {
         setTurretTargetPosition(absoluteTarget + mannualTurretAdjust);
     }
     public void setTurretTargetPosition(double positionDeg) {
-//        if (positionDeg > 360){
-//            positionDeg -= 360;
-//        }
-//        else if (positionDeg < 0){
-//            positionDeg +=360;
-//        }
-        // targetTurretPosition = Range.clip(positionDeg, -265, 265);
-        //targetTurretPosition = Range.clip(positionDeg,0,315);
-
-
-
-        // 2. Map 0 -> 360 into -180 -> 180
-        // If input is 0..180, it stays 0..180
-        // If input is 181..360, it becomes -179..0
+        // Map 0-360 input into -90 to 270 physical range
+        // 0..270 stays as is; 271..360 wraps to -89..0
         double physicalTarget;
-        if (positionDeg <= 180) {
+        if (positionDeg <= 270) {
             physicalTarget = positionDeg;
         } else {
             physicalTarget = positionDeg - 360;
         }
 
-        // --- WIRIG DEAD ZONE HANDLING ---
-        // If target is in the 315-360 deadzone, pick the closest safe limit
-        if (Math.abs(physicalTarget) >= 178) {
-            if (physicalTarget > 0) { // Closer to 0
-                physicalTarget = physicalTarget;
-            } else { // Closer to 315
-                physicalTarget = -178;
-            }
-        }
-
-        // 3. Clip to stay away from the physical hardstops (e.g., +/- 175)
-        targetTurretPosition = Range.clip(physicalTarget, -178, 180);
+        // Clip to wiring-safe range: -90 to 270 (never cross the deadzone gap)
+        targetTurretPosition = Range.clip(physicalTarget, -90, 270);
     }
 
 
@@ -466,14 +444,14 @@ public class NewShooter {
 
         double averageVelo = (shooter1Velocity + shooter2Velocity) / 2;
 
-        if (averageVelo >= targetFlywheelVelocity - 300 || averageVelo <= targetFlywheelVelocity + 300) {
+        if (averageVelo >= targetFlywheelVelocity - 300 && averageVelo <= targetFlywheelVelocity + 300) {
             flywheelVeloReached = true;
         }
         else {
             flywheelVeloReached = false;
         }
 
-        if (currentTurretAngle0_360 >= targetTurretPosition - 0.7 || currentTurretAngle0_360 <= targetTurretPosition + 0.7) {
+        if (currentTurretAngle0_360 >= targetTurretPosition - 0.7 && currentTurretAngle0_360 <= targetTurretPosition + 0.7) {
             turretReached = true;
         }
         else {
@@ -726,11 +704,7 @@ public class NewShooter {
     }
 
     public double getCurrentTurretPosition(){
-        return (
-                (Range.scale(turretLeft.getPosition(), 0.05, 0.98, -180, 180) +
-                        (Range.scale(turretRight.getPosition(), 0.05, 0.98, -180, 180)
-                        ) / 2)
-        );// Outp// ut Range (CORRECTED)
+        return ((Range.scale(turretLeft.getPosition(), 0.05, 0.98, -90, 270) + Range.scale(turretRight.getPosition(), 0.05, 0.98, -90, 270)) / 2);// Outp// ut Range (CORRECTED)
     }
 
     //pass in velo from follower
@@ -791,7 +765,7 @@ public class NewShooter {
     }
 
     private void setTurretServoPos(double targetPos){
-        targetPos = (Range.scale(targetPos, -180, 180, 0.05, 0.98));
+        targetPos = (Range.scale(targetPos, -90, 270, 0.05, 0.98));
         turretLeft.setPosition(targetPos + 0);
         turretRight.setPosition(targetPos + 0);
     }

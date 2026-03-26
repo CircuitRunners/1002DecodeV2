@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Testers;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
@@ -16,13 +17,19 @@ public class SortingTester extends OpMode {
     private GamepadEx player1;
     private Intake intake;
     private Sensors sensors;
+    //private LimelightCamera limelight;
 
     private LimelightCamera.BallOrder ballOrder = LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE;
 
     @Override
     public void init() {
         player1 = new GamepadEx(gamepad1);
+//
+//        limelight = new LimelightCamera(hardwareMap);
+//        limelight.limelightCamera.start();
+
         intake = new Intake(hardwareMap, telemetry);
+
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
 
@@ -49,7 +56,7 @@ public class SortingTester extends OpMode {
 
         // One-button sort trigger
         if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
-            intake.prepareAndStartSort();
+            intake.startSimpleSort("PPG", ballOrder);
         }
 
         // Ball order selection
@@ -67,7 +74,10 @@ public class SortingTester extends OpMode {
             intake.setCanShoot(false);
         }
 
-        intake.update(false, ballOrder, ball1, ball2, ball3);
+
+        intake.updateProx(sensors.getColor1Proximity(),
+                sensors.getColor2Proximity(),
+                sensors.getColor3Proximity());
 
         // Telemetry
         telemetry.addLine("=== SORTING TESTER ===");
