@@ -702,7 +702,7 @@ public class Intake {
                     intake1.setPower(1);
                 }
 
-                updateProxRotationCounter(s1Prox);
+                updateProxRotationCounter(s3Prox);
 
                 if (simpleRotationCounter >= simpleRequiredRotations) {
                     intakeMotorHalt();
@@ -724,22 +724,22 @@ public class Intake {
         }
     }
 
-    private void updateProxRotationCounter(double s1Prox) {
-        boolean s1HasBallNow = s1Prox > PROX_THRESHOLD;
+    private void updateProxRotationCounter(double s3Prox) {
+        boolean s3HasBallNow = s3Prox > PROX_THRESHOLD;
 
-        if (simpleS1HadBallLast && !s1HasBallNow) {
+        if (simpleS1HadBallLast && !s3HasBallNow) {
             simpleS1LostAfterSeeing = true;
             simpleSortTimer.reset();
         }
 
-        if (simpleS1LostAfterSeeing && s1HasBallNow) {
+        if (simpleS1LostAfterSeeing && s3HasBallNow) {
             if (simpleSortTimer.milliseconds() > SIMPLE_ENTRY_DEBOUNCE_MS) {
                 simpleRotationCounter++;
                 simpleS1LostAfterSeeing = false;
             }
         }
 
-        simpleS1HadBallLast = s1HasBallNow;
+        simpleS1HadBallLast = s3HasBallNow;
     }
 
     private int patternIndexFromString(String pattern) {

@@ -91,8 +91,8 @@ public class NewShooter {
     public boolean hoodCalibrationRequired = false;
 
     // Hardware
-    private DcMotorEx shooter1;
-    private DcMotorEx shooter2;
+    public DcMotorEx shooter1;
+    public DcMotorEx shooter2;
     private Servo turretLeft;
     private Servo turretRight;
     private Servo hoodServo;
@@ -398,14 +398,14 @@ public class NewShooter {
         // Map 0-360 input into -90 to 270 physical range
         // 0..270 stays as is; 271..360 wraps to -89..0
         double physicalTarget;
-        if (positionDeg <= 270) {
+        if (positionDeg <= 180) {
             physicalTarget = positionDeg;
         } else {
             physicalTarget = positionDeg - 360;
         }
 
         // Clip to wiring-safe range: -90 to 270 (never cross the deadzone gap)
-        targetTurretPosition = Range.clip(physicalTarget, -90, 270);
+        targetTurretPosition = Range.clip(physicalTarget, -180, 180);
     }
 
 
@@ -442,7 +442,7 @@ public class NewShooter {
 
         setTurretServoPos(targetTurretPosition);
 
-        double averageVelo = (shooter1Velocity + shooter2Velocity) / 2;
+        double averageVelo = getFlywheelVelo();
 
         if (averageVelo >= targetFlywheelVelocity - 300 && averageVelo <= targetFlywheelVelocity + 300) {
             flywheelVeloReached = true;
@@ -704,7 +704,7 @@ public class NewShooter {
     }
 
     public double getCurrentTurretPosition(){
-        return ((Range.scale(turretLeft.getPosition(), 0.05, 0.98, -90, 270) + Range.scale(turretRight.getPosition(), 0.05, 0.98, -90, 270)) / 2);// Outp// ut Range (CORRECTED)
+        return ((Range.scale(turretLeft.getPosition(), 0.05, 0.98, -180, 180) + Range.scale(turretRight.getPosition(), 0.05, 0.98, -90, 270)) / 2);// Outp// ut Range (CORRECTED)
     }
 
     //pass in velo from follower
@@ -761,7 +761,17 @@ public class NewShooter {
 
 
     public double getFlywheelVelo(){
-        return (shooter1.getVelocity() + shooter2.getVelocity())/2;
+        double shooter1Velocity = shooter1.getVelocity();
+        double shooter2Velocity = shooter2.getVelocity();
+        if (Math.abs(shooter1Velocity) == 0) {
+            return shooter2Velocity;
+        }
+        else if (Math.abs(shooter2Velocity) == 0) {
+            return shooter1Velocity;
+        }
+        else {
+            return (shooter1Velocity + shooter2Velocity) / 2;
+        }
     }
 
     private void setTurretServoPos(double targetPos){

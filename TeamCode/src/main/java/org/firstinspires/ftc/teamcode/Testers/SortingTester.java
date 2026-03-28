@@ -81,7 +81,7 @@ public class SortingTester extends OpMode {
 
         // Telemetry
         telemetry.addLine("=== SORTING TESTER ===");
-        telemetry.addData("Intake State", intake.getCurrentIntakeState());
+        telemetry.addData("Intake State", intake.getSimpleSortState());
         telemetry.addData("Target Ball Order", ballOrder);
         telemetry.addData("canShoot", Intake.canShoot);
         telemetry.addLine("");
