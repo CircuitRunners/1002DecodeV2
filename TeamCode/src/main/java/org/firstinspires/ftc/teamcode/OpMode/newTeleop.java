@@ -79,7 +79,7 @@ public class newTeleop extends OpMode {
     private boolean vibratedYet = false;
     private boolean initiateTransfer = false;
 
-    public static boolean shootOnDaMove = true;
+    public static boolean shootOnDaMove = false;
 
     private boolean noAutoAlign = false;
     boolean useAprilTagAim = false;
@@ -260,6 +260,8 @@ public class newTeleop extends OpMode {
         telemetry.addData("Turret Ang", "%.2f", currentTurretAngle);
         telemetry.addData("DESIRED VELO:",shooter.getTargetFLywheelVelo());
         telemetry.addData("Flywheel Velo", currentFlywheelVelo);
+        telemetry.addData("Shooter 1 Velo", shooter.shooter1.getVelocity());
+        telemetry.addData("Shooter 2 Velo", shooter.shooter2.getVelocity());
         telemetry.addData("Beam Broken", isBeamBroken);
         telemetry.addData("Balls shot:", ballsShotInState);
         telemetry.addData("Turret Limelight Error", llError);
