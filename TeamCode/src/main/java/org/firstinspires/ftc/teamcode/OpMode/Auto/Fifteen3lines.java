@@ -48,9 +48,9 @@ public class Fifteen3lines extends OpMode {
         private boolean lastBeamState = false;
 
         // Field Constants
-        private final double RED_GOAL_X = 134;
-        private final double BLUE_GOAL_X = 10.5;
-        private final double GOAL_Y = 132;
+        private final double RED_GOAL_X = 127.5;
+    private final double BLUE_GOAL_X = 15;
+    private final double GOAL_Y = 132;
 
         double targetX = 0;
 
@@ -139,6 +139,13 @@ public class Fifteen3lines extends OpMode {
         public void autonomousPathUpdate() {
             Pose currentPose = follower.getPose();
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
+
+            if (Poses.getAlliance() == Poses.Alliance.RED) {
+                shooter.setTurretTarget(315, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
+            }
+            else{
+                shooter.setTurretTarget(45, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
+            }
 
 
 
@@ -341,7 +348,7 @@ public class Fifteen3lines extends OpMode {
                         pose.getX(), pose.getY(),
                         targetX, GOAL_Y,
                         headingDeg,
-                        true, -6,
+                        false, -6,
                         mannualHoodOffset,
                         true, 0
                 );
@@ -350,7 +357,7 @@ public class Fifteen3lines extends OpMode {
                         pose.getX(), pose.getY(),
                         targetX, GOAL_Y,
                         headingDeg,
-                        true, -58,
+                        false, -58,
                         mannualHoodOffset ,
                         false, 0
                 );

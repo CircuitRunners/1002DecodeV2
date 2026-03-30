@@ -60,7 +60,7 @@ public class newTeleop extends OpMode {
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
 
-    private final double RED_GOAL_X = 130;
+    private final double RED_GOAL_X = 127.5;
     private final double BLUE_GOAL_X = 15;
     private final double GOAL_Y = 132;
 
@@ -162,7 +162,7 @@ public class newTeleop extends OpMode {
             preselectFromAuto = false;
         }
 
-        turretMannualAdjust += (- shooter.turretEndPosAuto);
+
     }
 
     @Override
@@ -197,7 +197,7 @@ public class newTeleop extends OpMode {
 
 
 
-        if (veloReached) {
+        if (limelight67.getLatestResult().isValid() && llError <=1.1) {
             sensors.setLight(0.600);
         } else {
             sensors.setLight(0.5);
@@ -298,11 +298,11 @@ public class newTeleop extends OpMode {
         // Manual control: move turret and stick PID to current position to prevent fighting
         // Use wasJustPressed for servo turret to avoid jitter from rapid position changes
         if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
-            turretMannualAdjust += 2;
+            turretMannualAdjust += 5;
 
         }
         else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-            turretMannualAdjust -= 2;
+            turretMannualAdjust -= 5;
 
         }
 
@@ -325,71 +325,20 @@ public class newTeleop extends OpMode {
         //square turns it off
     }
 
-//    private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
-//
-//        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-//            useAprilTagAim = !useAprilTagAim;
-//        }
-//
-//
-//        if (//follower.getPose().getY() < 69 &&
-//                result != null &&
-//                result.isValid() &&
-//                useAprilTagAim) {
-//            updateTurretWithAprilTag();
-//            noAutoAlign = true;
-//        }
-//
-//        else {
-//            noAutoAlign = false;
-//        }
-//        applyShooterTargets(pose, vx, vy, head);
-//
-//        if (veloReached  && !vibratedYet) {
-//            gamepad1.rumble(250);
-//            vibratedYet = true;
-//        }
-//        else if (vibratedYet && (gamepad1.right_trigger > 0.2)){
-//            initiateTransfer = true;
-//        }
-//
-//
-//
-//        if (initiateTransfer){
-//            trackShotCount(beam);
-//        }
-//        if (initiateTransfer && veloReached && (pose.getY() > 80 )){
-//            teleopShootApporval = true;
-//            intake.doTestShooter();
-//        }
-//        else if (initiateTransfer && veloReached && (pose.getY() <= 80 && gamepad1.right_trigger > 0.2)){
-//            teleopShootApporval = true;
-//            intake.doTestShooter();
-//        }
-    ////        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
-    ////            intake.doIntakeHalt();
-    ////        }
-//        else{
-//            intake.doIntakeHalt();
-//        }
-//
-//        //if (ballsShotInState >= 3) resetToIntake();
-//    }
-
 
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
 
-//        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-//            useAprilTagAim = !useAprilTagAim;
-//        }
+        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+            useAprilTagAim = !useAprilTagAim;
+        }
 
 
         if (follower.getPose().getY() < 69 &&
                 result != null &&
                 result.isValid() &&
                 useAprilTagAim) {
-            //updateTurretWithAprilTag();
+            updateTurretWithAprilTag();
             noAutoAlign = true;
         }
 
@@ -507,7 +456,7 @@ public class newTeleop extends OpMode {
                     if (noAutoAlign) {
                         shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, false, mannualFlywheelAdj + 9.5, 0, false, turretMannualAdjust);
                     } else {
-                        shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, mannualFlywheelAdj + 9.5, 0, false, turretMannualAdjust - 2.5);
+                        shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX, GOAL_Y, headingDeg, true, mannualFlywheelAdj + 9.5, 0, false, turretMannualAdjust );
                     }
                 }
             }
@@ -524,17 +473,17 @@ public class newTeleop extends OpMode {
             if (isRedAlliance) {
                 turretOffsetFar = -12.5;
                 if (noAutoAlign) {
-                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, false,mannualFlywheelAdj-10, 0,true,turretMannualAdjust  );
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, false,mannualFlywheelAdj-40, 0,true,turretMannualAdjust  );
                 } else {
-                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, true, mannualFlywheelAdj-10,0,true,turretMannualAdjust  );
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, true, mannualFlywheelAdj-40,0,true,turretMannualAdjust  );
                 }
             }
             else{
                 turretOffsetFar = 12.5;
                 if (noAutoAlign) {
-                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, false, mannualFlywheelAdj-10,0,false,turretMannualAdjust );
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, false, mannualFlywheelAdj-40,0,false,turretMannualAdjust );
                 } else {
-                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, true, mannualFlywheelAdj-10,0,false,turretMannualAdjust - 2.5 );
+                    shooter.setTargetsByDistanceAdjustable(Math.round((pose.getX() * 10) / 10), Math.round((pose.getY() * 10) / 10), targetX+2, GOAL_Y, headingDeg, true, mannualFlywheelAdj-40,0,false,turretMannualAdjust );
                 }
             }
         }

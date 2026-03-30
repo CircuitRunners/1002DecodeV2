@@ -111,8 +111,8 @@ public class Poses {
     );
 
     public static final AlliancePose shootPositionGoalSide15Ball = new AlliancePose(
-            new Pose(92.5, 89, Math.toRadians(49.5)),
-            new Pose(51.5, 89, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
+            new Pose(92.5, 94, Math.toRadians(49.5)),
+            new Pose(51.5, 94, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide15BallLastTime = new AlliancePose(
@@ -147,7 +147,7 @@ public class Poses {
     );
 
     public static final AlliancePose pickupLineOne15Ball = new AlliancePose(
-            new Pose(131, 82, Math.toRadians(0)),
+            new Pose(121, 82, Math.toRadians(0)),
             new Pose(17, 84, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
     public static final AlliancePose chainPickupLineOne15Ball = new AlliancePose(
@@ -158,7 +158,7 @@ public class Poses {
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
-            new Pose(148, 58, Math.toRadians(0)),
+            new Pose(138, 58, Math.toRadians(0)),
             new Pose(3.5, 59, Math.toRadians(180))
     );
     public static final AlliancePose chainPickupLine2 = new AlliancePose(
@@ -176,7 +176,7 @@ public class Poses {
 
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
-            new Pose(148, 34, Math.toRadians(0)),
+            new Pose(138, 34, Math.toRadians(0)),
             new Pose(5, 36, Math.toRadians(180))
     );
     public static final AlliancePose pickupLine3Far = new AlliancePose(
@@ -260,7 +260,7 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(149.5, 56.5, Math.toRadians(65)),
+            new Pose(148, 56.5, Math.toRadians(65)),
             new Pose(22, 51.5, Math.toRadians(115)) // correct
     );
 
