@@ -38,7 +38,7 @@ public class Intake {
     public static final double TRANSFER_ON = 0.59;
     public static final double TRANSFER_OFF = 0.67;
 
-    boolean isFirstTime = true;
+    private boolean isFirstTime = true;
 
     //SORTING STUFF//
     public enum IntakeState {
@@ -508,12 +508,12 @@ public class Intake {
     private LimelightCamera.BallOrder simpleTargetPattern = null;
 
     private int simpleRequiredRotations = 0;
-    private int simpleRotationCounter = 0;
+    public int simpleRotationCounter = 0;
 
-    private boolean simpleS1HadBallLast = false;
+    private boolean simpleS1HadBallLast = true;
     private boolean simpleS1LostAfterSeeing = false;
 
-    private static final double SIMPLE_ENTRY_DEBOUNCE_MS = 600;
+    private static final double SIMPLE_ENTRY_DEBOUNCE_MS = 450;
 
     private ElapsedTime simpleSortTimer = new ElapsedTime();
 
@@ -528,123 +528,123 @@ public class Intake {
         simpleSortState = SimpleSortState.CHECK_SLOTS;
     }
 
-    public void updateSimpleSorter(DetectedColor s1,
-                                    DetectedColor s2,
-                                    DetectedColor s3) {
+//    public void updateSimpleSorter(DetectedColor s1,
+//                                    DetectedColor s2,
+//                                    DetectedColor s3) {
+//
+//        switch (simpleSortState) {
+//
+//            case IDLE:
+//                break;
+//
+//            case CHECK_SLOTS:
+//                boolean s1Valid = (s1 != null);
+//                boolean s2Valid = (s2 != null);
+//                boolean s3Valid = (s3 != null);
+//
+//                int valid = 0;
+//                if (s1Valid) valid++;
+//                if (s2Valid) valid++;
+//                if (s3Valid) valid++;
+//
+//
+//                // Only sort if slot 1 and 2 have balls
+//                if (valid >=2) {
+//
+//                    int currentIndex = patternIndexFromString(simpleCurrentPattern);
+//                    int targetIndex = patternIndexFromEnum(simpleTargetPattern);
+//
+//                    simpleRequiredRotations =
+//                            (targetIndex - currentIndex + 3) % 3;
+//
+//                    simpleRotationCounter = 0;
+//                    simpleS1HadBallLast = true;
+//                    simpleS1LostAfterSeeing = false;
+//                    isFirstTime = true;
+//
+//                    simpleSortTimer.reset();
+//
+//                    if (simpleRequiredRotations == 0) {
+//                        simpleSortState = SimpleSortState.READY;
+//                    } else {
+//                        simpleSortState = SimpleSortState.ROTATING;
+//                    }
+//
+//                } else {
+//                    simpleSortState = SimpleSortState.READY;
+//                }
+//
+//                break;
+//
+//            case ROTATING:
+//
+//                // Spin sorter
+//                transferOn();
+//                setDirectionCycle();
+//                gateOpen();
+//
+//                if (isFirstTime && simpleSortTimer.milliseconds() >400){
+//                    simpleSortTimer.reset();
+//                    isFirstTime = false;
+//                }
+//
+//                if (simpleSortTimer.milliseconds() <= 400 && isFirstTime){
+//                    intake1.setPower(-0.6);
+//                }
+//                else {
+//                    intake1.setPower(1);
+//                }
+//
+//
+//                updateSimpleRotationCounter(s1);
+//
+//                if (simpleRotationCounter >= simpleRequiredRotations) {
+//                    intakeMotorHalt();
+//                    gateClose();
+//                    simpleSortState = SimpleSortState.READY;
+//                }
+//
+//                // Safety timeout
+//                if (simpleSortTimer.milliseconds() > 13000) {
+//                    intakeMotorHalt();
+//                    gateClose();
+//                    simpleSortState = SimpleSortState.READY;
+//                }
+//
+//                break;
+//
+//            case READY:
+//
+//                intakeMotorHalt();
+//                gateClose();
+//                break;
+//        }
+//    }
 
-        switch (simpleSortState) {
 
-            case IDLE:
-                break;
-
-            case CHECK_SLOTS:
-                boolean s1Valid = (s1 != null);
-                boolean s2Valid = (s2 != null);
-                boolean s3Valid = (s3 != null);
-
-                int valid = 0;
-                if (s1Valid) valid++;
-                if (s2Valid) valid++;
-                if (s3Valid) valid++;
-
-
-                // Only sort if slot 1 and 2 have balls
-                if (valid >=2) {
-
-                    int currentIndex = patternIndexFromString(simpleCurrentPattern);
-                    int targetIndex = patternIndexFromEnum(simpleTargetPattern);
-
-                    simpleRequiredRotations =
-                            (targetIndex - currentIndex + 3) % 3;
-
-                    simpleRotationCounter = 0;
-                    simpleS1HadBallLast = true;
-                    simpleS1LostAfterSeeing = false;
-                    isFirstTime = true;
-
-                    simpleSortTimer.reset();
-
-                    if (simpleRequiredRotations == 0) {
-                        simpleSortState = SimpleSortState.READY;
-                    } else {
-                        simpleSortState = SimpleSortState.ROTATING;
-                    }
-
-                } else {
-                    simpleSortState = SimpleSortState.READY;
-                }
-
-                break;
-
-            case ROTATING:
-
-                // Spin sorter
-                transferOn();
-                setDirectionCycle();
-                gateOpen();
-
-                if (isFirstTime && simpleSortTimer.milliseconds() >400){
-                    simpleSortTimer.reset();
-                    isFirstTime = false;
-                }
-
-                if (simpleSortTimer.milliseconds() <= 400 && isFirstTime){
-                    intake1.setPower(-0.6);
-                }
-                else {
-                    intake1.setPower(1);
-                }
-
-
-                updateSimpleRotationCounter(s1);
-
-                if (simpleRotationCounter >= simpleRequiredRotations) {
-                    intakeMotorHalt();
-                    gateClose();
-                    simpleSortState = SimpleSortState.READY;
-                }
-
-                // Safety timeout
-                if (simpleSortTimer.milliseconds() > 13000) {
-                    intakeMotorHalt();
-                    gateClose();
-                    simpleSortState = SimpleSortState.READY;
-                }
-
-                break;
-
-            case READY:
-
-                intakeMotorHalt();
-                gateClose();
-                break;
-        }
-    }
-
-
-    private void updateSimpleRotationCounter(DetectedColor s1) {
-
-        boolean s1HasBallNow = (s1 != null);
-        double now = simpleSortTimer.milliseconds();
-
-        if (simpleS1HadBallLast && !s1HasBallNow) {
-            simpleS1LostAfterSeeing = true;
-            simpleSortTimer.reset();
-        }
-
-        if (simpleS1LostAfterSeeing && s1HasBallNow) {
-            if (now > SIMPLE_ENTRY_DEBOUNCE_MS) {
-                simpleRotationCounter++;
-                simpleS1LostAfterSeeing = false;
-            }
-        }
-
-        simpleS1HadBallLast = s1HasBallNow;
-    }
+//    private void updateSimpleRotationCounter(DetectedColor s1) {
+//
+//        boolean s1HasBallNow = (s1 != null);
+//        double now = simpleSortTimer.milliseconds();
+//
+//        if (simpleS1HadBallLast && !s1HasBallNow) {
+//            simpleS1LostAfterSeeing = true;
+//            simpleSortTimer.reset();
+//        }
+//
+//        if (simpleS1LostAfterSeeing && s1HasBallNow) {
+//            if (now > SIMPLE_ENTRY_DEBOUNCE_MS) {
+//                simpleRotationCounter++;
+//                simpleS1LostAfterSeeing = false;
+//            }
+//        }
+//
+//        simpleS1HadBallLast = s1HasBallNow;
+//    }
 
     // Proximity-based version — uses same falling-edge pattern as cycleShifted
     // Proximity threshold — ball is present if sensor reads above this value
-    public static double PROX_THRESHOLD = 330;
+    public static double PROX_THRESHOLD = 260;
 
     /**
      * Proximity-based sort. Call startSimpleSort() first to set current/target pattern.
@@ -662,6 +662,8 @@ public class Intake {
                 if (s1Prox > PROX_THRESHOLD) validProx++;
                 if (s2Prox > PROX_THRESHOLD) validProx++;
                 if (s3Prox > PROX_THRESHOLD) validProx++;
+
+                setDirectionCycle();
 
                 if (validProx >= 2) {
                     int currentIndex = patternIndexFromString(simpleCurrentPattern);
@@ -691,55 +693,58 @@ public class Intake {
                 setDirectionCycle();
                 gateOpen();
 
-                if (isFirstTime && simpleSortTimer.milliseconds() > 400) {
-                    simpleSortTimer.reset();
-                    isFirstTime = false;
-                }
+//                if (isFirstTime && simpleSortTimer.milliseconds() > 400) {
+//                    simpleSortTimer.reset();
+//                    isFirstTime = false;
+//                }
 
-                if (simpleSortTimer.milliseconds() <= 400 && isFirstTime) {
-                    intake1.setPower(-0.6);
-                } else {
+//                if (simpleSortTimer.milliseconds() <= 430 && isFirstTime) {
+//                    intake1.setPower(-0.6);
+//                    intake2.setPower(-0.6);
+//                } else {
                     intake1.setPower(1);
-                }
+                    intake2.setPower(1);
+            //    }
 
-                updateProxRotationCounter(s3Prox);
+                updateProxRotationCounter(s1Prox);
 
                 if (simpleRotationCounter >= simpleRequiredRotations) {
                     intakeMotorHalt();
-                    gateClose();
+                   // gateClose();
                     simpleSortState = SimpleSortState.READY;
                 }
 
                 if (simpleSortTimer.milliseconds() > 13000) {
                     intakeMotorHalt();
-                    gateClose();
+                    //gateClose();
                     simpleSortState = SimpleSortState.READY;
                 }
                 break;
 
             case READY:
                 intakeMotorHalt();
-                gateClose();
+                //gateClose();
                 break;
         }
     }
 
-    private void updateProxRotationCounter(double s3Prox) {
-        boolean s3HasBallNow = s3Prox > PROX_THRESHOLD;
+    private void updateProxRotationCounter(double sProx) {
+        boolean sHasBallNow = sProx > 900;
 
-        if (simpleS1HadBallLast && !s3HasBallNow) {
+        if (simpleS1HadBallLast && !sHasBallNow) {
             simpleS1LostAfterSeeing = true;
             simpleSortTimer.reset();
         }
 
-        if (simpleS1LostAfterSeeing && s3HasBallNow) {
+        if (simpleS1LostAfterSeeing && sHasBallNow) {
             if (simpleSortTimer.milliseconds() > SIMPLE_ENTRY_DEBOUNCE_MS) {
                 simpleRotationCounter++;
                 simpleS1LostAfterSeeing = false;
+                simpleS1HadBallLast = true;
             }
         }
 
-        simpleS1HadBallLast = s3HasBallNow;
+       // simpleS1HadBallLast = s3HasBallNow;
     }
 
     private int patternIndexFromString(String pattern) {

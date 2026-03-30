@@ -92,6 +92,7 @@ public class SortingTester extends OpMode {
         telemetry.addData("Proximity 1", sensors.getColor1Proximity());
         telemetry.addData("Proximity 2", sensors.getColor2Proximity());
         telemetry.addData("Proximity 3", sensors.getColor3Proximity());
+        telemetry.addData("Rotation counter", intake.simpleRotationCounter);
         telemetry.addLine("");
         telemetry.addLine("--- Controls ---");
         telemetry.addLine("SQUARE=Sort  DPAD=BallOrder");

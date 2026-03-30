@@ -704,7 +704,7 @@ public class NewShooter {
     }
 
     public double getCurrentTurretPosition(){
-        return ((Range.scale(turretLeft.getPosition(), 0.05, 0.98, -180, 180) + Range.scale(turretRight.getPosition(), 0.05, 0.98, -90, 270)) / 2);// Outp// ut Range (CORRECTED)
+        return ((Range.scale(turretLeft.getPosition(), 0.05, 0.98, -180, 180) + Range.scale(turretRight.getPosition(), 0.05, 0.98, -180, 180)) / 2);// Outp// ut Range (CORRECTED)
     }
 
     //pass in velo from follower
@@ -775,7 +775,7 @@ public class NewShooter {
     }
 
     private void setTurretServoPos(double targetPos){
-        targetPos = (Range.scale(targetPos, -90, 270, 0.05, 0.98));
+        targetPos = (Range.scale(targetPos, -180, 180, 0.05, 0.98));
         turretLeft.setPosition(targetPos + 0);
         turretRight.setPosition(targetPos + 0);
     }
