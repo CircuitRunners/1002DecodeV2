@@ -644,7 +644,7 @@ public class Intake {
 
     // Proximity-based version — uses same falling-edge pattern as cycleShifted
     // Proximity threshold — ball is present if sensor reads above this value
-    public static double PROX_THRESHOLD = 260;
+    public static double PROX_THRESHOLD = 200;
 
     /**
      * Proximity-based sort. Call startSimpleSort() first to set current/target pattern.
@@ -744,7 +744,7 @@ public class Intake {
             }
         }
 
-       // simpleS1HadBallLast = s3HasBallNow;
+        simpleS1HadBallLast = sHasBallNow;
     }
 
     private int patternIndexFromString(String pattern) {
