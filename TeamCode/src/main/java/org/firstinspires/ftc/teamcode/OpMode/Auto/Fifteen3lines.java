@@ -119,7 +119,7 @@ public class Fifteen3lines extends OpMode {
                     .build();
 
             travelBackToShootFromIntake1 = follower.pathBuilder()
-                    .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallLastTime)))
+                    .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15Ball)))
                     .setLinearHeadingInterpolation(Poses.get(Poses.pickupLineOne15Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallLastTime).getHeading())
                     .build();
 

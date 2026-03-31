@@ -114,6 +114,10 @@ public class Poses {
             new Pose(92.5, 94, Math.toRadians(49.5)),
             new Pose(51.5, 94, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
     );
+    public static final AlliancePose shootPositionGoalSide15BallTangent = new AlliancePose(
+            new Pose(92.5, 84, Math.toRadians(-90)),
+            new Pose(51.5, 84, Math.toRadians(270)) // 144 - 100.5 = 43.5
+    );
 
     public static final AlliancePose shootPositionGoalSide15BallLastTime = new AlliancePose(
             new Pose(95.5, 106.5, Math.toRadians(46)),
@@ -147,8 +151,8 @@ public class Poses {
     );
 
     public static final AlliancePose pickupLineOne15Ball = new AlliancePose(
-            new Pose(121, 82, Math.toRadians(0)),
-            new Pose(17, 84, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
+            new Pose(121, 78, Math.toRadians(0)),
+            new Pose(17, 78, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
     public static final AlliancePose chainPickupLineOne15Ball = new AlliancePose(
             new Pose(127, 84, Math.toRadians(0)),
@@ -171,6 +175,11 @@ public class Poses {
             new Pose(84, 55.5, Math.toRadians(0)),
             new Pose(60, 57, Math.toRadians(180))
     );
+    public static final AlliancePose line2ControlPointTangent = new AlliancePose(
+            new Pose(104, 55.5, Math.toRadians(0)),
+            new Pose(40, 57, Math.toRadians(180))
+    );
+
 
 
 
@@ -281,8 +290,8 @@ public class Poses {
             new Pose(60, 9, Math.toRadians(180))
     );
     public static final AlliancePose startPose15Ball = new AlliancePose(
-            new Pose(136.5, 121.5, Math.toRadians(38.51)), //118.5
-            new Pose(25.5, 118.5, Math.toRadians(141.5))
+            new Pose(136.5, 121.5, Math.toRadians(218.51)), //118.5
+            new Pose(19.7, 108.6, Math.toRadians(321.5))
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
             new Pose(86, 11.5, Math.toRadians(0)),
