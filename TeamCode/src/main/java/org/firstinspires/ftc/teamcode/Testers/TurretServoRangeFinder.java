@@ -30,8 +30,9 @@ public class TurretServoRangeFinder extends OpMode {
     @Override
     public void init() {
         turret1 = hardwareMap.get(Servo.class, "turretLeft");
+        turret1.setDirection(Servo.Direction.REVERSE);
         turret2 = hardwareMap.get(Servo.class, "turretRight");
-       // turret2.setDirection(Servo.Direction.REVERSE);
+        turret2.setDirection(Servo.Direction.REVERSE);
         player1 = new GamepadEx(gamepad1);
         telemetry.addLine("Ready — use LEFT/RIGHT to adjust position");
         telemetry.update();
@@ -42,10 +43,14 @@ public class TurretServoRangeFinder extends OpMode {
         player1.readButtons();
         
         // Left/Right stick to adjust position
-        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-            servoPosition -= 0.01;
+        if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+            servoPosition -= 0.005;
+        } else if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+            servoPosition += 0.005;
         } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
             servoPosition += 0.01;
+        } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+            servoPosition -= 0.01;
         }
         
         // Clamp position to valid servo range
@@ -56,7 +61,7 @@ public class TurretServoRangeFinder extends OpMode {
         turret2.setPosition(servoPosition);
         
         // Map position to angle using min/max
-        double angle = scale(servoPosition, minPosition, maxPosition, -180, 180);
+        double angle = scale(servoPosition, minPosition, maxPosition, -178, 166);
         
         // Display
         telemetry.addLine("=== Turret Servo Position ===");

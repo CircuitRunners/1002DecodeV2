@@ -37,7 +37,7 @@ public class NewShooter {
 
     // Target States
     private static double targetFlywheelVelocity = 0;   // Ticks/Sec
-    private static double targetTurretPosition = 0.0;
+    private static double targetTurretAngle = 0.0;
     //    private double ticksPerRevolution = 145.1;
 //    private double gearRatio = 149.0/15.0;// Degrees (0-360)
     private static double targetHoodAngle = 45;          // Degrees (0-90)
@@ -82,8 +82,10 @@ public class NewShooter {
     public static boolean turretReached = false;
     public static boolean hoodReached = false;
 
-    private double turretMinRange = -515.54; //old was -720, 720
-    private double turretMaxRange = 515.54;
+    private double turretMinPos = 0.0;
+    private double turretMaxPos = 1.0;
+    private double turretMinAngle = -178.0;
+    private double turretMaxAngle = 166.0;
 
     //public static boolean isShotImpossible = false;
 
@@ -398,14 +400,14 @@ public class NewShooter {
         // Map 0-360 input into -90 to 270 physical range
         // 0..270 stays as is; 271..360 wraps to -89..0
         double physicalTarget;
-        if (positionDeg <= 180) {
+        if (positionDeg <= 166) {
             physicalTarget = positionDeg;
         } else {
             physicalTarget = positionDeg - 360;
         }
 
         // Clip to wiring-safe range: -90 to 270 (never cross the deadzone gap)
-        targetTurretPosition = Range.clip(physicalTarget, -180, 180);
+        targetTurretAngle = Range.clip(physicalTarget, -178, 166);
     }
 
 
@@ -440,7 +442,7 @@ public class NewShooter {
         double shooter1Velocity = shooter1.getVelocity();
         double shooter2Velocity = shooter2.getVelocity();
 
-        setTurretServoPos(targetTurretPosition);
+        setTurretServoPos(targetTurretAngle);
 
         double averageVelo = getFlywheelVelo();
 
@@ -451,7 +453,7 @@ public class NewShooter {
             flywheelVeloReached = false;
         }
 
-        if (currentTurretAngle0_360 >= targetTurretPosition - 0.7 && currentTurretAngle0_360 <= targetTurretPosition + 0.7) {
+        if (currentTurretAngle0_360 >= targetTurretAngle - 0.7 && currentTurretAngle0_360 <= targetTurretAngle + 0.7) {
             turretReached = true;
         }
         else {
@@ -704,7 +706,7 @@ public class NewShooter {
     }
 
     public double getCurrentTurretPosition(){
-        return ((Range.scale(turretLeft.getPosition(), 0.05, 0.98, -180, 180) + Range.scale(turretRight.getPosition(), 0.05, 0.98, -180, 180)) / 2);// Outp// ut Range (CORRECTED)
+        return ((Range.scale(turretLeft.getPosition(), turretMinPos, turretMaxPos, turretMinAngle, turretMaxAngle) + Range.scale(turretRight.getPosition(), turretMinPos, turretMaxPos, turretMinAngle, turretMaxAngle)) / 2);// Outp// ut Range (CORRECTED)
     }
 
     //pass in velo from follower
@@ -775,13 +777,13 @@ public class NewShooter {
     }
 
     private void setTurretServoPos(double targetPos){
-        targetPos = (Range.scale(targetPos, -180, 180, 0.05, 0.98));
+        targetPos = (Range.scale(targetPos, turretMinAngle, turretMaxAngle, turretMinPos, turretMaxPos));
         turretLeft.setPosition(targetPos + 0);
         turretRight.setPosition(targetPos + 0);
     }
 
     public double getTargetTurretPosition(){
-        return targetTurretPosition;
+        return targetTurretAngle;
     }
 
 
