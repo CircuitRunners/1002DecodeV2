@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
@@ -30,7 +31,7 @@ public class NewTwelveBall extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     private Timer pathTimer;
     private ElapsedTime intakeTimer;
-    private Shooter shooter;
+    private NewShooter shooter;
     private Intake intake;
     private Sensors sensors;
 
@@ -139,7 +140,7 @@ public class NewTwelveBall extends OpMode {
             case 0: // Travel to Initial Shoot
                 //intake.retainBalls();
                 if (!follower.isBusy()) {
-                    shooter.setTurretTarget(targetX == RED_GOAL_X ? 315 : 45, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                    shooter.setTurretTarget(targetX == RED_GOAL_X ? 315 : 45, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
                     follower.followPath(travelToShoot, false);
                     setPathState();
                 }
@@ -315,7 +316,7 @@ public class NewTwelveBall extends OpMode {
                 break;
 
             default:
-                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(0, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
                 shooter.stopFlywheel();
                 intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
@@ -433,7 +434,7 @@ public class NewTwelveBall extends OpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry,true);
+        shooter = new NewShooter(hardwareMap, telemetry,true);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
     }
@@ -537,7 +538,7 @@ public class NewTwelveBall extends OpMode {
 
     @Override
     public void stop() {
-        shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+        shooter.setTurretTarget(0, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
         shooter.stopFlywheel();
         intake.resetState();
         Poses.savePose(follower.getPose());

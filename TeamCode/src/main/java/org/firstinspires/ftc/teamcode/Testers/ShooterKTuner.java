@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
@@ -50,7 +51,7 @@ public class ShooterKTuner extends OpMode {
     private Follower follower;
 
    // private Sensors sensors;
-    private Shooter shooter;
+    private NewShooter shooter;
     private Intake intake;
     private List<LynxModule> allHubs;
 
@@ -72,7 +73,7 @@ public class ShooterKTuner extends OpMode {
         //sensors.update();
 
         // Shooter constructor now handles PID initialization correctly
-        shooter = new Shooter(hardwareMap, telemetry,false);
+        shooter = new NewShooter(hardwareMap, telemetry,false);
 
         shooter.update(shooter.getCurrentTurretPosition());
 

@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
@@ -28,7 +29,7 @@ public class FarZoneAutoNoLine extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     private Timer pathTimer;
     private Timer loopTimer; // Added loop timer for consistency
-    private Shooter shooter;
+    private NewShooter shooter;
     private Intake intake;
     private Sensors sensors;
 
@@ -112,7 +113,7 @@ public class FarZoneAutoNoLine extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                shooter.setTurretTarget(targetX == RED_GOAL_X ?  293 : 61.5, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(targetX == RED_GOAL_X ?  293 : 61.5, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
                     setPathState();
@@ -165,7 +166,7 @@ public class FarZoneAutoNoLine extends OpMode {
 
             default:
                 shooter.stopFlywheel();
-                shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
+                shooter.setTurretTarget(0, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
                 intake.resetState();
                 if (!follower.isBusy()) requestOpModeStop();
                 break;
@@ -272,7 +273,7 @@ public class FarZoneAutoNoLine extends OpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry,true);
+        shooter = new NewShooter(hardwareMap, telemetry,true);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
         goForLaunch = false;

@@ -136,6 +136,25 @@ public class NewShooter {
             { 145.0, 1688 }
     };
 
+
+    //halfway done regression should be on 1002 laptop
+    private static final double[][] NEW_UNFINISHED_VELO_LUT = {
+            { 15.0,  1060},
+            { 21.5, 1085 },
+            { 28.0, 1132 },
+            { 34.5, 1150 },
+            { 48.0, 1200 },
+            { 47.5, 1220 },
+            { 54.0, 1250 },
+            { 60.5, 1265},
+            { 67.0, 1293 },
+            { 73.5, 1542 },
+            { 120.0, 1580 },
+            { 130.0, 1655 },
+            { 140.0, 1684 },
+            { 145.0, 1688 }
+    };
+
     /**
      * Data structure for the calculated optimal shot parameters.
      * Contains only ballistics data (velocity, angle, time).

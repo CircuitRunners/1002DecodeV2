@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
@@ -29,7 +30,7 @@ public class Close9Ball extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     private Timer pathTimer;
     private Timer loopTimer;
-    private Shooter shooter;
+    private NewShooter shooter;
     private Intake intake;
     private Sensors sensors;
 
@@ -380,7 +381,7 @@ public class Close9Ball extends OpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry,true);
+        shooter = new NewShooter(hardwareMap, telemetry,true);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
         goForLaunch = false;
