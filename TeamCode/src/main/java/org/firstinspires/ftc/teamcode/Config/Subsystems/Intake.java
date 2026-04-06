@@ -702,8 +702,8 @@ public class Intake {
 //                    intake1.setPower(-0.6);
 //                    intake2.setPower(-0.6);
 //                } else {
-                    intake1.setPower(1);
-                    intake2.setPower(1);
+                    intake1.setPower(0.75);
+                    intake2.setPower(0.75);
             //    }
 
                 updateProxRotationCounter(s1Prox);

@@ -20,6 +20,7 @@ public class SortingTester extends OpMode {
     //private LimelightCamera limelight;
 
     private LimelightCamera.BallOrder ballOrder = LimelightCamera.BallOrder.PURPLE_GREEN_PURPLE;
+    private boolean useSensorPattern = false;
 
     @Override
     public void init() {
@@ -37,12 +38,26 @@ public class SortingTester extends OpMode {
 
         telemetry.addLine("SortingTester ready.");
         telemetry.addLine("SQUARE         = Start sort");
+        telemetry.addLine("TRIANGLE       = Toggle sensor/manual pattern mode");
         telemetry.addLine("DPAD UP        = BallOrder: GREEN_PURPLE_PURPLE");
         telemetry.addLine("DPAD DOWN      = BallOrder: PURPLE_GREEN_PURPLE");
         telemetry.addLine("DPAD LEFT      = BallOrder: PURPLE_PURPLE_GREEN");
         telemetry.addLine("LEFT BUMPER    = canShoot ON");
         telemetry.addLine("RIGHT BUMPER   = canShoot OFF");
         telemetry.update();
+    }
+
+    /** Converts detected colors from the three sensors into a pattern string like "PPG". */
+    private String buildPatternFromSensors(DetectedColor b1, DetectedColor b2, DetectedColor b3) {
+        return colorToChar(b1) + colorToChar(b2) + colorToChar(b3);
+    }
+
+    private String colorToChar(DetectedColor color) {
+        if (color == DetectedColor.GREEN) return "G";
+        if (color == DetectedColor.PURPLE) return "P";
+        else {
+            throw new IllegalArgumentException("Invalid color");
+        }
     }
 
     @Override
@@ -54,9 +69,23 @@ public class SortingTester extends OpMode {
         DetectedColor ball2 = sensors.getDetectedColor(sensors.colorSensor2);
         DetectedColor ball3 = sensors.getDetectedColor(sensors.colorSensor3);
 
+        // Toggle between sensor-derived pattern and hardcoded "PPG"
+        if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
+            useSensorPattern = !useSensorPattern;
+        }
+
         // One-button sort trigger
         if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) {
-            intake.startSimpleSort("PPG", ballOrder);
+            if (useSensorPattern) {
+                boolean sensorsValid = ball1 != DetectedColor.NONE && ball1 != null
+                        && ball2 != DetectedColor.NONE && ball2 != null
+                        && ball3 != DetectedColor.NONE && ball3 != null;
+                if (sensorsValid) {
+                    intake.startSimpleSort(buildPatternFromSensors(ball1, ball2, ball3), ballOrder);
+                }
+            } else {
+                intake.startSimpleSort("PPG", ballOrder);
+            }
         }
 
         // Ball order selection

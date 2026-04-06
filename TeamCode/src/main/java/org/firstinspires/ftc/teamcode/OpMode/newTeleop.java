@@ -579,7 +579,7 @@ public class newTeleop extends OpMode {
             }
 
         }
-        else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
+        //else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
         else intake.doIntakeHalt();
     }
 

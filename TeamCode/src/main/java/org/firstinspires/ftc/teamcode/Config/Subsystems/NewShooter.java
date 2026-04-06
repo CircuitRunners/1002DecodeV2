@@ -119,40 +119,72 @@ public class NewShooter {
      *
      * MUST be sorted by distance (ascending)
      */
-    private static final double[][] VELO_LUT = {
-            { 20.0,  1065},
-            { 30.0, 1125 },
-            { 40.0, 1175 },
-            { 50.0, 1175 },
-            { 60.0, 1219 },
-            { 70.0, 1253 },
-            { 80.0, 1297 },
-            { 90.0, 1335},
-            { 100.0, 1427 },
-            { 110.0, 1542 },
-            { 120.0, 1580 },
-            { 130.0, 1655 },
-            { 140.0, 1684 },
-            { 145.0, 1688 }
-    };
+//    private static final double[][] VELO_LUT = {
+//            { 20.0,  1065},
+//            { 30.0, 1125 },
+//            { 40.0, 1175 },
+//            { 50.0, 1175 },
+//            { 60.0, 1219 },
+//            { 70.0, 1253 },
+//            { 80.0, 1297 },
+//            { 90.0, 1335},
+//            { 100.0, 1427 },
+//            { 110.0, 1542 },
+//            { 120.0, 1580 },
+//            { 130.0, 1655 },
+//            { 140.0, 1684 },
+//            { 145.0, 1688 }
+//    };
 
 
     //halfway done regression should be on 1002 laptop
-    private static final double[][] NEW_UNFINISHED_VELO_LUT = {
-            { 15.0,  1060},
+    private static final double[][] VELO_LUT = {
+            { 15.0,  1060 },
             { 21.5, 1085 },
             { 28.0, 1132 },
             { 34.5, 1150 },
-            { 48.0, 1200 },
+            { 41.0, 1200 },
             { 47.5, 1220 },
             { 54.0, 1250 },
-            { 60.5, 1265},
+            { 60.5, 1265 },
             { 67.0, 1293 },
-            { 73.5, 1542 },
-            { 120.0, 1580 },
-            { 130.0, 1655 },
-            { 140.0, 1684 },
-            { 145.0, 1688 }
+            { 73.5, 1300 },
+            { 80.0, 1335},
+            { 86.5, 1365},
+            { 93.0, 1410},
+            { 99.5, 1475},
+            { 106.0,1510},
+            { 112.5,1545},
+            { 119.0,1590},
+            { 125.5,1630},
+            { 132.0,1680},
+            { 138.5,1720},
+            { 145.0,1745},
+
+    };
+    private static final double[][] HOOD_LUT = {
+            { 15.0, 6.5},
+            { 21.5, 14.2},
+            { 28.0, 20.7},
+            { 34.5, 26.2},
+            { 41.0, 30.4},
+            { 47.5, 33.9},
+            { 54.0, 36.6},
+            { 60.5, 38.2},
+            { 67.0, 38.8},
+            { 73.5, 39.8},
+            { 80.0, 40},
+            { 86.5, 40.2},
+            { 93.0, 40.4},
+            { 99.5, 40.9},
+            { 106.0,41.4},
+            { 112.5,42.3},
+            { 119.0,43.1},
+            { 125.5,44},
+            { 132.0,44.7},
+            { 138.5,45},
+            { 145.0,45},
+
     };
 
     /**
@@ -555,6 +587,38 @@ public class NewShooter {
         // Should never hit
         return VELO_LUT[0][1];
     }
+    private static double getHoodAngleFromDistanceLUT(double distanceInches) {
+
+        // --- Clamp below table ---
+        if (distanceInches <= HOOD_LUT[0][0]) {
+            return HOOD_LUT[0][1];
+        }
+
+        // --- Clamp above table ---
+        if (distanceInches >= HOOD_LUT[HOOD_LUT.length - 1][0]) {
+            return HOOD_LUT[HOOD_LUT.length - 1][1];
+        }
+
+        // --- Find the two surrounding points ---
+        for (int i = 0; i < HOOD_LUT.length - 1; i++) {
+            double d0 = HOOD_LUT[i][0];
+            double v0 = HOOD_LUT[i][1];
+
+            double d1 = VELO_LUT[i + 1][0];
+            double v1 = VELO_LUT[i + 1][1];
+
+            if (distanceInches >= d0 && distanceInches <= d1) {
+                // interpolation factor (0 → 1)
+                double t = (distanceInches - d0) / (d1 - d0);
+
+                // linear interpolation
+                return v0 + t * (v1 - v0);
+            }
+        }
+
+        // Should never hit
+        return HOOD_LUT[0][1];
+    }
 
 
     /**
@@ -670,8 +734,7 @@ public class NewShooter {
 
 
         // Quartic calculation for Hood
-        hoodPos = (h_a * Math.pow(x, 4)) + (h_b * Math.pow(x, 3)) +
-                (h_c * Math.pow(x, 2)) + (h_d * x) + h_e;
+        hoodPos = getHoodAngleFromDistanceLUT(x);
 
         setTargetVelocityTicks(velo);
         setHoodTargetAngle(Range.clip(hoodPos + hoodMannualAdjustment,0,45));
@@ -708,8 +771,7 @@ public class NewShooter {
 
 
         // Quartic calculation for Hood
-        hoodPos = (h_a * Math.pow(x, 4)) + (h_b * Math.pow(x, 3)) +
-                (h_c * Math.pow(x, 2)) + (h_d * x) + h_e;
+        hoodPos = getHoodAngleFromDistanceLUT(x);
 
         setTargetVelocityTicks(velo + flywheelMannualAdjustment);
         setHoodTargetAngle(Range.clip(hoodPos + hoodMannualAdjustment,0,45));

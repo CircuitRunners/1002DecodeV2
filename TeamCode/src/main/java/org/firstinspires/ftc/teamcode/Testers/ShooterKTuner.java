@@ -75,7 +75,7 @@ public class ShooterKTuner extends OpMode {
         // Shooter constructor now handles PID initialization correctly
         shooter = new NewShooter(hardwareMap, telemetry,false);
 
-        shooter.update(shooter.getCurrentTurretPosition());
+//        shooter.update(shooter.getCurrentTurretPosition());
 
         intake = new Intake(hardwareMap, telemetry);
 
@@ -110,8 +110,8 @@ public class ShooterKTuner extends OpMode {
         // Tuning Controls
         if (gamepad1.dpad_up) targetTicksPerSec += 5000;
         if (gamepad1.dpad_down) targetTicksPerSec -= 5000;
-        if (gamepad1.right_bumper) desiredHoodAngle += 2;
-        if (gamepad1.left_bumper) desiredHoodAngle -= 2;
+        if (gamepad1.right_bumper) desiredHoodAngle += 0.5;
+        if (gamepad1.left_bumper) desiredHoodAngle -= 0.5;
         if (gamepad1.circle){
             targetTicksPerSec +=1000;
         }
