@@ -148,18 +148,18 @@ public class NewShooter {
             { 54.0, 1250 },
             { 60.5, 1265 },
             { 67.0, 1293 },
-            { 73.5, 1300 },
-            { 80.0, 1335},
-            { 86.5, 1365},
-            { 93.0, 1410},
-            { 99.5, 1475},
-            { 106.0,1510},
-            { 112.5,1545},
-            { 119.0,1590},
-            { 125.5,1630},
-            { 132.0,1680},
-            { 138.5,1720},
-            { 145.0,1745},
+            { 73.5, 1330 },
+            { 80.0, 1365},
+            { 86.5, 1395},
+            { 93.0, 1440},
+            { 99.5, 1505},
+            { 106.0,1540},
+            { 112.5,1575},
+            { 119.0,1620},
+            { 125.5,1660},
+            { 132.0,1710},
+            { 138.5,1750},
+            { 145.0,1775},
 
     };
     private static final double[][] HOOD_LUT = {
@@ -814,6 +814,27 @@ public class NewShooter {
         }
 
         return new double[] { correctedX, correctedY };
+    }
+
+    public double physicsModelTimeofFlight(double distance, double flywheelVelo, double hoodAngle){
+
+        double ticksPerRev = 384.5;
+        double flywheelDiameter = 2.83; //inches
+        double K = 0.45; //accounts for slip + the ball does not travel the same speed as the edge of the wheel
+        double ballVelo = (flywheelVelo/ticksPerRev) * Math.PI * flywheelDiameter * K; //(revs per sec) * (length of revolution)
+
+//        double v_y = ballVelo * Math.sin(hoodAngle);
+//        double g = 9.80665;
+//        double h = 41;
+//        //equation: h = v_y * t - 0.5 * g * t^2
+//        double discriminant_t = v_y * v_y - 2 * g * h;
+//        return (v_y + Math.sqrt(discriminant_t)) / g;
+
+        double v_x = ballVelo * Math.cos(hoodAngle); //radians
+        return (distance / v_x);
+
+
+
     }
 
 
