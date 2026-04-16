@@ -48,8 +48,8 @@ public class TangentFifteen3Lines extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = Poses.RED_GOAL_X;
-    private final double BLUE_GOAL_X = Poses.BLUE_GOAL_X;
+    private final double RED_GOAL_X =143.5;
+    private final double BLUE_GOAL_X = 21;
     private final double GOAL_Y = Poses.GOAL_Y;
 
     double targetX = 0;
@@ -152,7 +152,7 @@ public class TangentFifteen3Lines extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 4.3,0,false);
+                handleAutoShooting(currentPose, targetX, 3.85,0,false);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -215,7 +215,7 @@ public class TangentFifteen3Lines extends OpMode {
             case 6: // WAIT at Gate (2.5s)
                 intake.doIntake(); // keep intaking while stalled
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.85 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;

@@ -167,7 +167,7 @@ public class Poses {
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
             new Pose(146, 53, Math.toRadians(0)),
-            new Pose(3.5, 59, Math.toRadians(180))
+            new Pose(25, 59, Math.toRadians(180))
     );
     public static final AlliancePose chainPickupLine2 = new AlliancePose(
             new Pose(140.5, 58, Math.toRadians(0)),
@@ -190,7 +190,7 @@ public class Poses {
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
             new Pose(146, 29, Math.toRadians(0)),
-            new Pose(5, 36, Math.toRadians(180))
+            new Pose(25, 36, Math.toRadians(180))
     );
     public static final AlliancePose pickupLine3Far = new AlliancePose(
             new Pose(139, 32, Math.toRadians(0)),
@@ -205,7 +205,7 @@ public class Poses {
     // LINE_3_CONTROL_POINT
     public static final AlliancePose line3ControlPoint = new AlliancePose(
             new Pose(70.5, 27.5, Math.toRadians(0)),
-            new Pose(74.4, 30.5, Math.toRadians(180))
+            new Pose(71, 30.5, Math.toRadians(180))
     );
 
 
@@ -273,8 +273,8 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(153.5, 47.5, Math.toRadians(70)),
-            new Pose(18, 47.5, Math.toRadians(110)) // correct
+            new Pose(153.5, 49.5, Math.toRadians(70)),
+            new Pose(18, 49.5, Math.toRadians(110)) // correct
     );
 
 

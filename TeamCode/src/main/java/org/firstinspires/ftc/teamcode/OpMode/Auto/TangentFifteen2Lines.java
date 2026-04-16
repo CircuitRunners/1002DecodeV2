@@ -48,8 +48,8 @@ public class TangentFifteen2Lines extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = Poses.RED_GOAL_X;
-    private final double BLUE_GOAL_X = Poses.BLUE_GOAL_X;
+    private final double RED_GOAL_X = 143.5;
+    private final double BLUE_GOAL_X = 21;
     private final double GOAL_Y = Poses.GOAL_Y;
 
     double targetX = 0;
@@ -133,7 +133,7 @@ public class TangentFifteen2Lines extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 4.3, 0, false);
+                handleAutoShooting(currentPose, targetX, 3.85, 0, false);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -182,7 +182,7 @@ public class TangentFifteen2Lines extends OpMode {
             case 6: // WAIT at Gate (Cycle 1)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.9 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -196,7 +196,7 @@ public class TangentFifteen2Lines extends OpMode {
                 break;
 
             case 8: // Shoot (After Gate Cycle 1)
-                stopIntakeOnceAtT(0.5);
+                stopIntakeOnceAtT(0.3);
 
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 4, 0, false);
@@ -221,7 +221,7 @@ public class TangentFifteen2Lines extends OpMode {
             case 10: // WAIT at Gate (Cycle 2)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.9 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -235,7 +235,7 @@ public class TangentFifteen2Lines extends OpMode {
                 break;
 
             case 12: // Shoot (After Gate Cycle 2)
-                stopIntakeOnceAtT(0.5);
+                stopIntakeOnceAtT(0.3);
 
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 4, 0, false);
