@@ -23,9 +23,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
 @Configurable
-@Autonomous(name = "Tangent GS 15 - 1 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "Tangent GS 15 - 2 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
 
-public class TangentFifteen3Lines extends OpMode {
+public class TangentFifteen2Lines extends OpMode {
 
 
 
@@ -61,14 +61,11 @@ public class TangentFifteen3Lines extends OpMode {
     private boolean intakeStoppedForShooting = false;
     private boolean goForLaunch = false;
     boolean veloReached = false;
-    // boolean flywheelLocked = false;
-
 
     double turretOffset = 0;
 
 
-
-    private PathChain travelToShoot, sigmaCycle,intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3;
+    private PathChain travelToShoot, sigmaCycle, intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, travelBackToShootFromIntake1;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
@@ -79,7 +76,7 @@ public class TangentFifteen3Lines extends OpMode {
 
 
 
-        // Path 2: Shoot to Intake 1
+        // Path 2: Shoot to Intake 2
         intake2 = follower.pathBuilder()
                 .setNoDeceleration()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
@@ -98,14 +95,11 @@ public class TangentFifteen3Lines extends OpMode {
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
                 .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
-//                    .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.openGateRamTech)))
-//                    .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.openGateRamTech).getHeading())
-
                 .build();
 
 
 
-        // Path 6: Intake 2 back to Shoot
+        // Gate back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.line2ControlPointTangent), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
                 .setTangentHeadingInterpolation().setReversed()
@@ -123,17 +117,6 @@ public class TangentFifteen3Lines extends OpMode {
                 .setTangentHeadingInterpolation().setReversed()
                 .build();
 
-        intake3  = follower.pathBuilder()
-                .setNoDeceleration()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
-                .setTangentHeadingInterpolation()
-                .build();
-
-        travelBackToShootFromIntake3 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLine3), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
-                .setTangentHeadingInterpolation().setReversed()
-                .build();
-
     }
 
     public void autonomousPathUpdate() {
@@ -143,48 +126,43 @@ public class TangentFifteen3Lines extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
-                //intake.retainBalls();
                 if (!follower.isBusy()) {
-                    //shooter.setTurretTargetPosition(targetX == RED_GOAL_X ? 315 : 45);
                     follower.followPath(travelToShoot, false);
                     setPathState();
                 }
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 4.3,0,false);
+                handleAutoShooting(currentPose, targetX, 4.3, 0, false);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
                 }
                 break;
 
-            case 2: // Drive to Intake 1
+            case 2: // Drive to Intake 2
                 intake.doIntake();
                 if (!follower.isBusy()) {
-//                        follower.followPath(intake2, false);
                     follower.followPath(intake2, false);
                     setPathState();
                 }
                 break;
 
-            case 3: // Gate logic
+            case 3: // Intake at Line 2
                 intake.doIntake();
-                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShoot2, false);
                     setPathState();
                 }
                 break;
 
-            case 4: // Return to Shoot 1
+            case 4: // Return to Shoot
                 stopIntakeOnceAtT(0.7);
 
-                // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 4, 0, false);
                 }
 
-                // Allow feeding once fully settled
                 if (intakeStoppedForShooting
                         && !goForLaunch
                         && follower.atParametricEnd()
@@ -193,35 +171,23 @@ public class TangentFifteen3Lines extends OpMode {
                 }
                 break;
 
-
-
-            case 5: // Shoot 3 Balls (Cycle 1)
+            case 5: // Gate Cycle 1 - Start Path
                 if (!follower.isBusy()) {
                     intake.doIntake();
-//                        follower.followPath(ramGate, false);
-//                        setPathState(41);
-                    follower.followPath(sigmaCycle,true);
+                    follower.followPath(sigmaCycle, true);
                     setPathState();
                 }
-
-//                    if (!follower.isBusy()) {
-//                        intake.doIntake();
-//                        follower.followPath(sigmaCycle, false);
-//                        setPathState(6);
-//                    }
                 break;
 
-
-            case 6: // WAIT at Gate (2.5s)
-                intake.doIntake(); // keep intaking while stalled
+            case 6: // WAIT at Gate (Cycle 1)
+                intake.doIntake();
 
                 if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
 
-
-            case 7: // Return to Shoot 2
+            case 7: // Return to Shoot (Cycle 1)
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShootFromGate, false);
@@ -229,16 +195,13 @@ public class TangentFifteen3Lines extends OpMode {
                 }
                 break;
 
-
-            case 8: // Shoot 3 Balls (Cycle 2)
+            case 8: // Shoot (After Gate Cycle 1)
                 stopIntakeOnceAtT(0.5);
 
-                // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 4, 0, false);
                 }
 
-                // Allow feeding once fully settled
                 if (intakeStoppedForShooting
                         && !goForLaunch
                         && follower.atParametricEnd()
@@ -247,30 +210,37 @@ public class TangentFifteen3Lines extends OpMode {
                 }
                 break;
 
-            case 9: // Shoot 3 Balls (Cycle 1)
+            case 9: // Gate Cycle 2 - Start Path
                 if (!follower.isBusy()) {
                     intake.doIntake();
-                    follower.followPath(intake3, false);
+                    follower.followPath(sigmaCycle, true);
                     setPathState();
                 }
                 break;
-            case 10:
+
+            case 10: // WAIT at Gate (Cycle 2)
                 intake.doIntake();
-                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
-                    follower.followPath(travelBackToShootFromIntake3, false);
+
+                if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
 
-            case 11: // Return to Shoot 1
-                stopIntakeOnceAtT(0.7);
+            case 11: // Return to Shoot (Cycle 2)
+                intake.doIntake();
+                if (!follower.isBusy()) {
+                    follower.followPath(travelBackToShootFromGate, false);
+                    setPathState();
+                }
+                break;
 
-                // Shooter logic owns intake AFTER the stop
+            case 12: // Shoot (After Gate Cycle 2)
+                stopIntakeOnceAtT(0.5);
+
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 4, 0, false);
                 }
 
-                // Allow feeding once fully settled
                 if (intakeStoppedForShooting
                         && !goForLaunch
                         && follower.atParametricEnd()
@@ -279,7 +249,7 @@ public class TangentFifteen3Lines extends OpMode {
                 }
                 break;
 
-            case 12:
+            case 13: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     turretOffset = targetX == RED_GOAL_X ? -315 : -45;
@@ -288,26 +258,22 @@ public class TangentFifteen3Lines extends OpMode {
                 }
                 break;
 
-            case 13:
-                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <=1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+            case 14: // Intake at Line 1
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShootFromIntake1, false);
                     setPathState();
                 }
                 break;
 
-            case 14: // Return to Shoot 1
-                //shooter.setTurretTargetPosition(0);
+            case 15: // Final Shoot
                 stopIntakeOnceAtT(0.7);
 
-                // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 25, 0,true);
+                    handleAutoShooting(currentPose, targetX, 25, 0, true);
                 }
 
-                // Allow feeding once fully settled
                 if (intakeStoppedForShooting
                         && !goForLaunch
-
                         && follower.getVelocity().getMagnitude() < 1) {
                     goForLaunch = true;
                 }
@@ -330,7 +296,7 @@ public class TangentFifteen3Lines extends OpMode {
             Pose pose,
             double targetX,
             double timeout,
-            double mannualHoodOffset,boolean lastTime
+            double mannualHoodOffset, boolean lastTime
     ) {
         double headingDeg = Math.toDegrees(pose.getHeading());
 
@@ -347,17 +313,13 @@ public class TangentFifteen3Lines extends OpMode {
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX, GOAL_Y,
+                    targetX-10, GOAL_Y-2,
                     headingDeg,
                     true, -58,
-                    mannualHoodOffset ,
+                    mannualHoodOffset,
                     false, 0
             );
         }
-
-        //  Latch flywheel once it EVER reaches speed
-
-
 
         //  Only allow feeding when fully ready
         if (veloReached && goForLaunch) {
@@ -372,7 +334,7 @@ public class TangentFifteen3Lines extends OpMode {
             intake.doTestShooter();
         }
 
-        // ⏱ FAILSAFE EXIT (prevents sitting forever)
+        // FAILSAFE EXIT (prevents sitting forever)
         if (ballsShotInState >= 3 || pathTimer.getElapsedTimeSeconds() > timeout) {
             resetShootingState();
             shooter.stopFlywheel();
@@ -391,12 +353,14 @@ public class TangentFifteen3Lines extends OpMode {
         pathState += 1;
         pathTimer.resetTimer();
     }
+
     private void stopIntakeOnceAtT(double t) {
         if (!intakeStoppedForShooting && follower.getCurrentTValue() >= t && follower.isBusy()) {
             intake.doIntakeHalt();          // ONE-TIME call
             intakeStoppedForShooting = true;
         }
     }
+
     private boolean beamWasCleared = true; // Track full cycle
 
     private void trackShotCount(boolean currentBeamState) {
@@ -409,6 +373,7 @@ public class TangentFifteen3Lines extends OpMode {
             beamWasCleared = false; // reset until beam clears again
         }
     }
+
     private void resetShootingState() {
         ballsShotInState = 0;
         doTransfer = false;
@@ -432,7 +397,7 @@ public class TangentFifteen3Lines extends OpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new NewShooter(hardwareMap, telemetry,true);
+        shooter = new NewShooter(hardwareMap, telemetry, true);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
     }
@@ -450,13 +415,6 @@ public class TangentFifteen3Lines extends OpMode {
             telemetry.addData("STATUS", "Paths Rebuilt for " + lastKnownAlliance);
             telemetry.addLine("");
         }
-
-        // telemetry.addData("Hub Status", sensors.isHubDisconnected() ? "DISCONNECTED (Error)" :
-
-        //        (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
-
-
-
 
         telemetry.addLine("--- Alliance Selector ---");
         telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
@@ -486,8 +444,6 @@ public class TangentFifteen3Lines extends OpMode {
             hub.clearBulkCache();
         }
 
-        //loopTimer.resetTimer();
-
         follower.update();
         pinpoint.update();
 
@@ -507,12 +463,6 @@ public class TangentFifteen3Lines extends OpMode {
 
         autonomousPathUpdate();
 
-
-
-
-
-
-
         veloReached =
                 (Math.abs(flywheelVelo) >
                         (Math.abs(targetFlywheelVelo) - 40)
@@ -528,7 +478,6 @@ public class TangentFifteen3Lines extends OpMode {
         telemetry.addData("Shooter Velo", flywheelVelo);
         telemetry.addData("is up to sped", veloReached);
         telemetry.addData("Balls shot in state:", ballsShotInState);
-        //telemetry.addData("Loop Time", loopTimer.getElapsedTime());
         telemetry.addData("target velo", targetFlywheelVelo);
         telemetry.addData("Go for launch?", goForLaunch);
         telemetry.addData("Path t", follower.getCurrentTValue());
@@ -542,11 +491,9 @@ public class TangentFifteen3Lines extends OpMode {
 
     @Override
     public void stop() {
-        //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,0,0);
         shooter.stopFlywheel();
         shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
         intake.resetState();
         Poses.savePose(follower.getPose());
     }
 }
-

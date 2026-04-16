@@ -79,10 +79,10 @@ public class newTeleop extends OpMode {
     private boolean vibratedYet = false;
     private boolean initiateTransfer = false;
 
-    public static boolean shootOnDaMove = false;
+    public static boolean shootOnDaMove = true;
 
     private boolean noAutoAlign = false;
-    boolean useAprilTagAim = false;
+    boolean useAprilTagAim = true;
 
     private boolean lastRightBumper = false;
 
@@ -496,9 +496,9 @@ public class newTeleop extends OpMode {
             noAutoAlign = true;
         }
 
-        if (gamepad1.left_trigger > 0.2) {
-            shootOnDaMove = !shootOnDaMove;
-        }
+//        if (gamepad1.left_trigger > 0.2) {
+//            shootOnDaMove = !shootOnDaMove;
+//        }
         /* not till tuned sry lil bro
         if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
             if (opState == 0) { ballsShotInState = 0; opState = 2;

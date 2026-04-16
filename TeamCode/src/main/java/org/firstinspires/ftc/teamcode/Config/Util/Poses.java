@@ -46,6 +46,10 @@ public class Poses {
         return p.get(currentAlliance);
     }
 
+    public static double RED_GOAL_X = 143.5;
+    public static double BLUE_GOAL_X = 5;
+    public static double GOAL_Y = 124;
+
     public static void updateAlliance(Gamepad g, Telemetry telemetry) {
         if (g.dpad_up && !previousGamepad.dpad_up) setAlliance(Alliance.RED);
         else if (g.dpad_down && !previousGamepad.dpad_down) setAlliance(Alliance.BLUE);
@@ -115,7 +119,7 @@ public class Poses {
             new Pose(51.5, 94, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
     );
     public static final AlliancePose shootPositionGoalSide15BallTangent = new AlliancePose(
-            new Pose(92.5, 84, Math.toRadians(-90)),
+            new Pose(99.5, 84, Math.toRadians(-90)),
             new Pose(51.5, 84, Math.toRadians(270)) // 144 - 100.5 = 43.5
     );
 
@@ -151,8 +155,8 @@ public class Poses {
     );
 
     public static final AlliancePose pickupLineOne15Ball = new AlliancePose(
-            new Pose(121, 78, Math.toRadians(0)),
-            new Pose(17, 78, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
+            new Pose(127, 74, Math.toRadians(0)),
+            new Pose(17, 80, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
     public static final AlliancePose chainPickupLineOne15Ball = new AlliancePose(
             new Pose(127, 84, Math.toRadians(0)),
@@ -162,7 +166,7 @@ public class Poses {
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
-            new Pose(138, 58, Math.toRadians(0)),
+            new Pose(146, 53, Math.toRadians(0)),
             new Pose(3.5, 59, Math.toRadians(180))
     );
     public static final AlliancePose chainPickupLine2 = new AlliancePose(
@@ -172,11 +176,11 @@ public class Poses {
 
     // LINE_2_CONTROL_POINT
     public static final AlliancePose line2ControlPoint = new AlliancePose(
-            new Pose(84, 55.5, Math.toRadians(0)),
+            new Pose(90, 55.5, Math.toRadians(0)),
             new Pose(60, 57, Math.toRadians(180))
     );
     public static final AlliancePose line2ControlPointTangent = new AlliancePose(
-            new Pose(104, 55.5, Math.toRadians(0)),
+            new Pose(110, 55.5, Math.toRadians(0)),
             new Pose(40, 57, Math.toRadians(180))
     );
 
@@ -185,7 +189,7 @@ public class Poses {
 
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
-            new Pose(138, 34, Math.toRadians(0)),
+            new Pose(146, 29, Math.toRadians(0)),
             new Pose(5, 36, Math.toRadians(180))
     );
     public static final AlliancePose pickupLine3Far = new AlliancePose(
@@ -200,7 +204,7 @@ public class Poses {
 
     // LINE_3_CONTROL_POINT
     public static final AlliancePose line3ControlPoint = new AlliancePose(
-            new Pose(64.5, 27.5, Math.toRadians(0)),
+            new Pose(70.5, 27.5, Math.toRadians(0)),
             new Pose(74.4, 30.5, Math.toRadians(180))
     );
 
@@ -255,7 +259,7 @@ public class Poses {
 
 
     public static final AlliancePose openGateHighCycle = new AlliancePose(
-            new Pose(142, 62, Math.toRadians(45)),
+            new Pose(152, 57, Math.toRadians(45)),
             new Pose(19.5, 60, Math.toRadians(135)) // correct
     );
     public static final AlliancePose openGateRamTech = new AlliancePose(
@@ -269,8 +273,8 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(148, 56.5, Math.toRadians(65)),
-            new Pose(22, 51.5, Math.toRadians(115)) // correct
+            new Pose(153.5, 47.5, Math.toRadians(70)),
+            new Pose(18, 47.5, Math.toRadians(110)) // correct
     );
 
 
