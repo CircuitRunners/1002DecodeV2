@@ -23,9 +23,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
 @Configurable
-@Autonomous(name = "Tangent GS 15 - 2 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "Tangent GS 18 - 2 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
 
-public class TangentFifteen2Lines extends OpMode {
+public class TangentEighteen3Lines extends OpMode {
 
 
 
@@ -48,7 +48,7 @@ public class TangentFifteen2Lines extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 143.5;
+    private final double RED_GOAL_X =143.5;
     private final double BLUE_GOAL_X = 10;
     private final double GOAL_Y = Poses.GOAL_Y;
 
@@ -65,7 +65,8 @@ public class TangentFifteen2Lines extends OpMode {
     double turretOffset = 0;
 
 
-    private PathChain travelToShoot, sigmaCycle, intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, travelBackToShootFromIntake1;
+
+    private PathChain travelToShoot, sigmaCycle, intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, intake3, travelBackToShootFromIntake1, travelBackToShootFromIntake3;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
@@ -76,7 +77,7 @@ public class TangentFifteen2Lines extends OpMode {
 
 
 
-        // Path 2: Shoot to Intake 2
+        // Path 2: Shoot to Intake 1
         intake2 = follower.pathBuilder()
                 .setNoDeceleration()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
@@ -91,15 +92,17 @@ public class TangentFifteen2Lines extends OpMode {
                 .build();
 
         sigmaCycle  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycleTangent)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycleTangent).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycleTangent), Poses.get(Poses.openGateHighCycleTangentBackUp)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycleTangent).getHeading(), Poses.get(Poses.openGateHighCycleTangentBackUp).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycleTangentBackUp), Poses.get(Poses.intakeFromGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycleTangentBackUp).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
                 .build();
 
 
 
-        // Gate back to Shoot
+        // Path 6: Intake 2 back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.line2ControlPointTangent), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
                 .setTangentHeadingInterpolation().setReversed()
@@ -114,6 +117,17 @@ public class TangentFifteen2Lines extends OpMode {
 
         travelBackToShootFromIntake1 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .setTangentHeadingInterpolation().setReversed()
+                .build();
+
+        intake3  = follower.pathBuilder()
+                .setNoDeceleration()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line3ControlPoint), Poses.get(Poses.pickupLine3)))
+                .setTangentHeadingInterpolation()
+                .build();
+
+        travelBackToShootFromIntake3 = follower.pathBuilder()
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine3), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
                 .setTangentHeadingInterpolation().setReversed()
                 .build();
 
@@ -196,7 +210,7 @@ public class TangentFifteen2Lines extends OpMode {
                 break;
 
             case 8: // Shoot (After Gate Cycle 1)
-                stopIntakeOnceAtT(0.3);
+                stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 4, 0, false);
@@ -235,7 +249,7 @@ public class TangentFifteen2Lines extends OpMode {
                 break;
 
             case 12: // Shoot (After Gate Cycle 2)
-                stopIntakeOnceAtT(0.3);
+                stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 4, 0, false);
@@ -249,7 +263,38 @@ public class TangentFifteen2Lines extends OpMode {
                 }
                 break;
 
-            case 13: // Drive to Intake 1
+            case 13: // Drive to Intake 3
+                if (!follower.isBusy()) {
+                    intake.doIntake();
+                    follower.followPath(intake3, false);
+                    setPathState();
+                }
+                break;
+
+            case 14: // Intake at Line 3
+                intake.doIntake();
+                if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
+                    follower.followPath(travelBackToShootFromIntake3, false);
+                    setPathState();
+                }
+                break;
+
+            case 15: // Return to Shoot from Intake 3
+                stopIntakeOnceAtT(0.7);
+
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                }
+
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.3) {
+                    goForLaunch = true;
+                }
+                break;
+
+            case 16: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     turretOffset = targetX == RED_GOAL_X ? -315 : -45;
@@ -258,14 +303,14 @@ public class TangentFifteen2Lines extends OpMode {
                 }
                 break;
 
-            case 14: // Intake at Line 1
+            case 17: // Intake at Line 1
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShootFromIntake1, false);
                     setPathState();
                 }
                 break;
 
-            case 15: // Final Shoot
+            case 18: // Final Shoot
                 stopIntakeOnceAtT(0.7);
 
                 if (intakeStoppedForShooting) {
@@ -313,7 +358,7 @@ public class TangentFifteen2Lines extends OpMode {
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX-10, GOAL_Y-2,
+                    targetX, GOAL_Y,
                     headingDeg,
                     true, -58,
                     mannualHoodOffset,

@@ -166,8 +166,8 @@ public class Poses {
 
     // PICKUP_LINE_2
     public static final AlliancePose pickupLine2 = new AlliancePose(
-            new Pose(146, 53, Math.toRadians(0)),
-            new Pose(25, 59, Math.toRadians(180))
+            new Pose(146, 51, Math.toRadians(0)),
+            new Pose(20, 57, Math.toRadians(180))
     );
     public static final AlliancePose chainPickupLine2 = new AlliancePose(
             new Pose(140.5, 58, Math.toRadians(0)),
@@ -190,7 +190,7 @@ public class Poses {
     // PICKUP_LINE_3
     public static final AlliancePose pickupLine3 = new AlliancePose(
             new Pose(146, 29, Math.toRadians(0)),
-            new Pose(25, 36, Math.toRadians(180))
+            new Pose(20, 36, Math.toRadians(180))
     );
     public static final AlliancePose pickupLine3Far = new AlliancePose(
             new Pose(139, 32, Math.toRadians(0)),
@@ -262,6 +262,14 @@ public class Poses {
             new Pose(152, 57, Math.toRadians(45)),
             new Pose(19.5, 60, Math.toRadians(135)) // correct
     );
+    public static final AlliancePose openGateHighCycleTangent = new AlliancePose(
+            new Pose(146, 65, Math.toRadians(0)),
+            new Pose(25.5, 68, Math.toRadians(180)) // correct
+    );
+    public static final AlliancePose openGateHighCycleTangentBackUp = new AlliancePose(
+            new Pose(143, 65, Math.toRadians(0)),
+            new Pose(28.5, 68, Math.toRadians(180)) // correct
+    );
     public static final AlliancePose openGateRamTech = new AlliancePose(
             new Pose(119, 52.7, Math.toRadians(70)),
             new Pose(25, 52.7, Math.toRadians(110))
@@ -273,8 +281,8 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(153.5, 49.5, Math.toRadians(70)),
-            new Pose(18, 49.5, Math.toRadians(110)) // correct
+            new Pose(153.5, 50.75, Math.toRadians(70)),
+            new Pose(18, 50.75, Math.toRadians(110)) // correct
     );
 
 

@@ -23,9 +23,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
 @Configurable
-@Autonomous(name = "Tangent GS 15 - 2 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "Tangent GS 18 - 3 Gate Cycle", group = "A", preselectTeleOp = "v2Teleop")
 
-public class TangentFifteen2Lines extends OpMode {
+public class TangentEighteen2Lines extends OpMode {
 
 
 
@@ -249,7 +249,46 @@ public class TangentFifteen2Lines extends OpMode {
                 }
                 break;
 
-            case 13: // Drive to Intake 1
+            case 13: // Gate Cycle 3 - Start Path
+                if (!follower.isBusy()) {
+                    intake.doIntake();
+                    follower.followPath(sigmaCycle, true);
+                    setPathState();
+                }
+                break;
+
+            case 14: // WAIT at Gate (Cycle 3)
+                intake.doIntake();
+
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.9 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                    setPathState();
+                }
+                break;
+
+            case 15: // Return to Shoot (Cycle 3)
+                intake.doIntake();
+                if (!follower.isBusy()) {
+                    follower.followPath(travelBackToShootFromGate, false);
+                    setPathState();
+                }
+                break;
+
+            case 16: // Shoot (After Gate Cycle 3)
+                stopIntakeOnceAtT(0.3);
+
+                if (intakeStoppedForShooting) {
+                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                }
+
+                if (intakeStoppedForShooting
+                        && !goForLaunch
+                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.3) {
+                    goForLaunch = true;
+                }
+                break;
+
+            case 17: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     turretOffset = targetX == RED_GOAL_X ? -315 : -45;
@@ -258,14 +297,14 @@ public class TangentFifteen2Lines extends OpMode {
                 }
                 break;
 
-            case 14: // Intake at Line 1
+            case 18: // Intake at Line 1
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShootFromIntake1, false);
                     setPathState();
                 }
                 break;
 
-            case 15: // Final Shoot
+            case 19: // Final Shoot
                 stopIntakeOnceAtT(0.7);
 
                 if (intakeStoppedForShooting) {
