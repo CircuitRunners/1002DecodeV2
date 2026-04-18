@@ -15,13 +15,13 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-@Disabled
 @Configurable
 @Autonomous(name = "GS 9 Ball SORT ", group = "A", preselectTeleOp = "v2Teleop")
 public class Sorted9BallClose extends OpMode {
@@ -30,7 +30,7 @@ public class Sorted9BallClose extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     private Timer pathTimer;
     private Timer loopTimer;
-    private Shooter shooter;
+    private NewShooter shooter;
     private Intake intake;
     private Sensors sensors;
     private LimelightCamera limelight;
@@ -69,35 +69,35 @@ public class Sorted9BallClose extends OpMode {
     public void buildPaths() {
 
         getBallOrder = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPoseGoalSide), Poses.get(Poses.getMotif)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPoseGoalSide).getHeading(), Poses.get(Poses.getMotif).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.getMotif)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.getMotif).getHeading())
                 .build();
 
         travelToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.getMotif), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.getMotif).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.getMotif), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.getMotif).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
                 .build();
 
 
 
         intake1 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.controlPointLine1ForShootPose2), Poses.get(Poses.pickupLine1)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine1).getHeading(), 0.25)
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.pickupLineOne15Ball)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading(), Poses.get(Poses.pickupLineOne15Ball).getHeading(), 0.25)
                 .build();
 
         travelBackToShoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.shootPositionGoalSide3).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine1), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
                 .build();
 
         intake2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide2).getHeading(), Poses.get(Poses.pickupLine2).getHeading(), 0.45)
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
+                .setTangentHeadingInterpolation().setReversed()
                 .build();
 
         travelBackToShoot2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.shootPositionGoalSide2)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine2).getHeading(), Poses.get(Poses.shootPositionGoalSide2).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.line2ControlPointTangent), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .setTangentHeadingInterpolation().setReversed()
                 .build();
     }
 
@@ -115,6 +115,7 @@ public class Sorted9BallClose extends OpMode {
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
+                shooter.setTurretTargetPosition(Poses.getAlliance() == Poses.Alliance.RED ? 105 : -75);
                 if (!follower.isBusy()) {
                     follower.followPath(getBallOrder, true);
                     setPathState();
@@ -123,7 +124,7 @@ public class Sorted9BallClose extends OpMode {
 
             case 1: // Limelight Detection (Sorted logic preserved)
                 desiredOrder = limelight.detectBallOrder();
-                if (desiredOrder != null && !follower.isBusy()) {
+                if ((desiredOrder != null || pathTimer.getElapsedTimeSeconds() >= 5) && !follower.isBusy()) {
                     follower.followPath(travelToShoot, true);
                     setPathState();
                 }
@@ -132,8 +133,8 @@ public class Sorted9BallClose extends OpMode {
 
             case 2: // Shoot 3 Preloads
                 doSort();
-                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 9.5) {
-                    handleAutoShooting(currentPose, targetX, 20.0, 0);
+                if (intake.getCurrentIntakeState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 9.5) {
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
 
@@ -169,8 +170,8 @@ public class Sorted9BallClose extends OpMode {
                     doSort();
                 }
 
-                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 7.5) {
-                    handleAutoShooting(currentPose, targetX, 11.0, 0);
+                if (intake.getCurrentIntakeState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
 
@@ -210,8 +211,8 @@ public class Sorted9BallClose extends OpMode {
                     doSort();
                 }
 
-                if (intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE || pathTimer.getElapsedTimeSeconds() > 7.5) {
-                    handleAutoShooting(currentPose, targetX, 11.0, 0);
+                if (intake.getCurrentIntakeState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                    handleAutoShooting(currentPose, targetX, 25, 0, true);
                 }
 
 
@@ -234,37 +235,54 @@ public class Sorted9BallClose extends OpMode {
         }
     }
 
-    private void handleAutoShooting(Pose pose, double targetX, double timeout, double mannualHoodOffset) {
+    private void handleAutoShooting(
+            Pose pose,
+            double targetX,
+            double timeout,
+            double mannualHoodOffset, boolean lastTime
+    ) {
         double headingDeg = Math.toDegrees(pose.getHeading());
 
-        // Ballistics targeting
+        // Always command shooter targets
         if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0, mannualHoodOffset, true, 0);
+            shooter.setTargetsByDistanceAdjustable(
+                    pose.getX(), pose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg,
+                    true, -6,
+                    mannualHoodOffset,
+                    true, 0
+            );
         } else {
-            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), targetX, GOAL_Y, headingDeg, false, 0, mannualHoodOffset, false, 0);
+            shooter.setTargetsByDistanceAdjustable(
+                    pose.getX(), pose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg,
+                    true, -58,
+                    mannualHoodOffset,
+                    false, 0
+            );
         }
 
-        // Latch flywheel (12-ball logic)
-        if (veloReached) {
-            flywheelLocked = true;
-        }
-
-        // Only allow feeding when ready (added intake state check from 9-ball)
-        if (flywheelLocked && goForLaunch && ((intake.getCurrentIntakeState() == Intake.IntakeState.READY_TO_FIRE) )) {
+        //  Only allow feeding when fully ready
+        if (veloReached && goForLaunch) {
             doTransfer = true;
         }
 
+        //  Feeding + shot counting
         if (doTransfer) {
-            trackShotCount(shooter.isBeamBroken());
+            if (!lastTime) {
+                trackShotCount(shooter.isBeamBroken());
+            }
             intake.doTestShooter();
         }
 
-        // Fail-safe exit
+        // FAILSAFE EXIT (prevents sitting forever)
         if (ballsShotInState >= 3 || pathTimer.getElapsedTimeSeconds() > timeout) {
             resetShootingState();
             shooter.stopFlywheel();
             intake.doIntakeHalt();
-            sortStarted = false;
+            intakeStoppedForShooting = false;
             setPathState();
         }
     }
@@ -303,7 +321,7 @@ public class Sorted9BallClose extends OpMode {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry,true);
+        shooter = new NewShooter(hardwareMap, telemetry,true);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
         limelight = new LimelightCamera(hardwareMap);
@@ -319,7 +337,7 @@ public class Sorted9BallClose extends OpMode {
 
 
         if (Poses.getAlliance() != lastKnownAlliance) {
-            follower.setStartingPose(Poses.get(Poses.startPoseGoalSide));
+            follower.setStartingPose(Poses.get(Poses.startPose15Ball));
             buildPaths();
 
             lastKnownAlliance = Poses.getAlliance();
@@ -365,11 +383,10 @@ public class Sorted9BallClose extends OpMode {
         shooter.update(shooter.getCurrentTurretPosition());
 
         // Passing detected colors to intake for sorting
-        intake.update(shooter.isBeamBroken(), LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
-                sensors.getDetectedColor(sensors.colorSensor1),
-                sensors.getDetectedColor(sensors.colorSensor2),
-                sensors.getDetectedColor(sensors.colorSensor3)
-        );
+        intake.updateProx(sensors.getColor1Proximity(),
+                sensors.getColor2Proximity(),
+                sensors.getColor3Proximity());
+
 
         autonomousPathUpdate();
 
@@ -422,8 +439,14 @@ public class Sorted9BallClose extends OpMode {
     }
 
     private void doSort(){
+        String currentPattern = null;
+        if (pathState == 2 || pathState == 5) {
+            currentPattern = "PPG";
+        } else if (pathState == 8) {
+            currentPattern = "GPG";
+        }
         if (!sortStarted){
-            intake.prepareAndStartSort();
+            intake.startSimpleSort(currentPattern, desiredOrder);
             sortStarted = true;
         }
     }

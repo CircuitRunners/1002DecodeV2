@@ -49,7 +49,7 @@ public class TangentEighteen3Lines extends OpMode {
 
     // Field Constants
     private final double RED_GOAL_X =143.5;
-    private final double BLUE_GOAL_X = 10;
+    private final double BLUE_GOAL_X = 12.5;
     private final double GOAL_Y = Poses.GOAL_Y;
 
     double targetX = 0;
@@ -112,7 +112,7 @@ public class TangentEighteen3Lines extends OpMode {
         intake1 = follower.pathBuilder()
                 .setNoDeceleration()
                 .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.pickupLineOne15Ball)))
-                .setTangentHeadingInterpolation()
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading(), Poses.get(Poses.pickupLineOne15Ball).getHeading(), 0.3)
                 .build();
 
         travelBackToShootFromIntake1 = follower.pathBuilder()
@@ -135,7 +135,11 @@ public class TangentEighteen3Lines extends OpMode {
 
     public void autonomousPathUpdate() {
         Pose currentPose = follower.getPose();
-        targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
+        if (pathState <= 8) {
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
+        } else {
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X - 7 : BLUE_GOAL_X + 7;
+        }
 
 
         switch (pathState) {
@@ -147,7 +151,7 @@ public class TangentEighteen3Lines extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 3.85, 0, false);
+                handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -174,7 +178,7 @@ public class TangentEighteen3Lines extends OpMode {
                 stopIntakeOnceAtT(0.7);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -196,7 +200,7 @@ public class TangentEighteen3Lines extends OpMode {
             case 6: // WAIT at Gate (Cycle 1)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 4.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -213,7 +217,7 @@ public class TangentEighteen3Lines extends OpMode {
                 stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -235,7 +239,7 @@ public class TangentEighteen3Lines extends OpMode {
             case 10: // WAIT at Gate (Cycle 2)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 3.9 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -252,7 +256,7 @@ public class TangentEighteen3Lines extends OpMode {
                 stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -283,7 +287,7 @@ public class TangentEighteen3Lines extends OpMode {
                 stopIntakeOnceAtT(0.7);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
                 if (intakeStoppedForShooting

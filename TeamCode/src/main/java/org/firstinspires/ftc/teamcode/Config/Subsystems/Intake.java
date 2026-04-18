@@ -1011,8 +1011,8 @@ public class Intake {
 //        newState(IntakeState.TRANSFERRING);
 //    }
 
-    public IntakeState getCurrentIntakeState() {
-        return currentState;
+    public SimpleSortState getCurrentIntakeState() {
+        return simpleSortState;
     }
 
     public SimpleSortState getSimpleSortState() {

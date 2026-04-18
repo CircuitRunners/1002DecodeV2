@@ -60,8 +60,8 @@ public class newTeleop extends OpMode {
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
 
-    private final double RED_GOAL_X = 127.5;
-    private final double BLUE_GOAL_X = 15;
+    private final double RED_GOAL_X = 131.5;
+    private final double BLUE_GOAL_X = 7.5;
     private final double GOAL_Y = 132;
 
     private double dist = 0;
@@ -394,13 +394,24 @@ public class newTeleop extends OpMode {
     }
 
     private void applyShooterTargets(Pose pose, double vx, double vy, double headingDeg) {
+        boolean closeZone = pose.getY() > 69;
         double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
+        if (isRedAlliance) {
+            targetX = RED_GOAL_X;
+        } else {
+            boolean robotHeadingCompensation = headingDeg >= 345 || headingDeg <= 15;
+            if (closeZone) {
+                targetX = BLUE_GOAL_X;
+            } else {
+                targetX = robotHeadingCompensation ? BLUE_GOAL_X : BLUE_GOAL_X - 5;
+            }
+        }
         // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align
         boolean autoAlign = !noAutoAlign;
         double rx = Math.round((pose.getX() * 10) / 10);
         double ry = Math.round((pose.getY() * 10) / 10);
 
-        if (pose.getY() > 69) {
+        if (closeZone) {
             //turretOffsetFar = 0;
 
             if (shootOnDaMove) {
@@ -408,13 +419,13 @@ public class newTeleop extends OpMode {
                 newX = newGoalCoords[0];
                 newY = newGoalCoords[1];
                 dist = Math.hypot(newX - pose.getX(), newY - pose.getY());
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX + 2, newY, headingDeg, true, -22, 0, false, 0);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX + 2, newY, headingDeg, true, -15, 0, false, 0);
                 if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
             } else {
                 dist = Math.hypot(targetX - pose.getX(), GOAL_Y - pose.getY());
                 newX = targetX;
                 newY = GOAL_Y;
-                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX, GOAL_Y, headingDeg, autoAlign, mannualFlywheelAdj + 9.5, 0, isRedAlliance, turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX, GOAL_Y, headingDeg, autoAlign, -15, 0, isRedAlliance, turretMannualAdjust);
             }
         } else {
             //turretOffsetFar = isRedAlliance ? -12.5 : 12.5;
@@ -423,13 +434,13 @@ public class newTeleop extends OpMode {
                 newX = newGoalCoords[0];
                 newY = newGoalCoords[1];
                 dist = Math.hypot(newX - pose.getX(), newY - pose.getY());
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX + 2, newY, headingDeg, true, -22, 0, false, 0);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX + 2, newY, headingDeg, true, -50, 0, false, 0);
                 if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
             } else {
                 dist = Math.hypot(targetX - pose.getX(), GOAL_Y - pose.getY());
                 newX = targetX;
                 newY = GOAL_Y;
-                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX + 2, GOAL_Y, headingDeg, autoAlign, mannualFlywheelAdj - 40, 0, isRedAlliance, turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX + 2, GOAL_Y, headingDeg, autoAlign, -50, 0, isRedAlliance, turretMannualAdjust);
             }
         }
     }
