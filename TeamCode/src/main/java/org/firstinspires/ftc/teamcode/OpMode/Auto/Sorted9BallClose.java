@@ -134,7 +134,7 @@ public class Sorted9BallClose extends OpMode {
             case 2: // Shoot 3 Preloads
                 doSort();
                 if (intake.getCurrentIntakeState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 9.5) {
-                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                    handleAutoShooting(currentPose, targetX, 4.1, 0, false);
                 }
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
 
@@ -280,6 +280,7 @@ public class Sorted9BallClose extends OpMode {
         // FAILSAFE EXIT (prevents sitting forever)
         if (ballsShotInState >= 3 || pathTimer.getElapsedTimeSeconds() > timeout) {
             resetShootingState();
+            sortStarted = false;
             shooter.stopFlywheel();
             intake.doIntakeHalt();
             intakeStoppedForShooting = false;
@@ -350,6 +351,7 @@ public class Sorted9BallClose extends OpMode {
 //                (sensors.isHubReady() ? "Ready (Awaiting Start)" : "Waiting for Config..."));
 
 
+        sensors.update();
 
 
         telemetry.addLine("--- Alliance Selector ---");
@@ -379,6 +381,7 @@ public class Sorted9BallClose extends OpMode {
         loopTimer.resetTimer();
         follower.update();
         pinpoint.update();
+        sensors.update();
 
         shooter.update(shooter.getCurrentTurretPosition());
 
@@ -442,12 +445,18 @@ public class Sorted9BallClose extends OpMode {
         String currentPattern = null;
         if (pathState == 2 || pathState == 5) {
             currentPattern = "PPG";
+            if (!sortStarted){
+                intake.startSimpleSort("PPG", desiredOrder);
+                sortStarted = true;
+            }
+
         } else if (pathState == 8) {
             currentPattern = "GPG";
+            if (!sortStarted){
+                intake.startSimpleSort("GPG", desiredOrder);
+                sortStarted = true;
+            }
         }
-        if (!sortStarted){
-            intake.startSimpleSort(currentPattern, desiredOrder);
-            sortStarted = true;
-        }
+
     }
 }

@@ -89,8 +89,8 @@ public class Poses {
     );
 
     public static final AlliancePose getMotif = new AlliancePose(
-            new Pose(90, 95.5, Math.toRadians(218.51)),      // Red: X=144-32=112, Theta=180-180=0
-            new Pose(54, 95.5, Math.toRadians(321.5))        // Blue
+            new Pose(90, 95.5, Math.toRadians(180)),      // Red: X=144-32=112, Theta=180-180=0
+            new Pose(54, 95.5, Math.toRadians(0))        // Blue
     );
     // SHOOT_POSITION_GOAL_SIDE
 //    public static final AlliancePose shootPositionGoalSide = new AlliancePose(
@@ -121,6 +121,11 @@ public class Poses {
     public static final AlliancePose shootPositionGoalSide15BallTangent = new AlliancePose(
             new Pose(99.5, 84, Math.toRadians(-90)),
             new Pose(51.5, 84, Math.toRadians(270)) // 144 - 100.5 = 43.5
+    );
+
+    public static final AlliancePose shootPositionGoalSide15BallTangentLastTime = new AlliancePose(
+            new Pose(99.5, 100, Math.toRadians(-90)),
+            new Pose(51.5, 100, Math.toRadians(270)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide15BallLastTime = new AlliancePose(
@@ -155,7 +160,7 @@ public class Poses {
     );
 
     public static final AlliancePose pickupLineOne15Ball = new AlliancePose(
-            new Pose(124, 74, Math.toRadians(0)),
+            new Pose(138, 74, Math.toRadians(0)),
             new Pose(20, 80, Math.toRadians(180)) //maybe change x to x = 20.5 if still no work idk
     );
     public static final AlliancePose chainPickupLineOne15Ball = new AlliancePose(
@@ -259,8 +264,8 @@ public class Poses {
 
 
     public static final AlliancePose openGateHighCycle = new AlliancePose(
-            new Pose(152, 58.5, Math.toRadians(45)),
-            new Pose(19.5, 61.5, Math.toRadians(135)) // correct
+            new Pose(151.5, 58.5, Math.toRadians(45)),
+            new Pose(20, 61.5, Math.toRadians(135)) // correct
     );
     public static final AlliancePose openGateHighCycleTangent = new AlliancePose(
             new Pose(146, 65, Math.toRadians(0)),
@@ -281,8 +286,8 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(153.5, 51.75, Math.toRadians(70)),
-            new Pose(18, 51.75, Math.toRadians(110)) // correct
+            new Pose(153.5, 52.2, Math.toRadians(70)),
+            new Pose(18, 52.2, Math.toRadians(110)) // correct
     );
 
 

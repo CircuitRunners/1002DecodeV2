@@ -60,7 +60,7 @@ public class v2Teleop extends OpMode {
     private int ballsShotInState = 0;
     private boolean lastBeamState = false;
 
-    private final double RED_GOAL_X = 127;
+    private final double RED_GOAL_X = 125.5;
     private final double BLUE_GOAL_X = 13;
     private final double GOAL_Y = 132;
 

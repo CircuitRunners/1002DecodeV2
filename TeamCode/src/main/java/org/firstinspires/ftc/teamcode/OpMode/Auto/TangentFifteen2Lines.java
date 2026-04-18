@@ -48,7 +48,7 @@ public class TangentFifteen2Lines extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X = 143.5;
+    private final double RED_GOAL_X = 139.5;
     private final double BLUE_GOAL_X = 12.5;
     private final double GOAL_Y = Poses.GOAL_Y;
 
@@ -65,7 +65,7 @@ public class TangentFifteen2Lines extends OpMode {
     double turretOffset = 0;
 
 
-    private PathChain travelToShoot, sigmaCycle, intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, travelBackToShootFromIntake1;
+    private PathChain travelToShoot, sigmaCycle, intake1, travelBackToShoot2, intake2, travelBackToShootFromGate, travelBackToShootFromIntake1,park;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
@@ -113,9 +113,10 @@ public class TangentFifteen2Lines extends OpMode {
                 .build();
 
         travelBackToShootFromIntake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangentLastTime)))
                 .setTangentHeadingInterpolation().setReversed()
                 .build();
+
 
     }
 
@@ -124,7 +125,7 @@ public class TangentFifteen2Lines extends OpMode {
         if (pathState <= 8) {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
         } else {
-            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X - 7 : BLUE_GOAL_X + 7;
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X  : BLUE_GOAL_X + 7;
         }
 
 
@@ -137,7 +138,7 @@ public class TangentFifteen2Lines extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 3.85, 0, false);
+                handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -164,7 +165,7 @@ public class TangentFifteen2Lines extends OpMode {
                 stopIntakeOnceAtT(0.7);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -186,7 +187,7 @@ public class TangentFifteen2Lines extends OpMode {
             case 6: // WAIT at Gate (Cycle 1)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -203,7 +204,7 @@ public class TangentFifteen2Lines extends OpMode {
                 stopIntakeOnceAtT(0.3);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -225,7 +226,7 @@ public class TangentFifteen2Lines extends OpMode {
             case 10: // WAIT at Gate (Cycle 2)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -255,7 +256,7 @@ public class TangentFifteen2Lines extends OpMode {
             case 13: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    turretOffset = targetX == RED_GOAL_X ? -315 : -45;
+                    //turretOffset = targetX == RED_GOAL_X ? -315 : -45;
                     follower.followPath(intake1, false);
                     setPathState();
                 }
@@ -272,7 +273,7 @@ public class TangentFifteen2Lines extends OpMode {
                 stopIntakeOnceAtT(0.7);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 25, 0, true);
+                    handleAutoShooting(currentPose, targetX, 3.6, 0, true);
                 }
 
                 if (intakeStoppedForShooting
@@ -281,6 +282,7 @@ public class TangentFifteen2Lines extends OpMode {
                     goForLaunch = true;
                 }
                 break;
+
 
             default:
 
@@ -307,18 +309,18 @@ public class TangentFifteen2Lines extends OpMode {
         if (Poses.getAlliance() == Poses.Alliance.RED) {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX, GOAL_Y,
+                    targetX+2.5, GOAL_Y,
                     headingDeg,
-                    true, -6,
+                    true, -24,
                     mannualHoodOffset,
                     true, 0
             );
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX-10, GOAL_Y-2,
+                    targetX-5.5, GOAL_Y,
                     headingDeg,
-                    true, -58,
+                    true, -63,
                     mannualHoodOffset,
                     false, 0
             );

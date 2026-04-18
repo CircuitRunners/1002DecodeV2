@@ -136,7 +136,7 @@ public class TangentEighteen2Lines extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                handleAutoShooting(currentPose, targetX, 3.25, 0, false);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -346,18 +346,18 @@ public class TangentEighteen2Lines extends OpMode {
         if (Poses.getAlliance() == Poses.Alliance.RED) {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX, GOAL_Y,
+                    targetX+1.5, GOAL_Y,
                     headingDeg,
-                    true, -6,
+                    true, -14,
                     mannualHoodOffset,
                     true, 0
             );
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX-10, GOAL_Y-2,
+                    targetX-5.5, GOAL_Y,
                     headingDeg,
-                    true, -58,
+                    true, -63,
                     mannualHoodOffset,
                     false, 0
             );

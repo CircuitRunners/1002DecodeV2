@@ -48,7 +48,7 @@ public class TangentFifteen3Lines extends OpMode {
     private boolean lastBeamState = false;
 
     // Field Constants
-    private final double RED_GOAL_X =143.5;
+    private final double RED_GOAL_X = 143.5;
     private final double BLUE_GOAL_X = 12.5;
     private final double GOAL_Y = Poses.GOAL_Y;
 
@@ -119,7 +119,7 @@ public class TangentFifteen3Lines extends OpMode {
                 .build();
 
         travelBackToShootFromIntake1 = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangentLastTime)))
                 .setTangentHeadingInterpolation().setReversed()
                 .build();
 
@@ -141,7 +141,7 @@ public class TangentFifteen3Lines extends OpMode {
         if (pathState <= 8) {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
         } else {
-            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X - 7 : BLUE_GOAL_X + 7;
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X  : BLUE_GOAL_X + 7;
         }
 
 
@@ -156,7 +156,7 @@ public class TangentFifteen3Lines extends OpMode {
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 3.85,0,false);
+                handleAutoShooting(currentPose, targetX, 3.5,0,false);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -185,7 +185,7 @@ public class TangentFifteen3Lines extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0,false);
                 }
 
                 // Allow feeding once fully settled
@@ -219,7 +219,7 @@ public class TangentFifteen3Lines extends OpMode {
             case 6: // WAIT at Gate (2.5s)
                 intake.doIntake(); // keep intaking while stalled
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 4 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 4.1 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -239,7 +239,7 @@ public class TangentFifteen3Lines extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0,false);
                 }
 
                 // Allow feeding once fully settled
@@ -271,7 +271,7 @@ public class TangentFifteen3Lines extends OpMode {
 
                 // Shooter logic owns intake AFTER the stop
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 4, 0,false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0,false);
                 }
 
                 // Allow feeding once fully settled
@@ -342,19 +342,19 @@ public class TangentFifteen3Lines extends OpMode {
         if (Poses.getAlliance() == Poses.Alliance.RED) {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX, GOAL_Y,
+                    targetX+1.5, GOAL_Y,
                     headingDeg,
-                    true, -6,
+                    true, -20,
                     mannualHoodOffset,
                     true, 0
             );
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX, GOAL_Y,
+                    targetX-5.5, GOAL_Y,
                     headingDeg,
-                    true, -58,
-                    mannualHoodOffset ,
+                    true, -63,
+                    mannualHoodOffset,
                     false, 0
             );
         }
