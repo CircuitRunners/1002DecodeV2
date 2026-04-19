@@ -77,9 +77,7 @@ public class Sorted9BallClose extends OpMode {
                 .addPath(new BezierLine(Poses.get(Poses.getMotif), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.getMotif).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
                 .build();
-
-
-
+        
         intake1 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.pickupLineOne15Ball)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading(), Poses.get(Poses.pickupLineOne15Ball).getHeading(), 0.25)
@@ -92,7 +90,7 @@ public class Sorted9BallClose extends OpMode {
 
         intake2 = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
-                .setTangentHeadingInterpolation().setReversed()
+                .setTangentHeadingInterpolation()
                 .build();
 
         travelBackToShoot2 = follower.pathBuilder()
