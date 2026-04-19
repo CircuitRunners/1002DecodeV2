@@ -133,7 +133,7 @@ public class Sorted9BallClose extends OpMode {
 
             case 2: // Shoot 3 Preloads
                 doSort();
-                if (intake.getCurrentIntakeState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 9.5) {
+                if (isReadyToShoot() || pathTimer.getElapsedTimeSeconds() > 9.5) {
                     handleAutoShooting(currentPose, targetX, 4.1, 0, false);
                 }
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
@@ -170,7 +170,7 @@ public class Sorted9BallClose extends OpMode {
                     doSort();
                 }
 
-                if (intake.getCurrentIntakeState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                if (isReadyToShoot() || pathTimer.getElapsedTimeSeconds() > 7.5) {
                     handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
 
@@ -211,7 +211,7 @@ public class Sorted9BallClose extends OpMode {
                     doSort();
                 }
 
-                if (intake.getCurrentIntakeState() == Intake.SimpleSortState.READY || pathTimer.getElapsedTimeSeconds() > 7.5) {
+                if (isReadyToShoot() || pathTimer.getElapsedTimeSeconds() > 7.5) {
                     handleAutoShooting(currentPose, targetX, 25, 0, true);
                 }
 
@@ -234,7 +234,10 @@ public class Sorted9BallClose extends OpMode {
                 break;
         }
     }
-
+    public boolean isReadyToShoot() {
+        return intake.getSimpleSortState() == Intake.SimpleSortState.READY ||
+                intake.getSimpleSortState() == Intake.SimpleSortState.TEST_SHOOTING;
+    }
     private void handleAutoShooting(
             Pose pose,
             double targetX,
@@ -451,9 +454,9 @@ public class Sorted9BallClose extends OpMode {
             }
 
         } else if (pathState == 8) {
-            currentPattern = "GPG";
+            currentPattern = "PGP";
             if (!sortStarted){
-                intake.startSimpleSort("GPG", desiredOrder);
+                intake.startSimpleSort("PGP", desiredOrder);
                 sortStarted = true;
             }
         }

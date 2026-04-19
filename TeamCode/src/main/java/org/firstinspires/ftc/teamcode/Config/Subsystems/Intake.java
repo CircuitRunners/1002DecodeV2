@@ -62,6 +62,7 @@ public class Intake {
         IDLE,
         CHECK_SLOTS,
         ROTATING,
+        TEST_SHOOTING,
         READY
     }
 
@@ -148,6 +149,8 @@ public class Intake {
     }
     public void doTestShooter(){
         newState(IntakeState.TEST_SHOOTING);
+        simpleSortState = SimpleSortState.TEST_SHOOTING;
+        simpleSortTimer.reset();
     }
     public void resetState(){
         newState(IntakeState.RESET);
@@ -665,7 +668,7 @@ public class Intake {
 
                 setDirectionCycle();
 
-                if (validProx >= 2) {
+                if (validProx >= 2 && simpleTargetPattern != null) {
                     int currentIndex = patternIndexFromString(simpleCurrentPattern);
                     int targetIndex = patternIndexFromEnum(simpleTargetPattern);
 
@@ -719,6 +722,10 @@ public class Intake {
                     //gateClose();
                     simpleSortState = SimpleSortState.READY;
                 }
+                break;
+
+            case TEST_SHOOTING:
+                transfer();
                 break;
 
             case READY:
