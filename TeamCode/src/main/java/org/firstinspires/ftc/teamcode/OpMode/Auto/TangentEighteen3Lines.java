@@ -92,12 +92,10 @@ public class TangentEighteen3Lines extends OpMode {
                 .build();
 
         sigmaCycle  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycleTangent)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycleTangent).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycleTangent), Poses.get(Poses.openGateHighCycleTangentBackUp)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycleTangent).getHeading(), Poses.get(Poses.openGateHighCycleTangentBackUp).getHeading())
-                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycleTangentBackUp), Poses.get(Poses.intakeFromGateHighCycle)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycleTangentBackUp).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
                 .build();
 
 
@@ -138,7 +136,7 @@ public class TangentEighteen3Lines extends OpMode {
         if (pathState <= 8) {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
         } else {
-            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X - 7 : BLUE_GOAL_X + 7;
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X + 5;
         }
 
 
@@ -301,7 +299,6 @@ public class TangentEighteen3Lines extends OpMode {
             case 16: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    turretOffset = targetX == RED_GOAL_X ? -315 : -45;
                     follower.followPath(intake1, false);
                     setPathState();
                 }
@@ -401,6 +398,25 @@ public class TangentEighteen3Lines extends OpMode {
     public void setPathState() {
         pathState += 1;
         pathTimer.resetTimer();
+    }
+
+    // Spins up flywheel/hood/turret using the shoot position before arriving,
+    // so veloReached can be true the moment the robot stops.
+    private void prewarmShooter(double tThreshold) {
+        if (follower.getCurrentTValue() < tThreshold) return;
+        Pose shootPose = Poses.get(Poses.shootPositionGoalSide15BallTangent);
+        double headingDeg = Math.toDegrees(shootPose.getHeading());
+        if (Poses.getAlliance() == Poses.Alliance.RED) {
+            shooter.setTargetsByDistanceAdjustable(
+                    shootPose.getX(), shootPose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg, true, -6, 0, true, 0);
+        } else {
+            shooter.setTargetsByDistanceAdjustable(
+                    shootPose.getX(), shootPose.getY(),
+                    targetX, GOAL_Y,
+                    headingDeg, true, -58, 0, false, 0);
+        }
     }
 
     private void stopIntakeOnceAtT(double t) {

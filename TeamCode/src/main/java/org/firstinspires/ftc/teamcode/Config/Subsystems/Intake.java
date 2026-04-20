@@ -63,6 +63,8 @@ public class Intake {
         CHECK_SLOTS,
         ROTATING,
         TEST_SHOOTING,
+        INTAKING,
+        HALT,
         READY
     }
 
@@ -132,6 +134,7 @@ public class Intake {
 
     public void doIntake(){
         newState(IntakeState.INTAKING);
+        newSimpleState(SimpleSortState.INTAKING);
     }
 
     public void doOuttake(){
@@ -139,6 +142,7 @@ public class Intake {
     }
     public void doIntakeHalt(){
         newState(IntakeState.HALT);
+        newSimpleState(SimpleSortState.HALT);
     }
     public void doCycle(){
         newState(IntakeState.CYCLE);
@@ -149,8 +153,7 @@ public class Intake {
     }
     public void doTestShooter(){
         newState(IntakeState.TEST_SHOOTING);
-        simpleSortState = SimpleSortState.TEST_SHOOTING;
-        simpleSortTimer.reset();
+        newSimpleState(SimpleSortState.TEST_SHOOTING);
     }
     public void resetState(){
         newState(IntakeState.RESET);
@@ -728,6 +731,15 @@ public class Intake {
                 transfer();
                 break;
 
+            case INTAKING:
+                intake();
+                break;
+
+            case HALT:
+                intakeMotorHalt();
+                newSimpleState(SimpleSortState.IDLE);
+                break;
+
             case READY:
                 intakeMotorHalt();
                 //gateClose();
@@ -788,6 +800,11 @@ public class Intake {
         currentState = next;
         stateTimer.reset(); // Built-in ElapsedTime method
         stabilityCounter = 0;
+    }
+
+    private void newSimpleState(SimpleSortState next) {
+        simpleSortState = next;
+        simpleSortTimer.reset(); // Built-in ElapsedTime method
     }
 
     // Checks if the target pattern is even possible with what we have inside

@@ -124,8 +124,8 @@ public class Poses {
     );
 
     public static final AlliancePose shootPositionGoalSide15BallTangentLastTime = new AlliancePose(
-            new Pose(99.5, 100, Math.toRadians(-90)),
-            new Pose(51.5, 100, Math.toRadians(270)) // 144 - 100.5 = 43.5
+            new Pose(105.5, 102, Math.toRadians(-90)),
+            new Pose(45.5, 102, Math.toRadians(270)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide15BallLastTime = new AlliancePose(
@@ -185,8 +185,8 @@ public class Poses {
             new Pose(60, 57, Math.toRadians(180))
     );
     public static final AlliancePose line2ControlPointTangent = new AlliancePose(
-            new Pose(110, 55.5, Math.toRadians(0)),
-            new Pose(40, 57, Math.toRadians(180))
+            new Pose(116, 55.5, Math.toRadians(0)),
+            new Pose(34, 57, Math.toRadians(180))
     );
 
 
@@ -286,8 +286,8 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(153.5, 52.2, Math.toRadians(70)),
-            new Pose(18, 52.2, Math.toRadians(110)) // correct
+            new Pose(153.5, 49.7, Math.toRadians(70)),
+            new Pose(18, 49.7, Math.toRadians(110)) // correct
     );
 
 

@@ -147,9 +147,9 @@ public class NewShooter {
             { 47.5, 1245 },
             { 54.0, 1270 },
             { 60.5, 1295 },
-            { 67.0, 1310 },
-            { 73.5, 1330 },
-            { 80.0, 1365},
+            { 67.0, 1330 },
+            { 73.5, 1350 },
+            { 80.0, 1385},
             { 86.5, 1395},
             { 93.0, 1440},
             { 99.5, 1505},
@@ -816,12 +816,13 @@ public class NewShooter {
         return new double[] { correctedX, correctedY };
     }
 
-    public double physicsModelTimeofFlight(double distance, double flywheelVelo, double hoodAngle){
+    // slip factor: ball speed / flywheel surface speed
+
+    public double physicsModelTimeofFlight(double distance, double flywheelVelo, double hoodAngle, double TOF_K){
 
         double ticksPerRev = 384.5;
         double flywheelDiameter = 2.83; //inches
-        double K = 0.45; //accounts for slip + the ball does not travel the same speed as the edge of the wheel
-        double ballVelo = (flywheelVelo/ticksPerRev) * Math.PI * flywheelDiameter * K; //(revs per sec) * (length of revolution)
+        double ballVelo = (flywheelVelo/ticksPerRev) * Math.PI * flywheelDiameter * TOF_K; //(revs per sec) * (length of revolution)
 
 //        double v_y = ballVelo * Math.sin(hoodAngle);
 //        double g = 9.80665;

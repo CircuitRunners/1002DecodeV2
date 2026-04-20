@@ -77,7 +77,7 @@ public class Sorted9BallClose extends OpMode {
                 .addPath(new BezierLine(Poses.get(Poses.getMotif), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.getMotif).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
                 .build();
-        
+
         intake1 = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.pickupLineOne15Ball)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading(), Poses.get(Poses.pickupLineOne15Ball).getHeading(), 0.25)
@@ -132,7 +132,7 @@ public class Sorted9BallClose extends OpMode {
             case 2: // Shoot 3 Preloads
                 doSort();
                 if (isReadyToShoot() || pathTimer.getElapsedTimeSeconds() > 9.5) {
-                    handleAutoShooting(currentPose, targetX, 4.1, 0, false);
+                    handleAutoShooting(currentPose, targetX, 8, 0, false);
                 }
                 if (!goForLaunch && follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1 && pathTimer.getElapsedTimeSeconds() > 1.5) {
 
@@ -169,7 +169,7 @@ public class Sorted9BallClose extends OpMode {
                 }
 
                 if (isReadyToShoot() || pathTimer.getElapsedTimeSeconds() > 7.5) {
-                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                    handleAutoShooting(currentPose, targetX, 8, 0, false);
                 }
 
 

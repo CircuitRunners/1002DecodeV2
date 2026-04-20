@@ -329,12 +329,11 @@ public class newTeleop extends OpMode {
         if (follower.getPose().getY() < 69 &&
                 result != null &&
                 result.isValid() &&
+                !shootOnDaMove &&
                 useAprilTagAim) {
             updateTurretWithAprilTag();
             noAutoAlign = true;
-        }
-
-        else {
+        } else {
             noAutoAlign = false;
         }
         applyShooterTargets(pose, vx, vy, head);
@@ -395,10 +394,10 @@ public class newTeleop extends OpMode {
 
     private void applyShooterTargets(Pose pose, double vx, double vy, double headingDeg) {
         boolean closeZone = pose.getY() > 62;
-        double targetX = isRedAlliance ? RED_GOAL_X : BLUE_GOAL_X;
+        double targetX;
         if (isRedAlliance) {
             if (closeZone) {
-                targetX = RED_GOAL_X-2.5;
+                targetX = RED_GOAL_X - 2.5;
             } else {
                 targetX = RED_GOAL_X - 7.5;
             }
@@ -407,7 +406,7 @@ public class newTeleop extends OpMode {
             if (closeZone) {
                 targetX = BLUE_GOAL_X;
             } else {
-                targetX = robotHeadingCompensation ? BLUE_GOAL_X : BLUE_GOAL_X - 5;
+                targetX = robotHeadingCompensation ? BLUE_GOAL_X - 4 : BLUE_GOAL_X;
             }
         }
         // shooter.setShooterTarget(pose.getX(), pose.getY(), targetX, GOAL_Y, vx, vy, headingDeg, false); // TRUE for auto align

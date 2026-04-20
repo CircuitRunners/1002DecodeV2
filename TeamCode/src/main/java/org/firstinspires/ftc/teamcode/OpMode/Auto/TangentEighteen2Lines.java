@@ -124,7 +124,7 @@ public class TangentEighteen2Lines extends OpMode {
         if (pathState <= 8) {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
         } else {
-            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X - 7 : BLUE_GOAL_X + 7;
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X + 5;
         }
 
         switch (pathState) {
@@ -163,7 +163,7 @@ public class TangentEighteen2Lines extends OpMode {
                 stopIntakeOnceAtT(0.7);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -241,7 +241,7 @@ public class TangentEighteen2Lines extends OpMode {
                 stopIntakeOnceAtT(0.3);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -280,7 +280,7 @@ public class TangentEighteen2Lines extends OpMode {
                 stopIntakeOnceAtT(0.3);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
                 }
 
                 if (intakeStoppedForShooting
@@ -294,13 +294,13 @@ public class TangentEighteen2Lines extends OpMode {
             case 17: // Drive to Intake 1
                 intake.doIntake();
                 if (!follower.isBusy()) {
-                    turretOffset = targetX == RED_GOAL_X ? -315 : -45;
                     follower.followPath(intake1, false);
                     setPathState();
                 }
                 break;
 
             case 18: // Intake at Line 1
+                intake.doIntake();
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShootFromIntake1, false);
                     setPathState();
@@ -355,7 +355,7 @@ public class TangentEighteen2Lines extends OpMode {
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX-5.5, GOAL_Y,
+                    targetX-10, GOAL_Y,
                     headingDeg,
                     true, -63,
                     mannualHoodOffset,
