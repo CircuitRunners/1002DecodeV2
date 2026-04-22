@@ -97,10 +97,10 @@ public class newTeleop extends OpMode {
 
     public static  double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
     public static double limelightTurretScale = 1.0;
-    public static double limelightTurretTolerance = 4.8; //degrees
+    public static double limelightTurretTolerance = 5; //degrees
 
-    public static double limelightFarZoneOffset = -2.2; //-2.2 old
-    public static double limelightCloseZoneOffset = 1.5; //1.5 old
+    public static double limelightFarZoneOffset = 0; //-2.2 old
+    public static double limelightCloseZoneOffset = 0; //1.5 old
 
 
     public static double turretDeadband = 0;
@@ -588,7 +588,7 @@ public class newTeleop extends OpMode {
     public void updateTurretWithAprilTag() {
         //limelight.limelightCamera.updateRobotOrientation(follower.getHeading());
         //limelight67.pipelineSwitch(3);
-        //LLResult result = limelight.getResult();
+        LLResult result = limelight67.getLatestResult();
 
         Poses.Alliance alliance = Poses.getAlliance();
         if (alliance != null &&
@@ -597,7 +597,7 @@ public class newTeleop extends OpMode {
                 (alliance == Poses.Alliance.RED ? getTagId() == 24 : getTagId() == 20))
         {
             double error = (-result.getTy());
-            if (Math.abs(error) < limelightTurretTolerance) return;
+            if (Math.abs(error) > limelightTurretTolerance) return;
             double currentTurretAngle = shooter.getCurrentTurretPosition();
             double newTarget = currentTurretAngle + (error * limelightTurretScale);
 //            shooter.setTurretTargetPosition(newTarget);

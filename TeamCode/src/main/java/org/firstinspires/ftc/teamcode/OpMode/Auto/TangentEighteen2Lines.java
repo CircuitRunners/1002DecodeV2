@@ -55,6 +55,14 @@ public class TangentEighteen2Lines extends OpMode {
 
     double targetX = 0;
 
+
+    private double newX = BLUE_GOAL_X;
+    private double newY = GOAL_Y;
+
+    private double newGoalCoords[];
+
+    double dist = 0;
+
     public static double startX = 0;
     public static double startY = 0;
 
@@ -123,24 +131,27 @@ public class TangentEighteen2Lines extends OpMode {
     public void autonomousPathUpdate() {
         Pose currentPose = follower.getPose();
         if (pathState <= 8) {
-            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X + 14;
         } else {
-            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X + 5;
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X + 14;
         }
-        double dist = currentPose.distanceFrom(new Pose(targetX, GOAL_Y, 0));
+         dist = currentPose.distanceFrom(new Pose(targetX, GOAL_Y, 0));
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
                 if (!follower.isBusy()) {
                     follower.followPath(travelToShoot, false);
+                    preSpinFlywheel(1);
                     setPathState();
                 }
                 break;
 
             case 1: // Shoot 3 Preloads
-                handleAutoShooting(currentPose, targetX, 3.25, 0, false);
+                handleAutoShooting(currentPose, targetX, 2.8, 0, false,true);
                 if (!goForLaunch
-                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        && (follower.getVelocity().getMagnitude() < 1.8)
+                      //  && pathTimer.getElapsedTimeSeconds() > 0.5
+                ) {
                     goForLaunch = true;
                 }
                 break;
@@ -157,20 +168,21 @@ public class TangentEighteen2Lines extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShoot2, false);
+                    preSpinFlywheel(dist);
                     setPathState();
                 }
                 break;
 
             case 4: // Return to Shoot
-                stopIntakeOnceAtT(0.7);
-                preSpinFlywheel(dist);
+                stopIntakeOnceAtT(0.5);
+
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.4, 0, false,false);
                 }
 
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
+                if (//intakeStoppedForShooting &&
+                        !goForLaunch
+                       // && follower.atParametricEnd()
                         && follower.getVelocity().getMagnitude() < 1.8) {
                     goForLaunch = true;
                 }
@@ -196,21 +208,22 @@ public class TangentEighteen2Lines extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShootFromGate, false);
+                    preSpinFlywheel(dist);
                     setPathState();
                 }
                 break;
 
             case 8: // Shoot (After Gate Cycle 1)
                 stopIntakeOnceAtT(0.3);
-                preSpinFlywheel(dist);
+
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.5, 0, false,false);
                 }
 
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.3) {
+                if (//intakeStoppedForShooting &&
+                        !goForLaunch
+//                        && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.8) {
                     goForLaunch = true;
                 }
                 break;
@@ -235,21 +248,22 @@ public class TangentEighteen2Lines extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShootFromGate, false);
+                    preSpinFlywheel(dist);
                     setPathState();
                 }
                 break;
 
             case 12: // Shoot (After Gate Cycle 2)
                 stopIntakeOnceAtT(0.3);
-                preSpinFlywheel(dist);
+
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.4, 0, false,false);
                 }
 
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.3) {
+                if (//intakeStoppedForShooting &&
+                        !goForLaunch
+                      //  && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.8) {
                     goForLaunch = true;
                 }
                 break;
@@ -274,21 +288,22 @@ public class TangentEighteen2Lines extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                     follower.followPath(travelBackToShootFromGate, false);
+                    preSpinFlywheel(dist);
                     setPathState();
                 }
                 break;
 
             case 16: // Shoot (After Gate Cycle 3)
                 stopIntakeOnceAtT(0.3);
-                preSpinFlywheel(dist);
+
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3.4, 0, false,false);
                 }
 
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.3) {
+                if (//intakeStoppedForShooting &&
+                        !goForLaunch
+                      //  && follower.atParametricEnd()
+                        && follower.getVelocity().getMagnitude() < 1.8) {
                     goForLaunch = true;
                 }
                 break;
@@ -305,20 +320,21 @@ public class TangentEighteen2Lines extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy() || (follower.getVelocity().getMagnitude() <= 1.4 && pathTimer.getElapsedTimeSeconds() > 0.7)) {
                     follower.followPath(travelBackToShootFromIntake1, false);
+                    preSpinFlywheel(dist);
                     setPathState();
                 }
                 break;
 
             case 19: // Final Shoot
                 stopIntakeOnceAtT(0.7);
-                preSpinFlywheel(dist);
+
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 25, 0, true);
+                    handleAutoShooting(currentPose, targetX, 25, 0, true,false);
                 }
 
-                if (intakeStoppedForShooting
-                        && !goForLaunch
-                        && follower.getVelocity().getMagnitude() < 1) {
+                if (//intakeStoppedForShooting &&
+                        !goForLaunch
+                        && follower.getVelocity().getMagnitude() < 1.8) {
                     goForLaunch = true;
                 }
                 break;
@@ -337,41 +353,73 @@ public class TangentEighteen2Lines extends OpMode {
      * and counting exactly 3 shots based on beam break transitions.
      */
     private void preSpinFlywheel(double distance) {
-        double targetVelo = NewShooter.getFlywheelVeloFromDistanceLUT(distance);
-        double prespinVelo = Range.clip(targetVelo - 200, 0, 1000);
-        shooter.setTargetFlywheelVelocityTicks(prespinVelo - 200);
+//        double targetVelo = NewShooter.getFlywheelVeloFromDistanceLUT(distance);
+//        double prespinVelo = Range.clip(targetVelo - 200, 0, 1000);
+//        shooter.setTargetFlywheelVelocityTicks(prespinVelo);
+        shooter.setTargetFlywheelVelocityTicks(1200);
+      //  if (distance <= 1){
+            shooter.setTurretTarget(Poses.getAlliance() == Poses.Alliance.RED ? -135 : 135, NewShooter.TurretMode.ROBOT_CENTRIC,0,0);
+//}
+//        else {
+//            newGoalCoords = shooter.computeVelocityCompensatedPositionFirestorm(targetX, GOAL_Y, follower.getPose().getX(), follower.getPose().getY(), follower.getVelocity().getXComponent(), follower.getVelocity().getYComponent());
+//            newX = newGoalCoords[0];
+//            newY = newGoalCoords[1];
+//            dist = Math.hypot(newX - follower.getPose().getX(), newY - follower.getPose().getY());
+//            shooter.setTargetsByDistanceAdjustable(follower.getPose().getX(), follower.getPose().getY(), Poses.getAlliance() == Poses.Alliance.RED? newX+1.5:newX -6, newY, Math.toDegrees(follower.getHeading()), true, Poses.getAlliance() == Poses.Alliance.RED ?-14:-63, 0, Poses.getAlliance() == Poses.Alliance.RED, turretOffset);
+//
+//
+//            //  shooter.setTurretTarget(Poses.getAlliance() == Poses.Alliance.RED ? -135 : -45, NewShooter.TurretMode.FIELD_CENTRIC, Math.toDegrees(follower.getHeading()), turretOffset);
+//        }
     }
     private void handleAutoShooting(
             Pose pose,
             double targetX,
             double timeout,
-            double mannualHoodOffset, boolean lastTime
+            double mannualHoodOffset, boolean lastTime,boolean firstTime
     ) {
         double headingDeg = Math.toDegrees(pose.getHeading());
 
         // Always command shooter targets
-        if (Poses.getAlliance() == Poses.Alliance.RED) {
-            shooter.setTargetsByDistanceAdjustable(
-                    pose.getX(), pose.getY(),
-                    targetX+1.5, GOAL_Y,
-                    headingDeg,
-                    true, -14,
-                    mannualHoodOffset,
-                    true, 0
-            );
-        } else {
-            shooter.setTargetsByDistanceAdjustable(
-                    pose.getX(), pose.getY(),
-                    targetX-6, GOAL_Y,
-                    headingDeg,
-                    true, -63,
-                    mannualHoodOffset,
-                    false, 0
-            );
+
+        if (firstTime){
+            newGoalCoords = shooter.computeVelocityCompensatedPositionFirestorm(targetX, GOAL_Y, pose.getX(), pose.getY(), follower.getVelocity().getXComponent(), follower.getVelocity().getYComponent());
+            newX = newGoalCoords[0];
+            newY = newGoalCoords[1];
+            dist = Math.hypot(newX - pose.getX(), newY - pose.getY());
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), Poses.getAlliance() == Poses.Alliance.RED? newX+1.5:newX -6, newY, headingDeg, false, Poses.getAlliance() == Poses.Alliance.RED ?-14:-63, mannualHoodOffset, Poses.getAlliance() == Poses.Alliance.RED, turretOffset);
+
+        }
+        else{
+            newGoalCoords = shooter.computeVelocityCompensatedPositionFirestorm(targetX, GOAL_Y, pose.getX(), pose.getY(), follower.getVelocity().getXComponent(), follower.getVelocity().getYComponent());
+            newX = newGoalCoords[0];
+            newY = newGoalCoords[1];
+            dist = Math.hypot(newX - pose.getX(), newY - pose.getY());
+            shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), Poses.getAlliance() == Poses.Alliance.RED? newX+1.5:newX -6, newY, headingDeg, true, Poses.getAlliance() == Poses.Alliance.RED ?-14:-63, mannualHoodOffset, Poses.getAlliance() == Poses.Alliance.RED, turretOffset);
+
         }
 
+//        if (Poses.getAlliance() == Poses.Alliance.RED) {
+//            shooter.setTargetsByDistanceAdjustable(
+//                    pose.getX(), pose.getY(),
+//                    targetX+1.5, GOAL_Y,
+//                    headingDeg,
+//                    true, -14,
+//                    mannualHoodOffset,
+//                    true, 0
+//            );
+//        } else {
+//            shooter.setTargetsByDistanceAdjustable(
+//                    pose.getX(), pose.getY(),
+//                    targetX-6, GOAL_Y,
+//                    headingDeg,
+//                    true, -63,
+//                    mannualHoodOffset,
+//                    false, 0
+//            );
+//        }
+
         //  Only allow feeding when fully ready
-        if (veloReached && goForLaunch) {
+        if (veloReached && goForLaunch && Poses.getAlliance() == Poses.Alliance.RED ? follower.getPose().getX() >= 65 : follower.getPose().getX() <= 78.5  ) {
             doTransfer = true;
         }
 

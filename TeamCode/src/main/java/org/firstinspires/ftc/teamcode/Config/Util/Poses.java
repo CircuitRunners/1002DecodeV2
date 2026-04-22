@@ -286,8 +286,8 @@ public class Poses {
     );
 
     public static final AlliancePose intakeFromGateHighCycle = new AlliancePose(
-            new Pose(153.5, 49.7, Math.toRadians(70)),
-            new Pose(18, 49.7, Math.toRadians(110)) // correct
+            new Pose(153.5, 50.2, Math.toRadians(70)),
+            new Pose(18, 50.2, Math.toRadians(110)) // correct
     );
 
 

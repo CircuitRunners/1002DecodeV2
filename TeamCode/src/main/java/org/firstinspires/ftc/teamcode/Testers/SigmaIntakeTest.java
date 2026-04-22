@@ -164,6 +164,8 @@ public class SigmaIntakeTest extends OpMode {
             telemetry.addData("Status", "Idle");
         }
 
+
+
         //intake.doSortingTelemetry(ball1,ball2,ball3,ballOrder, shooter.isBeamBroken());
 
         telemetry.update();
