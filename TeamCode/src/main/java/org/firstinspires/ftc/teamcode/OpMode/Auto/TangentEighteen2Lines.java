@@ -12,6 +12,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
@@ -126,6 +127,7 @@ public class TangentEighteen2Lines extends OpMode {
         } else {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X + 5;
         }
+        double dist = currentPose.distanceFrom(new Pose(targetX, GOAL_Y, 0));
 
         switch (pathState) {
             case 0: // Travel to Initial Shoot
@@ -161,7 +163,7 @@ public class TangentEighteen2Lines extends OpMode {
 
             case 4: // Return to Shoot
                 stopIntakeOnceAtT(0.7);
-
+                preSpinFlywheel(dist);
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 3.4, 0, false);
                 }
@@ -200,7 +202,7 @@ public class TangentEighteen2Lines extends OpMode {
 
             case 8: // Shoot (After Gate Cycle 1)
                 stopIntakeOnceAtT(0.3);
-
+                preSpinFlywheel(dist);
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 3.5, 0, false);
                 }
@@ -239,7 +241,7 @@ public class TangentEighteen2Lines extends OpMode {
 
             case 12: // Shoot (After Gate Cycle 2)
                 stopIntakeOnceAtT(0.3);
-
+                preSpinFlywheel(dist);
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 3.4, 0, false);
                 }
@@ -278,7 +280,7 @@ public class TangentEighteen2Lines extends OpMode {
 
             case 16: // Shoot (After Gate Cycle 3)
                 stopIntakeOnceAtT(0.3);
-
+                preSpinFlywheel(dist);
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 3.4, 0, false);
                 }
@@ -309,7 +311,7 @@ public class TangentEighteen2Lines extends OpMode {
 
             case 19: // Final Shoot
                 stopIntakeOnceAtT(0.7);
-
+                preSpinFlywheel(dist);
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 25, 0, true);
                 }
@@ -334,6 +336,11 @@ public class TangentEighteen2Lines extends OpMode {
      * Logic for calculating ballistics, locking turret,
      * and counting exactly 3 shots based on beam break transitions.
      */
+    private void preSpinFlywheel(double distance) {
+        double targetVelo = NewShooter.getFlywheelVeloFromDistanceLUT(distance);
+        double prespinVelo = Range.clip(targetVelo - 200, 0, 1000);
+        shooter.setTargetFlywheelVelocityTicks(prespinVelo - 200);
+    }
     private void handleAutoShooting(
             Pose pose,
             double targetX,
@@ -355,7 +362,7 @@ public class TangentEighteen2Lines extends OpMode {
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX-10, GOAL_Y,
+                    targetX-6, GOAL_Y,
                     headingDeg,
                     true, -63,
                     mannualHoodOffset,
@@ -496,7 +503,6 @@ public class TangentEighteen2Lines extends OpMode {
         double flywheelVelo = shooter.getFlywheelVelo();
         double targetFlywheelVelo = shooter.getTargetFLywheelVelo();
 
-        shooter.update(shooter.getCurrentTurretPosition());
         intake.update(
                 beamBroken,
                 LimelightCamera.BallOrder.GREEN_PURPLE_PURPLE,
@@ -504,6 +510,8 @@ public class TangentEighteen2Lines extends OpMode {
         );
 
         autonomousPathUpdate();
+
+        shooter.update(shooter.getCurrentTurretPosition());
 
         veloReached =
                 (Math.abs(flywheelVelo) >

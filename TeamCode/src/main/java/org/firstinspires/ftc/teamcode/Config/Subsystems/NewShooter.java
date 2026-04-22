@@ -467,7 +467,7 @@ public class NewShooter {
     // ##  Flywheel Control
     // ------------------------------------
 
-    public void setTargetVelocityTicks(double targetTicksPerSec) {
+    public void setTargetFlywheelVelocityTicks(double targetTicksPerSec) {
         targetFlywheelVelocity = Range.clip(targetTicksPerSec, 0, MAX_FLYWHEEL_VELO_LIMIT_TICKS_SEC);
         //flywheelPIDF.setSetPoint(targetFlywheelVelocity);
     }
@@ -555,7 +555,7 @@ public class NewShooter {
      * Returns interpolated flywheel velocity (ticks/sec)
      * for a given distance in inches.
      */
-    private static double getFlywheelVeloFromDistanceLUT(double distanceInches) {
+    public static double getFlywheelVeloFromDistanceLUT(double distanceInches) {
 
         // --- Clamp below table ---
         if (distanceInches <= VELO_LUT[0][0]) {
@@ -695,7 +695,7 @@ public class NewShooter {
 
     public void stopFlywheel() {
         setFlywheelPower(0);
-        setTargetVelocityTicks(0);
+        setTargetFlywheelVelocityTicks(0);
     }
 
     public double getCurrentRequiredFlywheelTicks() {
@@ -736,7 +736,7 @@ public class NewShooter {
         // Quartic calculation for Hood
         hoodPos = getHoodAngleFromDistanceLUT(x);
 
-        setTargetVelocityTicks(velo);
+        setTargetFlywheelVelocityTicks(velo);
         setHoodTargetAngle(Range.clip(hoodPos + hoodMannualAdjustment,0,45));
         if (autoAlign){
 
@@ -773,7 +773,7 @@ public class NewShooter {
         // Quartic calculation for Hood
         hoodPos = getHoodAngleFromDistanceLUT(x);
 
-        setTargetVelocityTicks(velo + flywheelMannualAdjustment);
+        setTargetFlywheelVelocityTicks(velo + flywheelMannualAdjustment);
         setHoodTargetAngle(Range.clip(hoodPos + hoodMannualAdjustment,0,45));
         if (autoAlign){
             double requiredFieldYaw;

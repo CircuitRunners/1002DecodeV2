@@ -125,7 +125,7 @@ public class Poses {
 
     public static final AlliancePose shootPositionGoalSide15BallTangentLastTime = new AlliancePose(
             new Pose(105.5, 102, Math.toRadians(-90)),
-            new Pose(45.5, 102, Math.toRadians(270)) // 144 - 100.5 = 43.5
+            new Pose(47.5, 106, Math.toRadians(270)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide15BallLastTime = new AlliancePose(

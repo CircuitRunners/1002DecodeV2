@@ -11,8 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
-import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
-import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -142,10 +140,10 @@ public class ShooterKTuner extends OpMode {
 
         if (enableShooter) {
             if (sixSeven){
-                shooter.setTargetVelocityTicks(flywheelTicksFromDistance(follower.getPose().getX(),follower.getPose().getY(), GOAL_X,GOAL_Y));
+                shooter.setTargetFlywheelVelocityTicks(flywheelTicksFromDistance(follower.getPose().getX(),follower.getPose().getY(), GOAL_X,GOAL_Y));
             }
             else {
-                shooter.setTargetVelocityTicks(targetTicksPerSec);
+                shooter.setTargetFlywheelVelocityTicks(targetTicksPerSec);
             }
         } else {
             shooter.stopFlywheel();
