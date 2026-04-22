@@ -150,7 +150,7 @@ public class TangentEighteen2Lines extends OpMode {
                 handleAutoShooting(currentPose, targetX, 2.8, 0, false,true);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8)
-                      //  && pathTimer.getElapsedTimeSeconds() > 0.5
+                        && pathTimer.getElapsedTimeSeconds() > 0.5
                 ) {
                     goForLaunch = true;
                 }

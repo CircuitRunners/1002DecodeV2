@@ -95,7 +95,7 @@ public class newTeleop extends OpMode {
 
     boolean teleopShootApporval = false;
 
-    public static  double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
+    public static double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
     public static double limelightTurretScale = 1.0;
     public static double limelightTurretTolerance = 5; //degrees
 
@@ -106,8 +106,6 @@ public class newTeleop extends OpMode {
     public static double turretDeadband = 0;
 
     LLResult result = null;
-
-
 
 
     @Override
@@ -126,7 +124,7 @@ public class newTeleop extends OpMode {
         drive.init(hardwareMap);
 
         intake = new Intake(hardwareMap, telemetry);
-        shooter = new NewShooter(hardwareMap, telemetry,false);
+        shooter = new NewShooter(hardwareMap, telemetry, false);
 //        limelight = new LimelightCamera(hardwareMap);
 //        limelight.limelightCamera.start();
 //        limelight.limelightCamera.pipelineSwitch(3);
@@ -138,7 +136,6 @@ public class newTeleop extends OpMode {
 
         limelight67.pipelineSwitch(3);
         limelight67.start();
-
 
 
         sensors = new Sensors();
@@ -162,7 +159,7 @@ public class newTeleop extends OpMode {
     }
 
     @Override
-    public void start(){
+    public void start() {
         // limelight.limelightCamera.pipelineSwitch(5);
     }
 
@@ -180,12 +177,10 @@ public class newTeleop extends OpMode {
 
         follower.getVelocity();
 
-        veloReached =  (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(0.88 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(1.09 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getTargetFLywheelVelo()) >=1);
+        veloReached = (Math.abs(shooter.getFlywheelVelo()) > (Math.abs(0.88 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getFlywheelVelo()) < (Math.abs(1.09 * shooter.getTargetFLywheelVelo())) && Math.abs(shooter.getTargetFLywheelVelo()) >= 1);
 
 
-
-
-        if (limelight67.getLatestResult().isValid() && llError <=1.1) {
+        if (limelight67.getLatestResult().isValid() && llError <= 1.1) {
             sensors.setLight(0.600);
         } else {
             sensors.setLight(0.5);
@@ -198,8 +193,11 @@ public class newTeleop extends OpMode {
         double robotVelX = follower.getVelocity().getXComponent();
         double robotVelY = follower.getVelocity().getYComponent();
 
-        if (follower.getVelocity().getMagnitude() <= 20.0) {shootOnDaMove = false;}
-        else {shootOnDaMove = true;}
+        if (follower.getVelocity().getMagnitude() <= 20.0) {
+            shootOnDaMove = false;
+        } else {
+            shootOnDaMove = true;
+        }
 
         LimelightCamera.BallOrder activePattern = (Intake.targetPatternFromAuto != null)
                 ? Intake.targetPatternFromAuto
@@ -212,14 +210,11 @@ public class newTeleop extends OpMode {
         result = limelight67.getLatestResult();
 
 
-
         if (result != null && result.isValid()) {
             llError = -result.getTy();
         } else {
             llError = 0;
         }
-
-
 
 
 //        String data = String.format(Locale.US,
@@ -243,8 +238,8 @@ public class newTeleop extends OpMode {
         telemetry.addData("ALLIANCE", isRedAlliance ? "RED" : "BLUE");
         telemetry.addData("MODE", opState == 0 ? "INTAKE" : opState == 1 ? "BURST" : "SORT");
         telemetry.addData("Loop Time", "%.2f ms", timer.milliseconds());
-        telemetry.addData("Flywheel Reached",veloReached );
-        telemetry.addData("Turret Reached",shooter.turretReached ? "YEA": "NAH");
+        telemetry.addData("Flywheel Reached", veloReached);
+        telemetry.addData("Turret Reached", shooter.turretReached ? "YEA" : "NAH");
         telemetry.addData("Turret Mode", useAprilTagAim ? "LIMELIGHT" : "FIELD");
         telemetry.addData("Limelight Counter", aprilTagCounter);
         telemetry.addData("Shoot While Moving", shootOnDaMove ? "YEA" : "NAH");
@@ -253,7 +248,7 @@ public class newTeleop extends OpMode {
         telemetry.addLine("--- DIAGNOSTICS ---");
         telemetry.addData("Distance From Goal", Math.hypot(isRedAlliance ? Math.abs(RED_GOAL_X - currentPose.getX()) : Math.abs(BLUE_GOAL_X - currentPose.getX()), Math.abs(GOAL_Y - currentPose.getY())));
         telemetry.addData("Turret Ang", "%.2f", currentTurretAngle);
-        telemetry.addData("DESIRED VELO:",shooter.getTargetFLywheelVelo());
+        telemetry.addData("DESIRED VELO:", shooter.getTargetFLywheelVelo());
         telemetry.addData("Flywheel Velo", currentFlywheelVelo);
         telemetry.addData("Shooter 1 Velo", shooter.shooter1.getVelocity());
         telemetry.addData("Shooter 2 Velo", shooter.shooter2.getVelocity());
@@ -265,7 +260,6 @@ public class newTeleop extends OpMode {
         // telemetry.addData("Shot Possible", !shooter.isShotImpossible);
 
 
-
         // --- 3. LOGIC & OVERRIDES ---
         handleManualTurretOverrides(follower.getPose().getHeading());
         handleAllianceToggles();
@@ -274,16 +268,22 @@ public class newTeleop extends OpMode {
 
         // --- 4. STATE MACHINE ---
         switch (opState) {
-            case 0: handleIntakeState(); break;
-            case 1: handleScoringStateNoSort(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken); break;
-            case 2: handleScoringState(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken); break;
+            case 0:
+                handleIntakeState();
+                break;
+            case 1:
+                handleScoringStateNoSort(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken);
+                break;
+            case 2:
+                handleScoringState(currentPose, robotVelX, robotVelY, currentHeadingDeg, isBeamBroken);
+                break;
         }
 
         // --- 5. SUBSYSTEM UPDATES ---
-        intake.setCanShoot(veloReached && shooter.turretReached && teleopShootApporval );
+        intake.setCanShoot(veloReached && shooter.turretReached && teleopShootApporval);
         shooter.update(currentTurretAngle);
         intake.update(isBeamBroken, activePattern,
-                null,null,null);
+                null, null, null);
 
         // --- 6. TELEMETRY ---
 
@@ -297,8 +297,7 @@ public class newTeleop extends OpMode {
         if (player1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
             turretMannualAdjust += 5;
 
-        }
-        else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+        } else if (player1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
             turretMannualAdjust -= 5;
 
         }
@@ -311,17 +310,16 @@ public class newTeleop extends OpMode {
             //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         }
 
-        if (player2.wasJustPressed(GamepadKeys.Button.CROSS)){
+        if (player2.wasJustPressed(GamepadKeys.Button.CROSS)) {
             //shooter.setTurretTarget(limelight.updateError(), Shooter.TurretMode.ROBOT_CENTRIC,currentAngle,0);
         }
-        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)){
+        if (player1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
             mannualFlywheelAdj += 3.5;
             //shooter.resetTurretPID();
         }
 
         //square turns it off
     }
-
 
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
@@ -341,31 +339,28 @@ public class newTeleop extends OpMode {
         }
         applyShooterTargets(pose, vx, vy, head);
 
-        if (veloReached  && !vibratedYet) {
+        if (veloReached && !vibratedYet) {
             gamepad1.rumble(250);
             vibratedYet = true;
-        }
-        else if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+        } else if (vibratedYet && (gamepad1.right_trigger > 0.2)) {
             initiateTransfer = true;
         }
 
 
-
-        if (initiateTransfer){
+        if (initiateTransfer) {
             trackShotCount(beam);
         }
-        if (initiateTransfer && veloReached && (pose.getY() > 80)){
+        if (initiateTransfer && veloReached && (pose.getY() > 80)) {
             teleopShootApporval = true;
             intake.doTestShooter();
-        }
-        else if (initiateTransfer && veloReached && (pose.getY() <= 80 && gamepad1.right_trigger > 0.2)){
+        } else if (initiateTransfer && veloReached && (pose.getY() <= 80 && gamepad1.right_trigger > 0.2)) {
             teleopShootApporval = true;
             intake.doTestShooter();
         }
 //        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
 //            intake.doIntakeHalt();
 //        }
-        else{
+        else {
             intake.doIntakeHalt();
         }
 
@@ -376,18 +371,17 @@ public class newTeleop extends OpMode {
         applyShooterTargets(pose, vx, vy, head);
 
 
-        if (veloReached  && !vibratedYet) {
+        if (veloReached && !vibratedYet) {
             gamepad1.rumble(250);
             vibratedYet = true;
-        }
-        else if (!intake.canShoot){
+        } else if (!intake.canShoot) {
             vibratedYet = false;
         }
-        if (vibratedYet && (gamepad1.right_trigger > 0.2)){
+        if (vibratedYet && (gamepad1.right_trigger > 0.2)) {
             initiateTransfer = true;
         }
 
-        if (initiateTransfer){
+        if (initiateTransfer) {
             teleopShootApporval = true;
             trackShotCount(beam);
         }
@@ -425,14 +419,14 @@ public class newTeleop extends OpMode {
                 newX = newGoalCoords[0];
                 newY = newGoalCoords[1];
                 dist = Math.hypot(newX - pose.getX(), newY - pose.getY());
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), isRedAlliance? newX-2.5:newX + 2, newY, headingDeg, true, isRedAlliance ?-38:-15, 0, false, 0);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), isRedAlliance ? newX - 2.5 : newX + 2, newY, headingDeg, true, isRedAlliance ? -38 : -15, 0, false, 0);
                 if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
             } else {
 
-                dist = Math.hypot(isRedAlliance? (targetX-2.5) - pose.getX() : targetX - pose.getX(), GOAL_Y - pose.getY());
+                dist = Math.hypot(isRedAlliance ? (targetX - 2.5) - pose.getX() : targetX - pose.getX(), GOAL_Y - pose.getY());
                 newX = targetX;
                 newY = GOAL_Y;
-                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX, GOAL_Y, headingDeg, autoAlign, isRedAlliance?-31:-15, 0, isRedAlliance, turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX, GOAL_Y, headingDeg, autoAlign, isRedAlliance ? -31 : -15, 0, isRedAlliance, turretMannualAdjust);
             }
         } else {
             //turretOffsetFar = isRedAlliance ? -12.5 : 12.5;
@@ -457,7 +451,10 @@ public class newTeleop extends OpMode {
         double strafe = player1.getLeftX();
         double rotate = player1.getRightX();
 
-        if (!isRedAlliance) { forward = -forward; strafe = -strafe; }
+        if (!isRedAlliance) {
+            forward = -forward;
+            strafe = -strafe;
+        }
         double heading = pose.getHeading();
         double theta = Math.atan2(forward, strafe) - heading;
         double r = Math.hypot(forward, strafe);
@@ -492,13 +489,13 @@ public class newTeleop extends OpMode {
     }
 
     private void handleInputOverrides() {
-        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE)) follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+        if (player1.wasJustPressed(GamepadKeys.Button.SQUARE))
+            follower.setPose(new Pose(72, 72, Math.toRadians(90)));
         if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
-            if (isRedAlliance){
+            if (isRedAlliance) {
                 follower.setPose(new Pose(0, 17, Math.toRadians(180)));
-            }
-            else {
-                follower.setPose(new Pose(124,9,Math.toRadians(0)));
+            } else {
+                follower.setPose(new Pose(124, 9, Math.toRadians(0)));
             }
         }
         //if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();
@@ -507,7 +504,10 @@ public class newTeleop extends OpMode {
             //if (seen != null) { Intake.targetPatternFromAuto = seen; gamepad1.rumble(500); }
         }
         if (player1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
-            if (opState ==0) { ballsShotInState = 0; opState = 1; } else resetToIntake();
+            if (opState == 0) {
+                ballsShotInState = 0;
+                opState = 1;
+            } else resetToIntake();
         }
 
         if (player1.wasJustPressed(GamepadKeys.Button.OPTIONS)) {
@@ -533,9 +533,9 @@ public class newTeleop extends OpMode {
     private void handleIntakeState() {
 
         //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
-        if (gamepad1.right_trigger > 0.2){
+        if (gamepad1.right_trigger > 0.2) {
             intake.doIntake();
-            if (!noAutoAlign){
+            if (!noAutoAlign) {
                 shooter.setTurretTarget(0, NewShooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), turretMannualAdjust);
             }
 
@@ -593,19 +593,17 @@ public class newTeleop extends OpMode {
         Poses.Alliance alliance = Poses.getAlliance();
         if (alliance != null &&
                 result != null &&
-                result.isValid() &&
-                (alliance == Poses.Alliance.RED ? getTagId() == 24 : getTagId() == 20))
-        {
+                // result.isValid() &&
+                (alliance == Poses.Alliance.RED ? getTagId() == 24 : getTagId() == 20)) {
             double error = (-result.getTy());
             if (Math.abs(error) > limelightTurretTolerance) return;
             double currentTurretAngle = shooter.getCurrentTurretPosition();
             double newTarget = currentTurretAngle + (error * limelightTurretScale);
 //            shooter.setTurretTargetPosition(newTarget);
 
-            if (follower.getPose().getY() < 50){
+            if (follower.getPose().getY() < 50) {
                 shooter.setTurretTargetPosition(newTarget + limelightFarZoneOffset);
-            }
-            else {
+            } else {
                 shooter.setTurretTargetPosition(newTarget + limelightCloseZoneOffset);
             }
             aprilTagCounter += 1;
@@ -618,7 +616,8 @@ public class newTeleop extends OpMode {
 
     }
 
-    @Override public void stop() { //limelight.limelightCamera.stop();
+    @Override
+    public void stop() { //limelight.limelightCamera.stop();
     }
 
 //    public void calculateIterativeShot(){
@@ -646,8 +645,7 @@ public class newTeleop extends OpMode {
 //    }
 
 
-    public int getTagId(){
-
+    public int getTagId() {
 
 
         if (result != null) {
@@ -660,5 +658,6 @@ public class newTeleop extends OpMode {
 
         return 0;
     }
-
 }
+
+
