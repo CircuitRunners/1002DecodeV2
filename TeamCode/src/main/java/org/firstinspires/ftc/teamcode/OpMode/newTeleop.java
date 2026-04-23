@@ -97,7 +97,7 @@ public class newTeleop extends OpMode {
 
     public static double[] turretCoefficientsTeleop = {0.06, 0.00, 0.00225, 0.0024125};
     public static double limelightTurretScale = 1.0;
-    public static double limelightTurretTolerance = 5; //degrees
+    public static double limelightTurretTolerance = 1.1; //degrees
 
     public static double limelightFarZoneOffset = 0; //-2.2 old
     public static double limelightCloseZoneOffset = 0; //1.5 old
@@ -243,6 +243,7 @@ public class newTeleop extends OpMode {
         telemetry.addData("Turret Mode", useAprilTagAim ? "LIMELIGHT" : "FIELD");
         telemetry.addData("Limelight Counter", aprilTagCounter);
         telemetry.addData("Shoot While Moving", shootOnDaMove ? "YEA" : "NAH");
+        telemetry.addData("Follower velo:",follower.getVelocity().getMagnitude());
 
 
         telemetry.addLine("--- DIAGNOSTICS ---");
@@ -568,7 +569,11 @@ public class newTeleop extends OpMode {
         telemetry.addData("Beam Broken", beam);
         //telemetry.addData("Shot Possible", !shooter.isShotImpossible);
         telemetry.update();
+
+
     }
+
+
 
 //    public void updateCoordinatesWithAprilTag() {
 //        limelight67.updateRobotOrientation(Math.toRadians(((shooter.getCurrentTurretPosition() - Math.toDegrees(follower.getHeading())) + 360) % 360 ));
@@ -596,7 +601,7 @@ public class newTeleop extends OpMode {
                 // result.isValid() &&
                 (alliance == Poses.Alliance.RED ? getTagId() == 24 : getTagId() == 20)) {
             double error = (-result.getTy());
-            if (Math.abs(error) > limelightTurretTolerance) return;
+            if (Math.abs(error) < limelightTurretTolerance) return;
             double currentTurretAngle = shooter.getCurrentTurretPosition();
             double newTarget = currentTurretAngle + (error * limelightTurretScale);
 //            shooter.setTurretTargetPosition(newTarget);
