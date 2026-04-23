@@ -1035,6 +1035,10 @@ public class Intake {
 //        newState(IntakeState.TRANSFERRING);
 //    }
 
+    public IntakeState getIntakeState() {
+        return currentState;
+    }
+
     public SimpleSortState getCurrentIntakeState() {
         return simpleSortState;
     }

@@ -14,9 +14,13 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Config.Logging.LogRow;
+import org.firstinspires.ftc.teamcode.Config.Logging.MatchLogger;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Intake;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.IntakeWithLogging;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooter;
+import org.firstinspires.ftc.teamcode.Config.Subsystems.NewShooterWithLogging;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Sensors;
 import org.firstinspires.ftc.teamcode.Config.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Config.Util.Poses;
@@ -38,6 +42,7 @@ public class TangentEighteen3Lines extends OpMode {
     private NewShooter shooter;
     private Intake intake;
     private Sensors sensors;
+    private MatchLogger logger;
 
     private List<LynxModule> allHubs;
 
@@ -463,8 +468,9 @@ public class TangentEighteen3Lines extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
-        intake = new Intake(hardwareMap, telemetry);
-        shooter = new NewShooter(hardwareMap, telemetry, true);
+        logger = new MatchLogger();
+        intake = new IntakeWithLogging(hardwareMap, telemetry, logger);
+        shooter = new NewShooterWithLogging(hardwareMap, telemetry, true, logger);
         sensors = new Sensors();
         sensors.init(hardwareMap, "SRSHub");
     }
@@ -501,6 +507,7 @@ public class TangentEighteen3Lines extends OpMode {
     public void start() {
         pathTimer.resetTimer();
         setPathState(0);
+        logger.start();
     }
 
     @Override
@@ -510,6 +517,8 @@ public class TangentEighteen3Lines extends OpMode {
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();
         }
+
+        logger.beginRow();
 
         follower.update();
         pinpoint.update();
@@ -539,6 +548,21 @@ public class TangentEighteen3Lines extends OpMode {
                         &&
                         Math.abs(targetFlywheelVelo) >= 1);
 
+        LogRow row = logger.getCurrentRow();
+        Pose logPose = follower.getPose();
+        row.robotX                   = logPose.getX();
+        row.robotY                   = logPose.getY();
+        row.robotHeadingDeg          = Math.toDegrees(logPose.getHeading());
+        row.robotVelocity            = follower.getVelocity().getMagnitude();
+        row.pathTValue               = follower.getCurrentTValue();
+        row.pathState                = pathState;
+        row.ballsShotInState         = ballsShotInState;
+        row.goForLaunch              = goForLaunch;
+        row.intakeStoppedForShooting = intakeStoppedForShooting;
+        row.beamWasCleared           = beamWasCleared;
+        row.veloReachedTight         = veloReached;
+        logger.commitRow();
+
         telemetry.addData("State", pathState);
         telemetry.addData("Balls Fired", ballsShotInState);
         telemetry.addData("Beam Status", beamBroken ? "BROKEN" : "CLEAR");
@@ -562,5 +586,6 @@ public class TangentEighteen3Lines extends OpMode {
         shooter.turretEndPosAuto = shooter.getCurrentTurretPosition();
         intake.resetState();
         Poses.savePose(follower.getPose());
+        logger.dump();
     }
 }

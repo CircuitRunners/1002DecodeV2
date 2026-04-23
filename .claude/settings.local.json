@@ -4,7 +4,17 @@
       "Bash(xargs grep:*)",
       "Bash(find /c/Users/xiaoh/dev/1002DecodeV2/TeamCode/src -type f -name *.java)",
       "Bash(find /c/Users/xiaoh/dev/1002DecodeV2/TeamCode/src -name *.java -type f)",
-      "Bash(find C:/Users/xiaoh/dev/1002DecodeV2 -name *.xml)"
+      "Bash(find C:/Users/xiaoh/dev/1002DecodeV2 -name *.xml)",
+      "Bash(cd /tmp)",
+      "Bash(cp \"C:/Users/xiaoh/.gradle/caches/modules-2/files-2.1/com.pedropathing/ftc/2.1.1/ebd482b04b29a1738cafb3fec5d1f6a1fef3a97a/ftc-2.1.1.aar\" ftc.zip)",
+      "Bash(unzip -q ftc.zip -d ftc)",
+      "Bash(jar tf *)",
+      "Bash(jar xf *)",
+      "Bash(javap -p com/pedropathing/follower/Follower.class)",
+      "Bash(javap -p /tmp/com/pedropathing/math/Vector.class)",
+      "Bash(javap -p /tmp/com/pedropathing/geometry/Pose.class)",
+      "Bash(javap -p /tmp/com/pedropathing/follower/Follower.class)",
+      "Bash(javap -c /tmp/com/qualcomm/robotcore/util/RobotLog.class)"
     ]
   }
 }
