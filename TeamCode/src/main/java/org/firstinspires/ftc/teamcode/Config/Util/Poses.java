@@ -198,8 +198,8 @@ public class Poses {
             new Pose(20, 36, Math.toRadians(180))
     );
     public static final AlliancePose pickupLine3Far = new AlliancePose(
-            new Pose(139, 32, Math.toRadians(0)),
-            new Pose(5, 34, Math.toRadians(180))
+            new Pose(126, 34.5, Math.toRadians(0)),
+            new Pose(9, 34, Math.toRadians(180))
     );
 
     public static final AlliancePose chainPickupLine3 = new AlliancePose(
@@ -315,8 +315,8 @@ public class Poses {
             new Pose(58, 11.5, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
-            new Pose(134, 12, Math.toRadians(0)),
-            new Pose(9, 12, Math.toRadians(180))
+            new Pose(136, 10.5, Math.toRadians(0)),
+            new Pose(7, 11, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntakeRam = new AlliancePose(
             new Pose(134, 15, Math.toRadians(0)),
