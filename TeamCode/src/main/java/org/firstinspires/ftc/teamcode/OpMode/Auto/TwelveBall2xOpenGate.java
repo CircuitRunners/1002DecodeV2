@@ -219,7 +219,7 @@ public class TwelveBall2xOpenGate extends OpMode {
 
             case 7: // Return to Shoot (Cycle 1)
                 intake.doIntake();
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && follower.getVelocity().getMagnitude() <= 1.3) {
                     follower.followPath(travelBackToShootFromGate, false);
                     setPathState();
                 }
@@ -244,7 +244,7 @@ public class TwelveBall2xOpenGate extends OpMode {
                 if (!follower.isBusy()) {
                     intake.doIntake();
                     follower.followPath(intake3, false);
-                    setPathState();
+                    setPathState(900);
                 }
                 break;
 
