@@ -119,6 +119,11 @@ public class Poses {
             new Pose(51.5, 94, Math.toRadians(130.5)) // 144 - 100.5 = 43.5
     );
     public static final AlliancePose shootPositionGoalSide15BallTangent = new AlliancePose(
+            new Pose(99.5, 84, Math.toRadians(Math.toRadians((218.51 + 180)) % 360)),
+            new Pose(51.5, 84, Math.toRadians((321.5 + 180)) % 360) // 144 - 100.5 = 43.5
+    );
+
+    public static final AlliancePose shootPositionGoalSide18BallTangent = new AlliancePose(
             new Pose(99.5, 84, Math.toRadians(-90)),
             new Pose(51.5, 84, Math.toRadians(270)) // 144 - 100.5 = 43.5
     );
@@ -309,6 +314,11 @@ public class Poses {
     public static final AlliancePose startPose15Ball = new AlliancePose(
             new Pose(136.5, 121.5, Math.toRadians(218.51)), //118.5
             new Pose(19.7, 108.6, Math.toRadians(321.5))
+    );
+
+    public static final AlliancePose startPose18Ball = new AlliancePose(
+            new Pose(136.5, 121.5, Math.toRadians((218.51 + 180)) % 360), //118.5
+            new Pose(19.7, 108.6, Math.toRadians((321.5 + 180)) % 360)
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
             new Pose(86, 11.5, Math.toRadians(0)),
