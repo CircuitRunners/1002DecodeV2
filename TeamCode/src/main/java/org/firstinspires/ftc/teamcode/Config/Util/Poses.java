@@ -336,6 +336,16 @@ public class Poses {
             new Pose(124, 12, Math.toRadians(0)),
             new Pose(15, 12, Math.toRadians(180))
     );
+
+    public static final AlliancePose sussy21BallFarPath = new AlliancePose(
+            new Pose(139, 48, Math.toRadians(0)),
+            new Pose(5, 48, Math.toRadians(180))
+    );
+
+    public static final AlliancePose sussy21BallFarPathControlPoint = new AlliancePose(
+            new Pose(144, 2, Math.toRadians(0)),
+            new Pose(0, 2, Math.toRadians(180))
+    );
 //    public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
 //            new Pose(96.3, 7.2),
 //            new Pose(47.7, 7.2)
