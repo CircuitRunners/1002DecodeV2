@@ -6,6 +6,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -67,7 +68,13 @@ public class FarZoneAuto1Line21 extends OpMode {
 
         megaIntakePath = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.sussy21BallFarPathControlPoint), Poses.get(Poses.sussy21BallFarPath)))
-                .setTangentHeadingInterpolation()
+//                .setTangentHeadingInterpolation()
+                .setHeadingInterpolation(
+                        HeadingInterpolator.piecewise(
+                                new HeadingInterpolator.PiecewiseNode(0,.3,HeadingInterpolator.tangent),
+                                new HeadingInterpolator.PiecewiseNode(.3,1,HeadingInterpolator.constant(Poses.getAlliance() == Poses.Alliance.RED ? -45 : - 225 )
+                                )
+                        ))
                 .build();
 
         humanPlayerIntake = follower.pathBuilder()
@@ -121,8 +128,8 @@ public class FarZoneAuto1Line21 extends OpMode {
 
         park  = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.humanPlayerIntake)))
-                //.setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
-                .setTangentHeadingInterpolation().setReversed()
+                .setLinearHeadingInterpolation(Poses.get(Poses.shootPositionFarSide).getHeading(), Poses.get(Poses.humanPlayerIntake).getHeading(), 0.25)
+
                 .build();
     }
 
