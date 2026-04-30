@@ -124,8 +124,8 @@ public class Poses {
     );
 
     public static final AlliancePose shootPositionGoalSide18BallTangent = new AlliancePose(
-            new Pose(99.5, 84, Math.toRadians(-90)),
-            new Pose(51.5, 84, Math.toRadians(270)) // 144 - 100.5 = 43.5
+            new Pose(105.5, 80, Math.toRadians(-90)),
+            new Pose(47.5, 80, Math.toRadians(270)) // 144 - 100.5 = 43.5
     );
 
     public static final AlliancePose shootPositionGoalSide15BallTangentLastTime = new AlliancePose(
@@ -317,24 +317,29 @@ public class Poses {
     );
 
     public static final AlliancePose startPose18Ball = new AlliancePose(
-            new Pose(136.5, 121.5, Math.toRadians((218.51 + 180)) % 360), //118.5
-            new Pose(19.7, 108.6, Math.toRadians((321.5 + 180)) % 360)
+            new Pose(141.7, 115.7, Math.toRadians((218.51 + 180)) % 360), //118.5
+            new Pose(25.5, 118.5, Math.toRadians((321.5 + 180)) % 360)
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
             new Pose(86, 11.5, Math.toRadians(0)),
             new Pose(58, 11.5, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
-            new Pose(136, 10.5, Math.toRadians(0)),
-            new Pose(7, 11, Math.toRadians(180))
+            new Pose(132, 10.5, Math.toRadians(0)),
+            new Pose(8, 11, Math.toRadians(180))
     );
+
+//     public static final AlliancePose humanPlayerIntake = new AlliancePose(
+//            new Pose(135, 10.5, Math.toRadians(0)),
+//            new Pose(8, 11, Math.toRadians(180))
+//    );
     public static final AlliancePose humanPlayerIntakeRam = new AlliancePose(
             new Pose(134, 15, Math.toRadians(0)),
             new Pose(9, 15, Math.toRadians(180))
     );
     public static final AlliancePose backUpPoint = new AlliancePose(
-            new Pose(124, 12, Math.toRadians(0)),
-            new Pose(15, 12, Math.toRadians(180))
+            new Pose(130, 12, Math.toRadians(0)),
+            new Pose(11, 12, Math.toRadians(180))
     );
 
     public static final AlliancePose sussy21BallFarPath = new AlliancePose(
@@ -343,8 +348,8 @@ public class Poses {
     );
 
     public static final AlliancePose sussy21BallFarPathControlPoint = new AlliancePose(
-            new Pose(144, 2, Math.toRadians(0)),
-            new Pose(0, 2, Math.toRadians(180))
+            new Pose(144, 25, Math.toRadians(0)),
+            new Pose(0, 25, Math.toRadians(180))
     );
 //    public static final AlliancePose humanPlayerControlPoint = new AlliancePose(
 //            new Pose(96.3, 7.2),

@@ -78,7 +78,8 @@ public class TangentEighteen2Lines extends OpMode {
         // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
                 .addPath(new BezierLine(Poses.get(Poses.startPose18Ball), Poses.get(Poses.shootPositionGoalSide18BallTangent)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPose18Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide18BallTangent).getHeading())
+                //.setLinearHeadingInterpolation(Poses.get(Poses.startPose18Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide18BallTangent).getHeading())
+                .setConstantHeadingInterpolation(Poses.get(Poses.startPose18Ball).getHeading())
                 .build();
 
 
@@ -98,7 +99,7 @@ public class TangentEighteen2Lines extends OpMode {
                 .build();
 
         sigmaCycle  = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .addPath(new BezierLine(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.openGateHighCycle)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
                 .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
@@ -148,7 +149,7 @@ public class TangentEighteen2Lines extends OpMode {
                 handleAutoShootingSOTM(currentPose, targetX, 2.8, 0, false,true);
                 if (!goForLaunch
                        // && (follower.getVelocity().getMagnitude() < 1.8)
-                        && pathTimer.getElapsedTimeSeconds() > 0.75
+                        && pathTimer.getElapsedTimeSeconds() > 0.5
                 ) {
                     goForLaunch = true;
                 }
@@ -175,13 +176,15 @@ public class TangentEighteen2Lines extends OpMode {
                 stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3, 0, false);
                 }
 
                 if (//intakeStoppedForShooting &&
                         !goForLaunch
                        // && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.8) {
+                        //&& follower.getVelocity().getMagnitude() < 1.8)
+                        && follower.getCurrentTValue() > 0.9)
+                                {
                     goForLaunch = true;
                 }
                 break;
@@ -197,7 +200,7 @@ public class TangentEighteen2Lines extends OpMode {
             case 6: // WAIT at Gate (Cycle 1)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 3.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -212,16 +215,18 @@ public class TangentEighteen2Lines extends OpMode {
                 break;
 
             case 8: // Shoot (After Gate Cycle 1)
-                stopIntakeOnceAtT(0.3);
+                stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.5, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3, 0, false);
                 }
 
                 if (//intakeStoppedForShooting &&
                         !goForLaunch
 //                        && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.8) {
+                      //  && follower.getVelocity().getMagnitude() < 1.8) {
+                                && follower.getCurrentTValue() > 0.95)
+                {
                     goForLaunch = true;
                 }
                 break;
@@ -237,7 +242,7 @@ public class TangentEighteen2Lines extends OpMode {
             case 10: // WAIT at Gate (Cycle 2)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 3.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -252,7 +257,7 @@ public class TangentEighteen2Lines extends OpMode {
                 break;
 
             case 12: // Shoot (After Gate Cycle 2)
-                stopIntakeOnceAtT(0.3);
+                stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
                     handleAutoShooting(currentPose, targetX, 3.4, 0, false);
@@ -261,7 +266,9 @@ public class TangentEighteen2Lines extends OpMode {
                 if (//intakeStoppedForShooting &&
                         !goForLaunch
                       //  && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.8) {
+                       // && follower.getVelocity().getMagnitude() < 1.8) {
+                                && follower.getCurrentTValue() > 0.95)
+                {
                     goForLaunch = true;
                 }
                 break;
@@ -277,7 +284,7 @@ public class TangentEighteen2Lines extends OpMode {
             case 14: // WAIT at Gate (Cycle 3)
                 intake.doIntake();
 
-                if ((pathTimer.getElapsedTimeSeconds() >= 3.5 && follower.getVelocity().getMagnitude() <= 1.8)) {
+                if ((pathTimer.getElapsedTimeSeconds() >= 3 && follower.getVelocity().getMagnitude() <= 1.8)) {
                     setPathState();
                 }
                 break;
@@ -292,16 +299,18 @@ public class TangentEighteen2Lines extends OpMode {
                 break;
 
             case 16: // Shoot (After Gate Cycle 3)
-                stopIntakeOnceAtT(0.3);
+                stopIntakeOnceAtT(0.5);
 
                 if (intakeStoppedForShooting) {
-                    handleAutoShooting(currentPose, targetX, 3.4, 0, false);
+                    handleAutoShooting(currentPose, targetX, 3, 0, false);
                 }
 
                 if (//intakeStoppedForShooting &&
                         !goForLaunch
                       //  && follower.atParametricEnd()
-                        && follower.getVelocity().getMagnitude() < 1.8) {
+                      //  && follower.getVelocity().getMagnitude() < 1.8) {
+                                && follower.getCurrentTValue() > 0.95)
+                {
                     goForLaunch = true;
                 }
                 break;
@@ -324,7 +333,7 @@ public class TangentEighteen2Lines extends OpMode {
                 break;
 
             case 19: // Final Shoot
-                stopIntakeOnceAtT(0.7);
+                stopIntakeOnceAtT(0.3);
 
                 if (intakeStoppedForShooting) {
                     handleAutoShootingSOTM(currentPose, targetX, 25, 0, true,false);
@@ -332,7 +341,9 @@ public class TangentEighteen2Lines extends OpMode {
 
                 if (//intakeStoppedForShooting &&
                         !goForLaunch
-                        && follower.getVelocity().getMagnitude() < 1.8) {
+                     //   && follower.getVelocity().getMagnitude() < 1.8) {
+                                && follower.getCurrentTValue() > 0.9)
+                {
                     goForLaunch = true;
                 }
                 break;

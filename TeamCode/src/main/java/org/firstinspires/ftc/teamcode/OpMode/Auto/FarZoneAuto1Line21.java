@@ -24,7 +24,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 @Configurable
-@Autonomous(name = "FS High Cycle - 21", group = "B", preselectTeleOp = "v2Teleop")
+@Autonomous(name = "FS High Cycle - SWEEP", group = "B", preselectTeleOp = "v2Teleop")
 public class FarZoneAuto1Line21 extends OpMode {
 
     private Follower follower;
@@ -69,12 +69,7 @@ public class FarZoneAuto1Line21 extends OpMode {
         megaIntakePath = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.shootPositionFarSide), Poses.get(Poses.sussy21BallFarPathControlPoint), Poses.get(Poses.sussy21BallFarPath)))
 //                .setTangentHeadingInterpolation()
-                .setHeadingInterpolation(
-                        HeadingInterpolator.piecewise(
-                                new HeadingInterpolator.PiecewiseNode(0,.3,HeadingInterpolator.tangent),
-                                new HeadingInterpolator.PiecewiseNode(.3,1,HeadingInterpolator.constant(Poses.getAlliance() == Poses.Alliance.RED ? -45 : - 225 )
-                                )
-                        ))
+                .setConstantHeadingInterpolation(Poses.getAlliance() == Poses.Alliance.RED ? 45 : 135 )
                 .build();
 
         humanPlayerIntake = follower.pathBuilder()
@@ -167,7 +162,7 @@ public class FarZoneAuto1Line21 extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                    // follower.setMaxPower(0.7);
-                    follower.followPath(humanPlayerIntake, true);
+                    follower.followPath(humanPlayerIntake, false);
                     setPathState(5); // Skipping to 5 based on your original logic
                 }
                 break;
@@ -181,6 +176,10 @@ public class FarZoneAuto1Line21 extends OpMode {
                 break;
 
             case 6: // Shoot 3 Balls (Cycle 1)
+//                if (pathTimer.getElapsedTimeSeconds() < 0.05){
+//                    intake.doOuttake();
+//                }
+
                 handleAutoShooting(currentPose, targetX, 3.8, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
@@ -204,6 +203,9 @@ public class FarZoneAuto1Line21 extends OpMode {
                 break;
 
             case 9: // Shoot 3 Balls (Cycle 2)
+//                if (pathTimer.getElapsedTimeSeconds() < 0.05){
+//                    intake.doOuttake();
+//                }
                 handleAutoShooting(currentPose, targetX, 3.8, 0);
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
@@ -216,7 +218,7 @@ public class FarZoneAuto1Line21 extends OpMode {
                 if (!follower.isBusy()) {
                    // follower.setMaxPower(0.7);
                     follower.followPath(megaIntakePath, false);
-                    setPathState(); // Skipping to 5 based on your original logic
+                    setPathState();
                 }
                 break;
 
@@ -224,13 +226,17 @@ public class FarZoneAuto1Line21 extends OpMode {
             case 11: // Return to Shoot 1
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
                   //  follower.setMaxPower(1);
-                    follower.followPath(travelBackToShootMega, true);
+
+                    follower.followPath(travelBackToShoot2, true);
                     setPathState();
                 }
                 break;
 
             case 12: // Shoot 3 Balls (Cycle 1)
                 handleAutoShooting(currentPose, targetX, 3.8, 0);
+                if (pathTimer.getElapsedTimeSeconds() < 0.05){
+                    //intake.doOuttake();
+                }
                 if (!goForLaunch
                         && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
                     goForLaunch = true;
@@ -288,6 +294,7 @@ public class FarZoneAuto1Line21 extends OpMode {
         if (veloReached && goForLaunch) {
             doTransfer = true;
         }
+
 
         //  Feeding + shot counting
         if (doTransfer) {

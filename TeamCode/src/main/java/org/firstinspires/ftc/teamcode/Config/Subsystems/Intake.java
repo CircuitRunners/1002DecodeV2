@@ -1192,6 +1192,14 @@ public class Intake {
 //    }
 
 
+    public double motor1CurrentDraw(){
+        return intake1.getCurrent(CurrentUnit.MILLIAMPS);
+    }
+
+    public double motor2CurrentDraw(){
+        return intake2.getCurrent(CurrentUnit.MILLIAMPS);
+    }
+
 
 
 

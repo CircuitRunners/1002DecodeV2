@@ -55,6 +55,10 @@ public class newTeleop extends OpMode {
     private boolean isRedAlliance = true;
     private boolean preselectFromAuto = false;
 
+    private boolean doOuttakeCurrentSussery = false;
+
+    private boolean intaking = false;
+
     public Limelight3A limelight67;
 
     private int ballsShotInState = 0;
@@ -325,6 +329,8 @@ public class newTeleop extends OpMode {
 
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
 
+
+
         if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
             useAprilTagAim = !useAprilTagAim;
         }
@@ -361,6 +367,10 @@ public class newTeleop extends OpMode {
 //        else if (initiateTransfer && !veloReached || (pose.getY() > 80 && gamepad1.right_trigger <=0.17)){
 //            intake.doIntakeHalt();
 //        }
+
+        else if (!veloReached){
+            intake.doOuttake();
+        }
         else {
             intake.doIntakeHalt();
         }
@@ -508,6 +518,8 @@ public class newTeleop extends OpMode {
             if (opState == 0) {
                 ballsShotInState = 0;
                 opState = 1;
+
+
             } else resetToIntake();
         }
 
@@ -535,14 +547,21 @@ public class newTeleop extends OpMode {
 
         //shooter.setTurretTarget(0, Shooter.TurretMode.ROBOT_CENTRIC,follower.getPose().getHeading());
         if (gamepad1.right_trigger > 0.2) {
-            intake.doIntake();
+           intake.doIntake();
+
+
+
             if (!noAutoAlign) {
                 shooter.setTurretTarget(0, NewShooter.TurretMode.ROBOT_CENTRIC, follower.getPose().getHeading(), turretMannualAdjust);
             }
 
         }
-        //else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
-        else intake.doIntakeHalt();
+//        else if (gamepad1.left_trigger > 0.2) intake.doOuttake();
+        else {
+            intake.doIntakeHalt();
+        }
+
+
     }
 
 //    private void configurePinpoint() {
