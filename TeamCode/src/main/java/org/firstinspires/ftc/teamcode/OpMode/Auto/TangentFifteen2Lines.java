@@ -122,7 +122,10 @@ public class TangentFifteen2Lines extends OpMode {
 
     public void autonomousPathUpdate() {
         Pose currentPose = follower.getPose();
-        if (pathState <= 8) {
+        if (pathState == 1) {
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X  : BLUE_GOAL_X + 7;
+        }
+        else if (pathState <= 8) {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
         } else {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X  : BLUE_GOAL_X + 5;

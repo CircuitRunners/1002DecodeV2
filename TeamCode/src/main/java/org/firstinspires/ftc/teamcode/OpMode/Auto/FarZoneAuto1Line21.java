@@ -153,7 +153,7 @@ public class FarZoneAuto1Line21 extends OpMode {
             case 1: // Shoot 3 Preloads
                 handleAutoShooting(currentPose, targetX, 3.8, 0);
                 if (!goForLaunch
-                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5 ) {
                     goForLaunch = true;
                 }
                 break;
@@ -182,7 +182,7 @@ public class FarZoneAuto1Line21 extends OpMode {
 
                 handleAutoShooting(currentPose, targetX, 3.8, 0);
                 if (!goForLaunch
-                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5 && follower.atParametricEnd()) {
                     goForLaunch = true;
                 }
                 break;
@@ -208,7 +208,7 @@ public class FarZoneAuto1Line21 extends OpMode {
 //                }
                 handleAutoShooting(currentPose, targetX, 3.8, 0);
                 if (!goForLaunch
-                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5 && follower.atParametricEnd()) {
                     goForLaunch = true;
                 }
                 break;
@@ -217,7 +217,9 @@ public class FarZoneAuto1Line21 extends OpMode {
                 intake.doIntake();
                 if (!follower.isBusy()) {
                    // follower.setMaxPower(0.7);
-                    follower.followPath(megaIntakePath, false);
+//                    follower.followPath(megaIntakePath, false);
+                    //follower.followPath(megaIntakePath, false);
+                    follower.followPath(humanPlayerIntakeNonFunny, false);
                     setPathState();
                 }
                 break;
@@ -227,18 +229,16 @@ public class FarZoneAuto1Line21 extends OpMode {
                 if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
                   //  follower.setMaxPower(1);
 
-                    follower.followPath(travelBackToShoot2, true);
+//                    follower.followPath(travelBackToShoot2, true);
+                    follower.followPath(travelBackToShoot1, true);
                     setPathState();
                 }
                 break;
 
             case 12: // Shoot 3 Balls (Cycle 1)
                 handleAutoShooting(currentPose, targetX, 3.8, 0);
-                if (pathTimer.getElapsedTimeSeconds() < 0.05){
-                    //intake.doOuttake();
-                }
                 if (!goForLaunch
-                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        && (follower.getVelocity().getMagnitude() < 1.8) && pathTimer.getElapsedTimeSeconds() > 0.5 && follower.atParametricEnd()) {
                     goForLaunch = true;
                 }
                 break;
@@ -282,7 +282,7 @@ public class FarZoneAuto1Line21 extends OpMode {
                     headingDeg,
                     true, 0,
                     mannualHoodOffset ,
-                    false, 0
+                    false, +5
             );
         }
 

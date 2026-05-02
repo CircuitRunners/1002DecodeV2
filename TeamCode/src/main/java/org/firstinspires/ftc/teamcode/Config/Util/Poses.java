@@ -122,6 +122,10 @@ public class Poses {
             new Pose(99.5, 84, Math.toRadians(Math.toRadians((218.51 + 180)) % 360)),
             new Pose(51.5, 84, Math.toRadians((321.5 + 180)) % 360) // 144 - 100.5 = 43.5
     );
+    public static final AlliancePose shootPositionGoalSide15BallTangentFirstTime = new AlliancePose(
+            new Pose(99.5, 84, Math.toRadians(Math.toRadians((218.51 + 180)) % 360)),
+            new Pose(57, 84, Math.toRadians((321.5 + 180)) % 360) // 144 - 100.5 = 43.5
+    );
 
     public static final AlliancePose shootPositionGoalSide18BallTangent = new AlliancePose(
             new Pose(105.5, 80, Math.toRadians(-90)),
@@ -272,6 +276,10 @@ public class Poses {
             new Pose(151.5, 58.5, Math.toRadians(45)),
             new Pose(20, 61.5, Math.toRadians(135)) // correct
     );
+    public static final AlliancePose openGateHighCycleBackupPoint = new AlliancePose(
+            new Pose(151.5, 58.5, Math.toRadians(45)),
+            new Pose(26.5, 61.5, Math.toRadians(135)) // correct
+    );
     public static final AlliancePose openGateHighCycleTangent = new AlliancePose(
             new Pose(146, 65, Math.toRadians(0)),
             new Pose(25.5, 68, Math.toRadians(180)) // correct
@@ -318,15 +326,15 @@ public class Poses {
 
     public static final AlliancePose startPose18Ball = new AlliancePose(
             new Pose(141.7, 115.7, Math.toRadians((218.51 + 180)) % 360), //118.5
-            new Pose(25.5, 118.5, Math.toRadians((321.5 + 180)) % 360)
+            new Pose(25.9, 109.4, Math.toRadians((321.5 + 180)) % 360)
     );
     public static final AlliancePose shootPositionFarSide = new AlliancePose(
-            new Pose(86, 11.5, Math.toRadians(0)),
-            new Pose(58, 11.5, Math.toRadians(180))
+            new Pose(90, 11.5, Math.toRadians(0)),
+            new Pose(54, 11.5, Math.toRadians(180))
     );
     public static final AlliancePose humanPlayerIntake = new AlliancePose(
             new Pose(132, 10.5, Math.toRadians(0)),
-            new Pose(8, 11, Math.toRadians(180))
+            new Pose(7, 11, Math.toRadians(180))
     );
 
 //     public static final AlliancePose humanPlayerIntake = new AlliancePose(

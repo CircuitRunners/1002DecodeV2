@@ -66,13 +66,19 @@ public class TwelveBall2xOpenGate extends OpMode {
     double turretOffset = 0;
 
 
-    private PathChain travelToShoot, openGateLine1, intake1, travelBackToShoot2, openGateLine2,intake2, travelBackToShootFromGate, travelBackToShootFromIntake1,park,intake3,travelBackToShootFromIntake3;
+    private PathChain travelToShoot, openGateLine1, intake1, travelBackToShoot2, openGateLine2,intake2, travelBackToShootFromGate, travelBackToShootFromIntake1,park,intake3,travelBackToShootFromIntake3, sigmaCycle, travelBackToShootFromGateLastTime;
 
     public void buildPaths() {
         // Path 1: Start to Shoot Position
+//        travelToShoot = follower.pathBuilder()
+//                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+//                .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
+//                .build();
+
         travelToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
-                .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.startPose18Ball), Poses.get(Poses.shootPositionGoalSide18BallTangent)))
+                //.setLinearHeadingInterpolation(Poses.get(Poses.startPose18Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide18BallTangent).getHeading())
+                .setConstantHeadingInterpolation(Poses.get(Poses.startPose18Ball).getHeading())
                 .build();
 
 
@@ -80,7 +86,7 @@ public class TwelveBall2xOpenGate extends OpMode {
         // Path 2: Shoot to Intake 2
         intake2 = follower.pathBuilder()
                 .setNoDeceleration()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide18BallTangent), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
                 .setTangentHeadingInterpolation()
                 .build();
 
@@ -92,19 +98,34 @@ public class TwelveBall2xOpenGate extends OpMode {
                 .build();
 
         openGateLine1 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLineOne15Ball), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .addPath(new BezierLine(Poses.get(Poses.pickupLineOne15Ball),Poses.get(Poses.openGateHighCycleBackupPoint)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
                 .build();
 
         openGateLine2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Poses.get(Poses.pickupLine2), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .addPath(new BezierLine(Poses.get(Poses.pickupLine2), Poses.get(Poses.openGateHighCycleBackupPoint)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycleBackupPoint),Poses.get(Poses.openGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycleBackupPoint).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
                 .build();
 
         // Gate back to Shoot
         travelBackToShootFromGate = follower.pathBuilder()
                 .addPath(new BezierCurve(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.line2ControlPointTangent), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
                 .setTangentHeadingInterpolation().setReversed()
+                .build();
+        travelBackToShootFromGateLastTime = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.line2ControlPointTangent), Poses.get(Poses.shootPositionGoalSide15BallTangentLastTime)))
+                .setTangentHeadingInterpolation().setReversed()
+                .build();
+        sigmaCycle  = follower.pathBuilder()
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.openGateHighCycleControlPoint),Poses.get(Poses.openGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.pickupLine1).getHeading(), Poses.get(Poses.openGateHighCycle).getHeading())
+                .addPath(new BezierLine(Poses.get(Poses.openGateHighCycle), Poses.get(Poses.intakeFromGateHighCycle)))
+                .setLinearHeadingInterpolation(Poses.get(Poses.openGateHighCycle).getHeading(), Poses.get(Poses.intakeFromGateHighCycle).getHeading())
+//                    .addPath(new BezierLine(Poses.get(Poses.intakeFromGateHighCycle), Poses.get(Poses.openGateRamTech)))
+//                    .setLinearHeadingInterpolation(Poses.get(Poses.intakeFromGateHighCycle).getHeading(), Poses.get(Poses.openGateRamTech).getHeading())
+
                 .build();
 
 
@@ -243,7 +264,7 @@ public class TwelveBall2xOpenGate extends OpMode {
             case 9: // Gate Cycle 2 - Start Path
                 if (!follower.isBusy()) {
                     intake.doIntake();
-                    follower.followPath(intake3, false);
+                    follower.followPath(sigmaCycle, false);
                     setPathState(900);
                 }
                 break;
@@ -251,7 +272,7 @@ public class TwelveBall2xOpenGate extends OpMode {
             case 900:
                 if (!follower.isBusy()) {
 
-                    follower.followPath(travelBackToShootFromIntake3, false);
+                    follower.followPath(travelBackToShootFromGateLastTime, false);
                     setPathState(12);
                 }
                 break;
@@ -309,7 +330,7 @@ public class TwelveBall2xOpenGate extends OpMode {
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX-5.5, GOAL_Y,
+                    targetX-3.5, GOAL_Y,
                     headingDeg,
                     true, -63,
                     mannualHoodOffset,
@@ -404,7 +425,7 @@ public class TwelveBall2xOpenGate extends OpMode {
 
 
         if (Poses.getAlliance() != lastKnownAlliance) {
-            follower.setStartingPose(Poses.get(Poses.startPose15Ball));
+            follower.setStartingPose(Poses.get(Poses.startPose18Ball));
             buildPaths();
 
             lastKnownAlliance = Poses.getAlliance();

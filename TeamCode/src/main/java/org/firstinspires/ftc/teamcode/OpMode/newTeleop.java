@@ -330,7 +330,6 @@ public class newTeleop extends OpMode {
     private void handleScoringStateNoSort(Pose pose, double vx, double vy, double head, boolean beam) {
 
 
-
         if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
             useAprilTagAim = !useAprilTagAim;
         }
@@ -368,9 +367,9 @@ public class newTeleop extends OpMode {
 //            intake.doIntakeHalt();
 //        }
 
-        else if (!veloReached){
-            intake.doOuttake();
-        }
+//        else if (!veloReached){
+//            intake.doOuttake();
+//        }
         else {
             intake.doIntakeHalt();
         }
@@ -405,7 +404,7 @@ public class newTeleop extends OpMode {
         double targetX;
         if (isRedAlliance) {
             if (closeZone) {
-                targetX = RED_GOAL_X - 2.5;
+                targetX = RED_GOAL_X + 1;
             } else {
                 targetX = RED_GOAL_X - 5.5;
             }
@@ -430,14 +429,14 @@ public class newTeleop extends OpMode {
                 newX = newGoalCoords[0];
                 newY = newGoalCoords[1];
                 dist = Math.hypot(newX - pose.getX(), newY - pose.getY());
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), isRedAlliance ? newX - 2.5 : newX + 2, newY, headingDeg, true, isRedAlliance ? -38 : -15, 0, false, 0);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), isRedAlliance ? newX - 2.5 : newX + 2, newY, headingDeg, true, isRedAlliance ? -38 +mannualFlywheelAdj: -15+mannualFlywheelAdj, 0, false, 0);
                 if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
             } else {
 
                 dist = Math.hypot(isRedAlliance ? (targetX - 2.5) - pose.getX() : targetX - pose.getX(), GOAL_Y - pose.getY());
                 newX = targetX;
                 newY = GOAL_Y;
-                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX, GOAL_Y, headingDeg, autoAlign, isRedAlliance ? -31 : -15, 0, isRedAlliance, turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX, GOAL_Y, headingDeg, autoAlign, isRedAlliance ? -31 +mannualFlywheelAdj: -15+mannualFlywheelAdj, 0, isRedAlliance, turretMannualAdjust);
             }
         } else {
             //turretOffsetFar = isRedAlliance ? -12.5 : 12.5;
@@ -446,13 +445,13 @@ public class newTeleop extends OpMode {
                 newX = newGoalCoords[0];
                 newY = newGoalCoords[1];
                 dist = Math.hypot(newX - pose.getX(), newY - pose.getY());
-                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX + 2, newY, headingDeg, true, -45, 0, false, 0);
+                shooter.setTargetsByDistanceAdjustable(pose.getX(), pose.getY(), newX + 2, newY, headingDeg, true, -45+mannualFlywheelAdj, 0, false, 0);
                 if (gamepad1.right_trigger > 0.2) intake.doTestShooter();
             } else {
                 dist = Math.hypot(targetX - pose.getX(), GOAL_Y - pose.getY());
                 newX = targetX;
                 newY = GOAL_Y;
-                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX + 2, GOAL_Y, headingDeg, autoAlign, -50, 0, isRedAlliance, turretMannualAdjust);
+                shooter.setTargetsByDistanceAdjustable(rx, ry, targetX + 2, GOAL_Y, headingDeg, autoAlign, -50+mannualFlywheelAdj, 0, isRedAlliance, turretMannualAdjust);
             }
         }
     }
@@ -504,9 +503,9 @@ public class newTeleop extends OpMode {
             follower.setPose(new Pose(72, 72, Math.toRadians(90)));
         if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
             if (isRedAlliance) {
-                follower.setPose(new Pose(0, 17, Math.toRadians(180)));
+                follower.setPose(new Pose(5.5, 12, Math.toRadians(180)));
             } else {
-                follower.setPose(new Pose(124, 9, Math.toRadians(0)));
+                follower.setPose(new Pose(126.8, 0, Math.toRadians(0)));
             }
         }
         //if (player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) updateCoordinatesWithAprilTag();

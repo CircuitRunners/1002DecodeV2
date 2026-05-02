@@ -73,7 +73,7 @@ public class TangentFifteen3Lines extends OpMode {
     public void buildPaths() {
         // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangentFirstTime)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
                 .build();
 
@@ -82,7 +82,7 @@ public class TangentFifteen3Lines extends OpMode {
         // Path 2: Shoot to Intake 1
         intake2 = follower.pathBuilder()
                 .setNoDeceleration()
-                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangent), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
+                .addPath(new BezierCurve(Poses.get(Poses.shootPositionGoalSide15BallTangentFirstTime), Poses.get(Poses.line2ControlPoint), Poses.get(Poses.pickupLine2)))
                 .setTangentHeadingInterpolation()
                 .build();
 
@@ -138,7 +138,10 @@ public class TangentFifteen3Lines extends OpMode {
 
     public void autonomousPathUpdate() {
         Pose currentPose = follower.getPose();
-        if (pathState <= 8) {
+        if (pathState == 1) {
+            targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X  : BLUE_GOAL_X + 8;
+        }
+        else if (pathState <= 8) {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X : BLUE_GOAL_X;
         } else {
             targetX = (Poses.getAlliance() == Poses.Alliance.RED) ? RED_GOAL_X  : BLUE_GOAL_X + 7;
@@ -351,7 +354,7 @@ public class TangentFifteen3Lines extends OpMode {
         } else {
             shooter.setTargetsByDistanceAdjustable(
                     pose.getX(), pose.getY(),
-                    targetX-5.5, GOAL_Y,
+                    targetX-2.5, GOAL_Y,
                     headingDeg,
                     true, -63,
                     mannualHoodOffset,
