@@ -9,6 +9,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
+import org.firstinspires.ftc.teamcode.Config.Util.DetectedColor;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Configurable
@@ -244,12 +247,58 @@ public class LimelightCamera {
             } else if (className.equals("green") && cr.getConfidence() > 0.6) {
                 greenCount++;
             }
-
             totalResults[1] = greenCount;
             totalResults[2] = purpleCount;
         }
 
         return totalResults;
+    }
+
+    public double[] getColorResults() {
+        limelightCamera.pipelineSwitch(9);
+
+        LLResult result = getResult();
+        if (result == null || !result.isValid()) {return null;}
+        LLResultTypes.ColorResult validResult = null;
+        for (LLResultTypes.ColorResult cr : result.getColorResults()) {
+
+            if (cr == null || cr.getTargetArea() < 0.006) {
+                return null;
+            }
+            else {
+                validResult = cr;
+            }
+        }
+
+        if (validResult == null) {
+            return null;
+        } else {
+            return new double[]{validResult.getTargetXDegrees(), validResult.getTargetYDegrees()};
+        }
+
+    }
+
+    public double [] getPollenDetectorResults() {
+        limelightCamera.pipelineSwitch(7);
+
+        LLResult result = getResult();
+        if (result == null || !result.isValid()) {return null;}
+        LLResultTypes.DetectorResult validResult = null;
+        for (LLResultTypes.DetectorResult dr : result.getDetectorResults()) {
+
+            if (dr == null || dr.getTargetArea() < 0.005) {
+                return null;
+            }
+            else {
+                validResult = dr;
+            }
+
+        }
+        if (validResult == null) {
+            return null;
+        } else {
+            return new double[]{validResult.getTargetXDegrees(), validResult.getTargetYDegrees(), validResult.getTargetArea()};
+        }
     }
 
 

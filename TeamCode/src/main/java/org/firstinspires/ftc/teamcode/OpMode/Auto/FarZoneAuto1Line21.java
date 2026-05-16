@@ -31,6 +31,7 @@ public class FarZoneAuto1Line21 extends OpMode {
     private GoBildaPinpointDriver pinpoint;
     private Timer pathTimer;
     private Timer loopTimer; // Added loop timer for consistency
+    private Timer intakeStallTimer;
     private NewShooter shooter;
     private Intake intake;
     private Sensors sensors;
@@ -54,7 +55,7 @@ public class FarZoneAuto1Line21 extends OpMode {
 
     // Field Constants
     private final double RED_GOAL_X = 139.5;
-    private final double BLUE_GOAL_X = 12.5;
+    private final double BLUE_GOAL_X = 8;
     private final double GOAL_Y = Poses.GOAL_Y;
 
 
@@ -168,7 +169,7 @@ public class FarZoneAuto1Line21 extends OpMode {
                 break;
 
             case 5: // Return to Shoot 1
-                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1)) {
+                if (!follower.isBusy() || (follower.atParametricEnd() && follower.getVelocity().getMagnitude() < 1) || pathTimer.getElapsedTimeSeconds() > 5) {
                    // follower.setMaxPower(1);
                     follower.followPath(travelBackToShoot1, true);
                     setPathState();
@@ -389,7 +390,7 @@ public class FarZoneAuto1Line21 extends OpMode {
         telemetry.addLine("D-pad UP → RED | D-pad DOWN → BLUE");
         telemetry.addLine("");
         telemetry.addData("Alliance Set", Poses.getAlliance());
-        telemetry.addData("Start Pose", Poses.get(Poses.startPoseGoalSide));
+        telemetry.addData("Start Pose", Poses.get(Poses.startPoseFarSide));
 
         telemetry.addData("X Pos", follower.getPose().getX());
         telemetry.addData("Y Pos", follower.getPose().getY());

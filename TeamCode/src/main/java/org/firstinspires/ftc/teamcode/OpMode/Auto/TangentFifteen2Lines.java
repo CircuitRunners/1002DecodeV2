@@ -70,7 +70,7 @@ public class TangentFifteen2Lines extends OpMode {
     public void buildPaths() {
         // Path 1: Start to Shoot Position
         travelToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangent)))
+                .addPath(new BezierLine(Poses.get(Poses.startPose15Ball), Poses.get(Poses.shootPositionGoalSide15BallTangentFirstTime)))
                 .setLinearHeadingInterpolation(Poses.get(Poses.startPose15Ball).getHeading(), Poses.get(Poses.shootPositionGoalSide15BallTangent).getHeading())
                 .build();
 
