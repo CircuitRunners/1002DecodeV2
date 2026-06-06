@@ -108,8 +108,8 @@ public class BlobDetector extends OpMode {
     private Pose getCloserToBlobPoseDetector(Pose currentPose) {
         double[] blobTxTyTa = limelight.getPollenDetectorResults();
         if (blobTxTyTa == null) {return currentPose;}
-        double tx = blobTxTyTa[1];
-        double ty = -blobTxTyTa[0];
+        double tx = blobTxTyTa[0];
+        double ty = blobTxTyTa[1];
         double ta = blobTxTyTa[2];
 
         double distanceFromBlob = TA_K / Math.sqrt(ta);
