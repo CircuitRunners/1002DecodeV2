@@ -94,8 +94,8 @@ public class BlobDetector extends OpMode {
     private Pose getCloserToBlobPoseColor(Pose currentPose) {
         double[] blobTxTy = limelight.getColorResults();
         if (blobTxTy == null) {return currentPose;}
-        double tx = blobTxTy[1];
-        double ty = -blobTxTy[0];
+        double tx = blobTxTy[0];
+        double ty = blobTxTy[1];
 
         double distanceFromBlob = LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG));
         if (distanceFromBlob < 2) {return currentPose;}

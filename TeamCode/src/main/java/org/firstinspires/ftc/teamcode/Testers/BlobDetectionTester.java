@@ -74,16 +74,16 @@ public class BlobDetectionTester extends OpMode {
             telemetry.addData("LimelightTx", blobTxTy[0]);
             telemetry.addData("LimelightTy", blobTxTy[1]);
             telemetry.addData("LimelightTa", ta);
-            telemetry.addData("Actual Tx", blobTxTy[1]);
-            telemetry.addData("Actual Ty", -blobTxTy[0]);
-            telemetry.addData("Distance From Blob", usingColor ? LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(-blobTxTy[0] + LIMELIGHT_MOUNT_DEG)) : TA_K / Math.sqrt(ta));
+//            telemetry.addData("Actual Tx", blobTxTy[1]);
+//            telemetry.addData("Actual Ty", -blobTxTy[0]);
+            telemetry.addData("Distance From Blob", usingColor ? LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(blobTxTy[1] + LIMELIGHT_MOUNT_DEG)) : TA_K / Math.sqrt(ta));
             if (usingColor) {
                 telemetry.addData("Blob Pose", getCloserToBlobPose(follower.getPose()));
             } else {
                 telemetry.addData("Blob Pose", getCloserToBlobPoseDetector(follower.getPose()));
             }
         }
-
+        telemetry.addData("Detection Method", usingColor ? "Color Pipeline" : "Detector Pipeline");
         telemetry.update();
 
 
@@ -96,8 +96,8 @@ public class BlobDetectionTester extends OpMode {
     private Pose getCloserToBlobPose(Pose currentPose) {
         double[] blobTxTy = limelight.getColorResults();
         if (blobTxTy == null) {return currentPose;}
-        double tx = blobTxTy[1];
-        double ty = -blobTxTy[0];
+        double tx = blobTxTy[0];
+        double ty = blobTxTy[1];
 
         double distanceFromBlob = LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG));
         double newX = currentPose.getX() + Math.cos(Math.toRadians(tx)) * distanceFromBlob;
@@ -109,8 +109,8 @@ public class BlobDetectionTester extends OpMode {
     private Pose getCloserToBlobPoseDetector(Pose currentPose) {
         double[] blobTxTyTa = limelight.getPollenDetectorResults();
         if (blobTxTyTa == null) {return currentPose;}
-        double tx = blobTxTyTa[1];
-        double ty = -blobTxTyTa[0];
+        double tx = blobTxTyTa[0];
+        double ty = blobTxTyTa[1];
         double ta = blobTxTyTa[2];
 
         double distanceFromBlob = TA_K / Math.sqrt(ta);
