@@ -31,7 +31,7 @@ public class MecanumDrive {
         }
     }
 
-    private void setPowers(double frontLeftPower, double frontRightPower, double backLeftPower, double backRightPower) {
+    public void setPowers(double frontLeftPower, double frontRightPower, double backLeftPower, double backRightPower) {
         double maxSpeed = 1.0;
         maxSpeed = Math.max(maxSpeed, Math.abs(frontLeftPower));
         maxSpeed = Math.max(maxSpeed, Math.abs(frontRightPower));

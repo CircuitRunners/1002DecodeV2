@@ -23,7 +23,7 @@ public class BlobDetector extends OpMode {
     private GamepadEx player1;
     private boolean usingColor = false;
     private double LIMELIGHT_HEIGHT = 12.0; //inches
-    private double TA_K = 33.55; //distance * sqrt(ta)
+    private double TA_K = 3.355; //distance * sqrt(ta)
     private double LIMELIGHT_MOUNT_DEG = 5.0;
     private PathChain followBlob;
 
@@ -58,14 +58,11 @@ public class BlobDetector extends OpMode {
         Pose currentPose = follower.getPose();
 
         player1.readButtons();
-        if (player1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
-            usingColor = !usingColor;
-        }
 
+        double[] blobTxTy = limelight.getPollenDetectorResults();
 
-        if (!follower.isBusy()) {
+        if (!follower.isBusy() && blobTxTy != null) {
             buildBlobDetectionPath(currentPose);
-            follower.followPath(followBlob, false);
         }
 
         telemetry.addLine("~~~Current Pose~~~");
@@ -73,13 +70,13 @@ public class BlobDetector extends OpMode {
         telemetry.addData("Y", currentPose.getY());
         telemetry.addData("Heading", currentPose.getHeading());
 
-        double[] blobTxTy = limelight.getColorResults();
+
         if (blobTxTy != null) {
             telemetry.addLine("~~~Limelight Pose~~~");
-            telemetry.addData("Tx", blobTxTy[1]);
-            telemetry.addData("Ty", -blobTxTy[0]);
-            telemetry.addData("Distance From Blob", LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(blobTxTy[0] + LIMELIGHT_MOUNT_DEG)));
-            telemetry.addData("Blob Pose", getCloserToBlobPoseColor(currentPose));
+            telemetry.addData("Tx", blobTxTy[0]);
+            telemetry.addData("Ty", -blobTxTy[1]);
+            telemetry.addData("Distance From Blob", Math.cos(Math.toRadians(-blobTxTy[1] + LIMELIGHT_MOUNT_DEG)) * (TA_K / Math.sqrt(blobTxTy[2])));
+            telemetry.addData("Blob Pose", getCloserToBlobPoseDetector(currentPose));
         }
 
         telemetry.update();
@@ -91,46 +88,30 @@ public class BlobDetector extends OpMode {
 
     }
 
-    private Pose getCloserToBlobPoseColor(Pose currentPose) {
-        double[] blobTxTy = limelight.getColorResults();
-        if (blobTxTy == null) {return currentPose;}
-        double tx = blobTxTy[0];
-        double ty = blobTxTy[1];
-
-        double distanceFromBlob = LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG));
-        if (distanceFromBlob < 2) {return currentPose;}
-        double newX = currentPose.getX() + Math.cos(Math.toRadians(tx)) * distanceFromBlob;
-        double newY = currentPose.getY() + Math.sin(Math.toRadians(tx)) * distanceFromBlob;
-
-        return new Pose(newX, newY, currentPose.getHeading() + Math.toRadians(tx));
-    }
-
     private Pose getCloserToBlobPoseDetector(Pose currentPose) {
         double[] blobTxTyTa = limelight.getPollenDetectorResults();
         if (blobTxTyTa == null) {return currentPose;}
-        double tx = blobTxTyTa[1];
-        double ty = -blobTxTyTa[0];
+        double tx = blobTxTyTa[0];
+        double ty = -blobTxTyTa[1];
         double ta = blobTxTyTa[2];
 
-        double distanceFromBlob = TA_K / Math.sqrt(ta);
-        if (distanceFromBlob < 2) {return currentPose;}
-        double newX = currentPose.getX() + Math.cos(Math.toRadians(tx)) * distanceFromBlob;
-        double newY = currentPose.getY() + Math.sin(Math.toRadians(tx)) * distanceFromBlob;
+        double distanceFromBlob = Math.cos(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG)) * (TA_K / Math.sqrt(ta));
+        double blobAngle = currentPose.getHeading() + Math.toRadians(tx);
+        double newX = currentPose.getX() + Math.cos(blobAngle) * distanceFromBlob;
+        double newY = currentPose.getY() + Math.sin(blobAngle) * distanceFromBlob;
 
         return new Pose(newX, newY, currentPose.getHeading() + Math.toRadians(tx));
     }
 
-    public void buildBlobDetectionPath(Pose currentPose) {
-        Pose targetPose;
-        if (usingColor) {
-            targetPose = getCloserToBlobPoseColor(currentPose);
-        } else {
-            targetPose = getCloserToBlobPoseDetector(currentPose);
-        }
+    private void buildBlobDetectionPath(Pose currentPose) {
+        Pose targetPose = getCloserToBlobPoseDetector(currentPose);
+        if (Math.hypot(targetPose.getX() - currentPose.getX(), targetPose.getY() - currentPose.getY()) < 2) return;
+
         followBlob = follower.pathBuilder()
                 .addPath(new BezierLine(currentPose, targetPose))
                 .setConstantHeadingInterpolation(targetPose.getHeading())
                 .build();
 
+        follower.followPath(followBlob, true);
     }
 }

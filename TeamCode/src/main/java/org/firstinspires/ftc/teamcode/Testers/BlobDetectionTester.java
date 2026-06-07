@@ -23,7 +23,7 @@ public class BlobDetectionTester extends OpMode {
     private List<LynxModule> allHubs;
     private double LIMELIGHT_HEIGHT = 12.0; //inches
     private double LIMELIGHT_MOUNT_DEG = 5.0;
-    private double TA_K = 33.55; //distance * sqrt(ta)
+    private double TA_K = 3.355; //distance * sqrt(ta)
     private PathChain followBlob;
     private GamepadEx player1;
     private Follower follower;
@@ -76,7 +76,7 @@ public class BlobDetectionTester extends OpMode {
             telemetry.addData("LimelightTa", ta);
 //            telemetry.addData("Actual Tx", blobTxTy[1]);
 //            telemetry.addData("Actual Ty", -blobTxTy[0]);
-            telemetry.addData("Distance From Blob", usingColor ? LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(blobTxTy[1] + LIMELIGHT_MOUNT_DEG)) : TA_K / Math.sqrt(ta));
+            telemetry.addData("Distance From Blob", usingColor ? LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(-blobTxTy[1] + LIMELIGHT_MOUNT_DEG)) : Math.cos(Math.toRadians(-blobTxTy[1] + LIMELIGHT_MOUNT_DEG)) * (TA_K / Math.sqrt(ta)));
             if (usingColor) {
                 telemetry.addData("Blob Pose", getCloserToBlobPose(follower.getPose()));
             } else {
@@ -97,7 +97,7 @@ public class BlobDetectionTester extends OpMode {
         double[] blobTxTy = limelight.getColorResults();
         if (blobTxTy == null) {return currentPose;}
         double tx = blobTxTy[0];
-        double ty = blobTxTy[1];
+        double ty = -blobTxTy[1];
 
         double distanceFromBlob = LIMELIGHT_HEIGHT / Math.tan(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG));
         double newX = currentPose.getX() + Math.cos(Math.toRadians(tx)) * distanceFromBlob;
@@ -110,10 +110,10 @@ public class BlobDetectionTester extends OpMode {
         double[] blobTxTyTa = limelight.getPollenDetectorResults();
         if (blobTxTyTa == null) {return currentPose;}
         double tx = blobTxTyTa[0];
-        double ty = blobTxTyTa[1];
+        double ty = -blobTxTyTa[1];
         double ta = blobTxTyTa[2];
 
-        double distanceFromBlob = TA_K / Math.sqrt(ta);
+        double distanceFromBlob = Math.cos(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG)) * (TA_K / Math.sqrt(ta));
         double newX = currentPose.getX() + Math.cos(Math.toRadians(tx)) * distanceFromBlob;
         double newY = currentPose.getY() + Math.sin(Math.toRadians(tx)) * distanceFromBlob;
 

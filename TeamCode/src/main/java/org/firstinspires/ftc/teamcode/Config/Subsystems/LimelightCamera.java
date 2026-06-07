@@ -273,7 +273,7 @@ public class LimelightCamera {
         if (validResult == null) {
             return null;
         } else {
-            return new double[]{validResult.getTargetXDegrees(), validResult.getTargetYDegrees()};
+            return new double[]{validResult.getTargetXDegrees(), validResult.getTargetYDegrees(), validResult.getTargetArea()};
         }
 
     }
