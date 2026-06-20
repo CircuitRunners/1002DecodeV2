@@ -8,6 +8,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
+import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
 import org.firstinspires.ftc.teamcode.Config.Subsystems.LimelightCamera;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -21,9 +22,9 @@ public class BlobDetector extends OpMode {
     private List<LynxModule> allHubs;
     private GamepadEx player1;
     private boolean usingColor = false;
-    private double LIMELIGHT_HEIGHT = 12.0; //inches
+    private double LIMELIGHT_HEIGHT = 15.0; //inches
     private double TA_K = 3.355; //distance * sqrt(ta)
-    private double LIMELIGHT_MOUNT_DEG = 5.0;
+    private double LIMELIGHT_MOUNT_DEG = 30.0;
     private PathChain followBlob;
 
     @Override
@@ -35,7 +36,7 @@ public class BlobDetector extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(72, 72, 90));
+        follower.setStartingPose(new Pose(0, 0, 0));
 
         limelight = new LimelightCamera(hardwareMap);
 
@@ -57,10 +58,9 @@ public class BlobDetector extends OpMode {
         Pose currentPose = follower.getPose();
 
         player1.readButtons();
-
         double[] blobTxTy = limelight.getPollenDetectorResults();
 
-        if (!follower.isBusy() && blobTxTy != null) {
+        if (!follower.isBusy() && blobTxTy != null  && player1.wasJustPressed(GamepadKeys.Button.TRIANGLE)) {
             buildBlobDetectionPath(currentPose);
         }
 
@@ -74,7 +74,7 @@ public class BlobDetector extends OpMode {
             telemetry.addLine("~~~Limelight Pose~~~");
             telemetry.addData("Tx", blobTxTy[0]);
             telemetry.addData("Ty", -blobTxTy[1]);
-            telemetry.addData("Distance From Blob", Math.cos(Math.toRadians(-blobTxTy[1] + LIMELIGHT_MOUNT_DEG)) * (TA_K / Math.sqrt(blobTxTy[2])));
+            telemetry.addData("Distance From Blob", LIMELIGHT_HEIGHT/Math.tan(Math.toRadians(-blobTxTy[1] + LIMELIGHT_MOUNT_DEG)));
             telemetry.addData("Blob Pose", getCloserToBlobPoseDetector(currentPose));
         }
 
@@ -94,12 +94,13 @@ public class BlobDetector extends OpMode {
         double ty = -blobTxTyTa[1];
         double ta = blobTxTyTa[2];
 
-        double distanceFromBlob = Math.cos(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG)) * (TA_K / Math.sqrt(ta));
-        double blobAngle = currentPose.getHeading() + Math.toRadians(tx);
+//        double distanceFromBlob = Math.cos(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG)) * (TA_K / Math.sqrt(ta));
+        double distanceFromBlob = LIMELIGHT_HEIGHT/Math.tan(Math.toRadians(ty + LIMELIGHT_MOUNT_DEG));
+        double blobAngle = currentPose.getHeading() - Math.toRadians(tx);
         double newX = currentPose.getX() + Math.cos(blobAngle) * distanceFromBlob;
         double newY = currentPose.getY() + Math.sin(blobAngle) * distanceFromBlob;
 
-        return new Pose(newX, newY, currentPose.getHeading() + Math.toRadians(tx));
+        return new Pose(newX, newY, currentPose.getHeading() - Math.toRadians(tx));
     }
 
     private void buildBlobDetectionPath(Pose currentPose) {
