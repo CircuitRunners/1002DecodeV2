@@ -22,8 +22,8 @@ import java.util.List;
 public class BlobDetectionTester extends OpMode {
     private LimelightCamera limelight;
     private List<LynxModule> allHubs;
-    public static double LIMELIGHT_HEIGHT = 12.0; // inches
-    public static double LIMELIGHT_MOUNT_DEG = 10.0;
+    public static double LIMELIGHT_HEIGHT = 15.0; // inches
+    public static double LIMELIGHT_MOUNT_DEG = 30.0;
     public static double DETECTOR_DISTANCE_THRESHOLD = 10;
 
     private boolean automatedDrive = false;
